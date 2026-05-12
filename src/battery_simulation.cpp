@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
                     anode_concentration->UpdateConcentration(*Rxn_gf, *CnA_gf, *domain_parameters.psi);
                     electrolyte_concentration->UpdateConcentration(*Rxn_gf, *CnE_gf, *domain_parameters.pse);
 
-                    if (t > 0 && t % 500 == 0){
+                    if (t > 0 && t % 50 == 0){
                         electrolyte_concentration->SaltConservation(*CnE_gf, *domain_parameters.pse);
                     }
 
@@ -220,7 +220,7 @@ int main(int argc, char *argv[]) {
                     cathode_concentration->UpdateConcentration(*Rxn_gf, *CnC_gf, *domain_parameters.psi);
                     electrolyte_concentration->UpdateConcentration(*Rxn_gf, *CnE_gf, *domain_parameters.pse);
 
-                    if (t > 0 && t % 500 == 0){
+                    if (t > 0 && t % 50 == 0){
                         electrolyte_concentration->SaltConservation(*CnE_gf, *domain_parameters.pse);
                     }
 
@@ -321,7 +321,7 @@ int main(int argc, char *argv[]) {
                 cathode_concentration->UpdateConcentration(*RxC_gf, *CnC_gf, *domain_parameters.psC);
                 electrolyte_concentration->UpdateConcentration(*RxC_gf, *RxA_gf, *CnE_gf, *domain_parameters.pse); // with two inputs
 
-                if (t > 0 && t % 500 == 0){
+                if (t > 0 && t % 50 == 0){
                     electrolyte_concentration->SaltConservation(*CnE_gf, *domain_parameters.pse);
                 }
 
