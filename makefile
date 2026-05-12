@@ -54,7 +54,8 @@ SRC_FILES = \
     src/Adjust.cpp \
     src/Utils.cpp \
     src/dist_solver.cpp \
-    src/SimulationState.cpp
+    src/SimulationState.cpp \
+    src/MaterialProperties.cpp
 
 # SRC_FILES = example.cpp
             

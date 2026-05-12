@@ -280,8 +280,9 @@ public:
      *
      * @param Cn Concentration field.
      * @param AvP_in Surface-area weighting function for the interface.
+     * @param material Material type for the interface.
      */
-    void ExchangeCurrentDensity(mfem::ParGridFunction &Cn, mfem::ParGridFunction &AvP_in);
+    void ExchangeCurrentDensity(mfem::ParGridFunction &Cn, mfem::ParGridFunction &AvP_in, sim::MaterialType material);
 
     /**
      * @brief Compute exchange-current density (two concentration fields).

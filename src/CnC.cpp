@@ -76,9 +76,6 @@ void CnC::UpdateConcentration(mfem::ParGridFunction &Rx, mfem::ParGridFunction &
     } else {
         utils.InitializeReaction(Rx, RxC, (1.0/Constants::rho_C)); // account for rho when perm is 0
     }
-    
-    // utils.InitializeReaction(Rx, RxC, (1.0)); // no rho in this term when perm is nonzero
-    // utils.InitializeReaction(Rx, RxC, (1.0/Constants::rho_C)); // account for rho when perm is 0
 
     RxC *= weight_elec; // Scale reaction by electrode weighting function
 
@@ -90,8 +87,6 @@ void CnC::UpdateConcentration(mfem::ParGridFunction &Rx, mfem::ParGridFunction &
     }
 
     cAp.SetGridFunction(&RxC); // Set the reaction term coefficient for the force term
-
-    // RxC.SaveAsOne("RxC");
 
     fem.InitializeForceTerm(cAp, Bc2);
     fem.Update(Bc2); // Update the force term with the current reaction term

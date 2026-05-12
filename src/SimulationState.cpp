@@ -1,4 +1,5 @@
 #include "../include/SimulationState.hpp"
+#include "../include/MaterialProperties.hpp"
 
 static double GetInitialValue(
     const std::vector<double>& values,
@@ -47,88 +48,92 @@ static void InitializePairWorkspaces(SimulationState& state, Initialize_Geometry
 }
 
 
-static inline double GetTableValues(double cn, const mfem::Vector &ticks, const mfem::Vector &data)
-{
-    const double dx = ticks(1) - ticks(0);
+// static inline double GetTableValues(double cn, const mfem::Vector &ticks, const mfem::Vector &data)
+// {
+//     const double dx = ticks(1) - ticks(0);
 
-    if (cn < 1.0e-6) cn = 1.0e-6;
-    if (cn > 0.999999) cn = 0.999999;
+//     if (cn < 1.0e-6) cn = 1.0e-6;
+//     if (cn > 0.999999) cn = 0.999999;
 
-    int idx = std::floor((cn - ticks(0)) / dx);
-    if (idx < 0) idx = 0;
+//     int idx = std::floor((cn - ticks(0)) / dx);
+//     if (idx < 0) idx = 0;
 
-    const int max_idx = ticks.Size() - 2;
-    if (idx > max_idx) idx = max_idx;
+//     const int max_idx = ticks.Size() - 2;
+//     if (idx > max_idx) idx = max_idx;
 
-    return data(idx) + (cn - ticks(idx)) / dx * (data(idx + 1) - data(idx));
-}
+//     return data(idx) + (cn - ticks(idx)) / dx * (data(idx + 1) - data(idx));
+// }
 
-static inline double NMC_mu(double c)
-{
-    return -Constants::Frd * ((1.095 * c * c) - (8.234e-7 * std::exp(14.31 * c)) + (4.692 * std::exp(-0.5389 * c)));
-}
+// static inline double NMC_mu(double c)
+// {
+//     return -Constants::Frd * ((1.095 * c * c) - (8.234e-7 * std::exp(14.31 * c)) + (4.692 * std::exp(-0.5389 * c)));
+// }
 
-static inline double LFP_mu(double c)
-{
-    static mfem::Vector Ticks(201);
-    static mfem::Vector chmPot(201);
-    static bool loaded = false;
+// static inline double LFP_mu(double c)
+// {
+//     static mfem::Vector Ticks(201);
+//     static mfem::Vector chmPot(201);
+//     static bool loaded = false;
 
-    if (!loaded)
-    {
-        std::ifstream myXfile("../inputs/LFP_Chm_Pot_Ticks.txt");
-        std::ifstream mydFfile("../inputs/LFP_Chm_Pot.txt");
+//     if (!loaded)
+//     {
+//         std::ifstream myXfile("../inputs/LFP_Chm_Pot_Ticks.txt");
+//         std::ifstream mydFfile("../inputs/LFP_Chm_Pot.txt");
 
-        if (!myXfile || !mydFfile)
-        {
-            mfem::mfem_error("Could not open LFP chemical potential input files.");
-        }
+//         if (!myXfile || !mydFfile)
+//         {
+//             mfem::mfem_error("Could not open LFP chemical potential input files.");
+//         }
 
-        for (int i = 0; i < 201; i++) myXfile >> Ticks(i);
-        for (int i = 0; i < 201; i++) mydFfile >> chmPot(i);
+//         for (int i = 0; i < 201; i++) myXfile >> Ticks(i);
+//         for (int i = 0; i < 201; i++) mydFfile >> chmPot(i);
 
-        loaded = true;
-    }
+//         loaded = true;
+//     }
 
-    return -Constants::Frd * (GetTableValues(c, Ticks, chmPot) + 3.4);
-}
+//     return -Constants::Frd * (GetTableValues(c, Ticks, chmPot) + 3.4);
+// }
 
-static inline double Graphite_mu(double c)
-{
-    static mfem::Vector Ticks(101);
-    static mfem::Vector chmPot(101);
-    static bool loaded = false;
+// static inline double Graphite_mu(double c)
+// {
+//     static mfem::Vector Ticks(101);
+//     static mfem::Vector chmPot(101);
+//     static bool loaded = false;
 
-    if (!loaded)
-    {
-        std::ifstream myXfile("../inputs/C_Li_X_101.txt");
-        std::ifstream mydFfile("../inputs/C_Li_M6_101.txt");
+//     if (!loaded)
+//     {
+//         std::ifstream myXfile("../inputs/C_Li_X_101.txt");
+//         std::ifstream mydFfile("../inputs/C_Li_M6_101.txt");
 
-        if (!myXfile || !mydFfile)
-        {
-            mfem::mfem_error("Could not open graphite chemical potential input files.");
-        }
+//         if (!myXfile || !mydFfile)
+//         {
+//             mfem::mfem_error("Could not open graphite chemical potential input files.");
+//         }
 
-        for (int i = 0; i < 101; i++) myXfile >> Ticks(i);
-        for (int i = 0; i < 101; i++) mydFfile >> chmPot(i);
+//         for (int i = 0; i < 101; i++) myXfile >> Ticks(i);
+//         for (int i = 0; i < 101; i++) mydFfile >> chmPot(i);
 
-        loaded = true;
-    }
+//         loaded = true;
+//     }
 
-    return GetTableValues(c, Ticks, chmPot);
-}
+//     return GetTableValues(c, Ticks, chmPot);
+// }
 
-static inline double CathodeChemicalPotential(sim::MaterialType material, double c)
-{
-    switch (material)
-    {
-        case sim::MaterialType::NMC:
-            return NMC_mu(c);
+// static inline double CathodeChemicalPotential(sim::MaterialType material, double c)
+// {
+//     switch (material)
+//     {
+//         case sim::MaterialType::NMC:
+//             return NMC_mu(c);
 
-        case sim::MaterialType::LFP:
-            return LFP_mu(c);
-    }
-}
+//         case sim::MaterialType::LFP:
+//             return LFP_mu(c);
+        
+//         default:
+//             mfem::mfem_error("Unknown cathode material type.");
+//             return 0.0;
+//     }
+// }
 
 void UpdateCathodePairChemicalPotentials(SimulationState& state, Initialize_Geometry& geometry, Domain_Parameters& domain_parameters)
 {
@@ -151,57 +156,56 @@ void UpdateCathodePairChemicalPotentials(SimulationState& state, Initialize_Geom
             mu_j = 0.0;
             mu_k = 0.0;
 
-            bool printed_pair = false;
-            int interface_count = 0;
+            // bool printed_pair = false;
+            // int interface_count = 0;
 
             for (int vi = 0; vi < geometry.nV; ++vi)
             {
                 if (AvP_pair(vi) > 1000.0)
                 {
-                    interface_count++;
+                    // interface_count++;
 
-                    mu_j(vi) = CathodeChemicalPotential(mat_j, Cj(vi));
-                    mu_k(vi) = CathodeChemicalPotential(mat_k, Ck(vi));
+                    mu_j(vi) = MaterialProperties::CathodeChemicalPotential(mat_j, Cj(vi));
+                    mu_k(vi) = MaterialProperties::CathodeChemicalPotential(mat_k, Ck(vi));
 
-                    if (!printed_pair && mfem::Mpi::WorldRank() == 0)
-                    {
-                        auto MaterialName = [](sim::MaterialType mat)
-                        {
-                            switch (mat)
-                            {
-                                case sim::MaterialType::NMC: return "NMC";
-                                case sim::MaterialType::LFP: return "LFP";
-                                case sim::MaterialType::Graphite: return "Graphite";
-                                default: return "Unknown";
-                            }
-                        };
+                    // if (!printed_pair && mfem::Mpi::WorldRank() == 0)
+                    // {
+                    //     auto MaterialName = [](sim::MaterialType mat)
+                    //     {
+                    //         switch (mat)
+                    //         {
+                    //             case sim::MaterialType::NMC: return "NMC";
+                    //             case sim::MaterialType::LFP: return "LFP";
+                    //             default: return "Unknown";
+                    //         }
+                    //     };
 
-                        std::cout << "\n[DEBUG MU TEST]" << std::endl;
-                        std::cout << "Pair (" << j << "," << k << ")" << std::endl;
+                        // std::cout << "\n[DEBUG MU TEST]" << std::endl;
+                        // std::cout << "Pair (" << j << "," << k << ")" << std::endl;
 
-                        std::cout << "Particle " << j
-                                << " material = " << MaterialName(mat_j)
-                                << ", C = " << Cj(vi)
-                                << ", mu = " << mu_j(vi)
-                                << std::endl;
+                        // std::cout << "Particle " << j
+                        //         << " material = " << MaterialName(mat_j)
+                        //         << ", C = " << Cj(vi)
+                        //         << ", mu = " << mu_j(vi)
+                        //         << std::endl;
 
-                        std::cout << "Particle " << k
-                                << " material = " << MaterialName(mat_k)
-                                << ", C = " << Ck(vi)
-                                << ", mu = " << mu_k(vi)
-                                << std::endl;
+                        // std::cout << "Particle " << k
+                        //         << " material = " << MaterialName(mat_k)
+                        //         << ", C = " << Ck(vi)
+                        //         << ", mu = " << mu_k(vi)
+                        //         << std::endl;
 
-                        printed_pair = true;
-                    }
+                        // printed_pair = true;
+                    // }
                 }
             }
 
-            if (mfem::Mpi::WorldRank() == 0)
-            {
-                std::cout << "[DEBUG MU] Pair (" << j << "," << k
-                        << ") interface_count = " << interface_count
-                        << std::endl;
-            }
+            // if (mfem::Mpi::WorldRank() == 0)
+            // {
+            //     std::cout << "[DEBUG MU] Pair (" << j << "," << k
+            //             << ") interface_count = " << interface_count
+            //             << std::endl;
+            // }
         }
     }
 }
@@ -217,6 +221,9 @@ void UpdateAnodePairChemicalPotentials(SimulationState& state, Initialize_Geomet
             auto& Cj = *state.anode_particles[j].Cn_gf;
             auto& Ck = *state.anode_particles[k].Cn_gf;
 
+            const auto mat_j = state.anode_particles[j].material;
+            const auto mat_k = state.anode_particles[k].material;
+
             auto& mu_j = *state.mu_pair_a[j][k];
             auto& mu_k = *state.mu_pair_b[j][k];
             auto& AvP_pair = *domain_parameters.AvP_Pairs[j][k];
@@ -228,8 +235,8 @@ void UpdateAnodePairChemicalPotentials(SimulationState& state, Initialize_Geomet
             {
                 if (AvP_pair(vi) > 1000.0)
                 {
-                    mu_j(vi) = Graphite_mu(Cj(vi));
-                    mu_k(vi) = Graphite_mu(Ck(vi));
+                    mu_j(vi) = MaterialProperties::AnodeChemicalPotential(mat_j, Cj(vi));
+                    mu_k(vi) = MaterialProperties::AnodeChemicalPotential(mat_k, Ck(vi));
                 }
             }
         }
