@@ -4,15 +4,6 @@
 #include <string>
 #include <vector>
 
-/**
- * @file SimulationConfig.hpp
- * @brief Defines the simulation configuration structure and argument parsing utilities.
- *
- * Provides a lightweight configuration container for selecting the cell mode,
- * electrode type, mesh files, phase-field files, finite element order, and
- * timestep count. Also declares helper routines for parsing and validating
- * command-line arguments.
- */
 
 /**
  * @struct SimulationConfig
@@ -44,6 +35,9 @@ struct SimulationConfig {
 
     std::vector<double> init_anode_particles;
     std::vector<double> init_cathode_particles;
+
+    std::vector<sim::MaterialType> anode_materials;
+    std::vector<sim::MaterialType> cathode_materials;
 };
 
 /**

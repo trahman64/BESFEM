@@ -10,6 +10,8 @@ struct AnodeParticleState
 {
     int label = -1;
 
+    sim::MaterialType material = sim::MaterialType::Graphite; // Default to Graphite for anode particles
+
     std::unique_ptr<CnA> concentration;
     std::unique_ptr<mfem::ParGridFunction> Cn_gf;
     std::unique_ptr<mfem::ParGridFunction> Cn_gf_psi;
@@ -26,6 +28,8 @@ struct CathodeParticleState
 {
     int label = -1;
 
+    sim::MaterialType material = sim::MaterialType::NMC; // Default to NMC for cathode particles
+
     std::unique_ptr<CnC> concentration;
     std::unique_ptr<mfem::ParGridFunction> Cn_gf;
     std::unique_ptr<mfem::ParGridFunction> Cn_gf_psi;
@@ -37,6 +41,7 @@ struct CathodeParticleState
     std::unique_ptr<PotC> potential;
     std::unique_ptr<mfem::ParGridFunction> ph_gf;
 };
+
 
 struct SimulationState
 {

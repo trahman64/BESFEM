@@ -38,4 +38,20 @@ enum class Electrode {
     BOTH      ///< Both electrodes (valid only for full-cell simulations)
 };
 
+
+/**
+ * @enum MaterialType
+ * @brief Enumerates the types of electrode materials supported in the simulation.
+ * 
+ * - **Graphite** — Common anode material
+ * - **NMC**       — Nickel Manganese Cobalt Oxide, a common cathode material
+ * - **LFP**       — Lithium Iron Phosphate, another common cathode material
+ */
+
+enum class MaterialType {
+    Graphite, ///< Anode material
+    NMC,       ///< Cathode material: Nickel Manganese Cobalt Oxide
+    LFP        ///< Cathode material: Lithium Iron Phosphate
+};
+
 } // namespace sim
