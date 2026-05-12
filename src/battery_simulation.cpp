@@ -355,13 +355,13 @@ int main(int argc, char *argv[]) {
 
                 if (t % 100 == 0 && mfem::Mpi::WorldRank() == 0) {
 
-                    std::ofstream outfile("full_cell_output.txt", std::ios::app);
-
-                    outfile  << "timestep: " << t << " [FULL-CELL]" << ", XfrA = " << XfrA << ", XfrC = " << XfrC
+                    //std::ofstream outfile("full_cell_output.txt", std::ios::app);
+		    //	
+                    std::cout  << "timestep: " << t << " [FULL-CELL]" << ", XfrA = " << XfrA << ", XfrC = " << XfrC
                             << ", Anode current = " << global_current_A << ", Cathode current = " << global_current_C
                             << ", VCell = " << VCell << ", Target Current = " << domain_parameters.gTrgI << std::endl;
 
-                    outfile.close(); 
+                    //outfile.close(); 
                 }
             
                 Utils::SaveSimulationSnapshot(t, outdir, geometry, domain_parameters, *phA_gf, *phC_gf, *phE_gf, 
