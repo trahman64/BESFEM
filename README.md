@@ -192,7 +192,111 @@ You will need to adjust the input files of `mesh` and the `GridFunction x` that 
 
 ## Core BESFEM Equations
 
-![Alt text](equations.png)
+**Cathode concentration**
+```math
+\frac{\partial C_c}{\partial t}
+=
+\frac{1}{\psi_c}
+\nabla \cdot \left( \psi_c D_c \nabla C_c \right)
+-
+\frac{|\nabla \psi_c|}{\psi_c} r_c
+```
+
+**Cathode potential**
+```math
+\nabla \cdot \left( \psi_c \kappa_c \nabla \phi_c \right)
+-
+|\nabla \psi_c| z_- F r_c
+=
+0
+```
+
+**Cathode reaction rate**
+```math
+r_c
+=
+k_c^f C_+
+\exp\left(
+\frac{-\alpha z_+ F [\phi]_e^c}{RT}
+\right)
+-
+k_c^b C_c
+\exp\left(
+\frac{(1-\alpha) z_+ F [\phi]_e^c}{RT}
+\right)
+```
+
+**Electrolyte concentration**
+```math
+\frac{\partial C_e}{\partial t}
+=
+\frac{1}{\psi_e}
+\nabla \cdot \left( \psi_e D_e \nabla C_e \right)
++
+\frac{|\nabla \psi_c|}{\psi_e}\frac{r_c t_-}{\nu_+}
++
+\frac{|\nabla \psi_a|}{\psi_e}\frac{r_a t_-}{\nu_+}
+```
+
+**Electrolyte potential**
+```math
+\nabla \cdot
+\left[
+\psi_e (z_+ m_+ - z_- m_-) F C_e \nabla \phi_e
+\right]
++
+|\nabla \psi_c| \frac{r_c}{\nu_+}
++
+|\nabla \psi_a| \frac{r_a}{\nu_+}
+=
+\nabla \cdot
+\left[
+\psi_e (D_- - D_+) \nabla C_e
+\right]
+```
+
+**Anode reaction rate**
+```math
+r_a
+=
+k_a^f C_+
+\exp\left(
+\frac{-\alpha z_+ F [\phi]_e^a}{RT}
+\right)
+-
+k_a^b C_a
+\exp\left(
+\frac{(1-\alpha) z_+ F [\phi]_e^a}{RT}
+\right)
+```
+
+**Anode concentration**
+```math
+\frac{\partial C_a}{\partial t}
+=
+\frac{1}{\psi_a}
+\nabla \cdot
+\left[
+\psi_a M_a
+\nabla
+\left(
+\frac{\partial f_G}{\partial C_a}
+-
+\varepsilon \nabla^2 C_a
+\right)
+\right]
+-
+\frac{|\nabla \psi_a|}{\psi_a} r_a
+```
+
+**Anode potential**
+```math
+\nabla \cdot \left( \psi_a \kappa_a \nabla \phi_a \right)
+-
+|\nabla \psi_a| z_- F r_a
+=
+0
+```
 
 **Mass Matrix:** used for any term with a time derivative.
 ```bash
