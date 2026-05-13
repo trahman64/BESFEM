@@ -98,7 +98,7 @@ void Reaction::ExchangeCurrentDensity(mfem::ParGridFunction &Cn, mfem::ParGridFu
 
             if (MaterialProperties::UsesDirectReactionTables(material))
             {
-                if (vi == 0 && mfem::Mpi::WorldRank() == 0)
+                if (!printed && mfem::Mpi::WorldRank() == 0)
                 {
                     std::cout << "[DEBUG RXN] Using direct reaction tables for material " << static_cast<int>(material) << std::endl;
                 }
@@ -108,7 +108,7 @@ void Reaction::ExchangeCurrentDensity(mfem::ParGridFunction &Cn, mfem::ParGridFu
             }
             else
             {
-                if (vi == 0 && mfem::Mpi::WorldRank() == 0)
+                if (!printed && mfem::Mpi::WorldRank() == 0)
                 {
                     std::cout << "[DEBUG RXN] Using standard i0C & OCV for material " << static_cast<int>(material) << std::endl;
                 }
@@ -180,21 +180,69 @@ for (int vi = 0; vi < nV; vi++) {
 
 }
 }
-
-
-void Reaction::ButlerVolmer(mfem::ParGridFunction &Rx, mfem::ParGridFunction &Cn1, mfem::ParGridFunction &Cn2, mfem::ParGridFunction &phx1, mfem::ParGridFunction &phx2, mfem::ParGridFunction &AvP_in)
+void Reaction::ButlerVolmer(mfem::ParGridFunction &Rx, mfem::ParGridFunction &Cn1, mfem::ParGridFunction &Cn2, mfem::ParGridFunction &phx1,  
+    mfem::ParGridFunction &phx2,  mfem::ParGridFunction &AvP_in, sim::MaterialType material)
 {
-Rx = 0.0;
+    Rx = 0.0;
 
-for (int vi = 0; vi < nV; vi++){
-    if ( (AvP_in)(vi) * Constants::dh > 0.05){ // Check for interface presence
-        (*dPHE)(vi) = phx1(vi) - phx2(vi); // Voltage drop across the interface
-        Rx(vi) = (AvP_in)(vi) * ((*Kfw)(vi)*Cn2(vi)*exp(-Constants::alp*Constants::Cst1*(*dPHE)(vi)) - \
-                                    (*Kbw)(vi)*Cn1(vi)*exp( Constants::alp*Constants::Cst1*(*dPHE)(vi)));
+    for (int vi = 0; vi < nV; vi++)
+    {
+        if ((AvP_in)(vi) * Constants::dh > 0.05)
+        {
+            (*dPHE)(vi) = phx1(vi) - phx2(vi);
+            const double eta = (*dPHE)(vi);
 
+            if (material == sim::MaterialType::NMC)
+            {
+                const double arg_fw = -Constants::alp * Constants::Cst1 * eta;
+                const double arg_bw = Constants::alp * Constants::Cst1 * eta;
+
+                Rx(vi) = (AvP_in)(vi) * ((*Kfw)(vi) * Cn2(vi) * std::exp(arg_fw) - (*Kbw)(vi) * Cn1(vi) * std::exp(arg_bw));
+            }
+
+            else if (material == sim::MaterialType::LFP)
+            {
+                const double chp = MaterialProperties::LFP_ChpValue(Cn1(vi));
+                const double LpC = chp * Constants::Cst1;
+
+                const double Mud = std::exp(LpC);
+                const double arg_fw = -Constants::alp * Constants::Cst1 * eta;
+                const double arg_bw = Constants::alp * Constants::Cst1 * eta;
+
+                // Diagnostics
+                if (!std::isfinite(arg_fw) ||
+                    !std::isfinite(arg_bw) ||
+                    !std::isfinite(Mud))
+                {
+                    std::cout
+                        << "[ERROR] Non-finite LFP BV quantities at vi = "
+                        << vi << std::endl;
+
+                    std::cout
+                        << "eta = " << eta
+                        << " LpC = " << LpC
+                        << " Mud = " << Mud
+                        << std::endl;
+                }
+
+                Rx(vi) = (AvP_in)(vi) * ((*Kfw)(vi) * std::exp(arg_fw) - (*Kbw)(vi) * Mud * std::exp(arg_bw)) / Constants::Frd;
+            }
+        }
     }
 }
-}
+// void Reaction::ButlerVolmer(mfem::ParGridFunction &Rx, mfem::ParGridFunction &Cn1, mfem::ParGridFunction &Cn2, mfem::ParGridFunction &phx1, mfem::ParGridFunction &phx2, mfem::ParGridFunction &AvP_in)
+// {
+// Rx = 0.0;
+
+// for (int vi = 0; vi < nV; vi++){
+//     if ( (AvP_in)(vi) * Constants::dh > 0.05){ // Check for interface presence
+//         (*dPHE)(vi) = phx1(vi) - phx2(vi); // Voltage drop across the interface
+//         Rx(vi) = (AvP_in)(vi) * ((*Kfw)(vi)*Cn2(vi)*exp(-Constants::alp*Constants::Cst1*(*dPHE)(vi)) - \
+//                                     (*Kbw)(vi)*Cn1(vi)*exp( Constants::alp*Constants::Cst1*(*dPHE)(vi)));
+
+//     }
+// }
+// }
 
 void Reaction::ButlerVolmer(mfem::ParGridFunction &Rx, mfem::ParGridFunction &Rx1, mfem::ParGridFunction &Rx2, mfem::ParGridFunction &Cn1, mfem::ParGridFunction &Cn2, mfem::ParGridFunction &Cn3, mfem::ParGridFunction &phx1, mfem::ParGridFunction &phx2, mfem::ParGridFunction &phx3, mfem::ParGridFunction &AvA_in, mfem::ParGridFunction &AvC_in)
 {

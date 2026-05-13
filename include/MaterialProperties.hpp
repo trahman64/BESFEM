@@ -11,5 +11,6 @@ namespace MaterialProperties
     double AnodeChemicalPotential(sim::MaterialType material, double c); 
     double CathodeKfw(sim::MaterialType material, double c);
     double CathodeKbw(sim::MaterialType material, double c);
-    bool UsesDirectReactionTables(sim::MaterialType material);  
+    bool UsesDirectReactionTables(sim::MaterialType material); 
+    double LFP_ChpValue(double c); 
 }

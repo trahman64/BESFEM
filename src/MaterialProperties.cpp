@@ -39,8 +39,8 @@ namespace MaterialProperties
 
     bool UsesDirectReactionTables(sim::MaterialType material)
     {
-        // return material == sim::MaterialType::LFP;
-        return false;
+        return material == sim::MaterialType::LFP;
+        // return false;
     }
     
     static double NMC_OCV(double c)
@@ -109,7 +109,7 @@ namespace MaterialProperties
         return (GetTableValues(c, Ticks, chmPot) + 3.4);    
     }
 
-    static double LFP_ChpValue(double c)
+    double LFP_ChpValue(double c)
     {
         static mfem::Vector Ticks(201);
         static mfem::Vector chmPot(201);
@@ -131,12 +131,12 @@ namespace MaterialProperties
             loaded = true;
         }
 
-        return GetTableValues(c, Ticks, chmPot);
+        return GetTableValues(c, Ticks, chmPot) ;
     }
 
     static double LFP_Kfw(double c)
     {
-        static mfem::Vector X(201);
+        static mfem::Vector LpCAxis(201);
         static mfem::Vector KfLog(201);
         static bool loaded = false;
 
@@ -151,7 +151,7 @@ namespace MaterialProperties
 
             for (int i = 0; i < 201; i++)
             {
-                file >> X(i);
+                file >> LpCAxis(i);
                 file >> KfLog(i);
             }
 
@@ -161,12 +161,22 @@ namespace MaterialProperties
         const double dfdX = LFP_ChpValue(c);
         const double LpC = dfdX * Constants::Cst1;
 
-        return std::exp(GetTableValues(LpC, X, KfLog));
+        const double logK = GetTableValues(LpC, LpCAxis, KfLog);
+
+            std::cout
+            << "c = " << c
+            << " dfdX = " << dfdX
+            << " LpC = " << LpC
+            << " logK = " << logK
+            << std::endl;
+
+        return std::exp(logK);
+
     }
 
     static double LFP_Kbw(double c)
     {
-        static mfem::Vector X(201);
+        static mfem::Vector LpCAxis(201);
         static mfem::Vector KbLog(201);
         static bool loaded = false;
 
@@ -181,7 +191,7 @@ namespace MaterialProperties
 
             for (int i = 0; i < 201; i++)
             {
-                file >> X(i);
+                file >> LpCAxis(i);
                 file >> KbLog(i);
             }
 
@@ -191,7 +201,10 @@ namespace MaterialProperties
         const double dfdX = LFP_ChpValue(c);
         const double LpC = dfdX * Constants::Cst1;
 
-        return std::exp(GetTableValues(LpC, X, KbLog));
+        const double logK =
+            GetTableValues(LpC, LpCAxis, KbLog);
+
+        return std::exp(logK);
     }
 
     double CathodeKfw(sim::MaterialType material, double c)

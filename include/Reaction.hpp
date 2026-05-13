@@ -307,9 +307,10 @@ public:
      * @param phx1 Potential on interface side 1.
      * @param phx2 Potential on interface side 2.
      * @param AvP_in Surface-area weighting function for the interface.
+     * @param material Material type for the interface.
      */
     void ButlerVolmer(mfem::ParGridFunction &Rx, mfem::ParGridFunction &Cn1,
-                      mfem::ParGridFunction &Cn2, mfem::ParGridFunction &phx1, mfem::ParGridFunction &phx2, mfem::ParGridFunction &AvP_in);
+                      mfem::ParGridFunction &Cn2, mfem::ParGridFunction &phx1, mfem::ParGridFunction &phx2, mfem::ParGridFunction &AvP_in, sim::MaterialType material);
 
     /**
      * @brief Butler–Volmer update for full-cell (3-phase) systems.
