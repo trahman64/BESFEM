@@ -96,18 +96,18 @@ void Reaction::ExchangeCurrentDensity(mfem::ParGridFunction &Cn, mfem::ParGridFu
             const double cn_val = Cn(vi);
 
 
-            if (MaterialProperties::UsesDirectReactionTables(material))
-            {
-                if (!printed && mfem::Mpi::WorldRank() == 0)
-                {
-                    std::cout << "[DEBUG RXN] Using direct reaction tables for material " << static_cast<int>(material) << std::endl;
-                }
+            // if (MaterialProperties::UsesDirectReactionTables(material))
+            // {
+            //     if (!printed && mfem::Mpi::WorldRank() == 0)
+            //     {
+            //         std::cout << "[DEBUG RXN] Using direct reaction tables for material " << static_cast<int>(material) << std::endl;
+            //     }
 
-                (*Kfw)(vi) = MaterialProperties::CathodeKfw(material, cn_val);
-                (*Kbw)(vi) = MaterialProperties::CathodeKbw(material, cn_val);
-            }
-            else
-            {
+            //     (*Kfw)(vi) = MaterialProperties::CathodeKfw(material, cn_val);
+            //     (*Kbw)(vi) = MaterialProperties::CathodeKbw(material, cn_val);
+            // }
+            // else
+            // {
                 if (!printed && mfem::Mpi::WorldRank() == 0)
                 {
                     std::cout << "[DEBUG RXN] Using standard i0C & OCV for material " << static_cast<int>(material) << std::endl;
@@ -118,7 +118,7 @@ void Reaction::ExchangeCurrentDensity(mfem::ParGridFunction &Cn, mfem::ParGridFu
 
                 (*Kfw)(vi) = (*i0C)(vi) / (Constants::Frd * 0.001) * std::exp(Constants::alp * Constants::Cst1 * (*OCV)(vi));
                 (*Kbw)(vi) = (*i0C)(vi) / (Constants::Frd * cn_val) * std::exp(-Constants::alp * Constants::Cst1 * (*OCV)(vi));
-            }
+            // }
 
             if (!printed && mfem::Mpi::WorldRank() == 0)
             {
@@ -202,31 +202,38 @@ void Reaction::ButlerVolmer(mfem::ParGridFunction &Rx, mfem::ParGridFunction &Cn
 
             else if (material == sim::MaterialType::LFP)
             {
-                const double chp = MaterialProperties::LFP_ChpValue(Cn1(vi));
-                const double LpC = chp * Constants::Cst1;
-
-                const double Mud = std::exp(LpC);
                 const double arg_fw = -Constants::alp * Constants::Cst1 * eta;
                 const double arg_bw = Constants::alp * Constants::Cst1 * eta;
 
-                // Diagnostics
-                if (!std::isfinite(arg_fw) ||
-                    !std::isfinite(arg_bw) ||
-                    !std::isfinite(Mud))
-                {
-                    std::cout
-                        << "[ERROR] Non-finite LFP BV quantities at vi = "
-                        << vi << std::endl;
-
-                    std::cout
-                        << "eta = " << eta
-                        << " LpC = " << LpC
-                        << " Mud = " << Mud
-                        << std::endl;
-                }
-
-                Rx(vi) = (AvP_in)(vi) * ((*Kfw)(vi) * std::exp(arg_fw) - (*Kbw)(vi) * Mud * std::exp(arg_bw)) / Constants::Frd;
+                Rx(vi) = (AvP_in)(vi) * ((*Kfw)(vi) * Cn2(vi) * std::exp(arg_fw) - (*Kbw)(vi) * Cn1(vi) * std::exp(arg_bw));
             }
+
+            // {
+            //     const double chp = MaterialProperties::LFP_ChpValue(Cn1(vi));
+            //     const double LpC = chp * Constants::Cst1;
+
+            //     const double Mud = std::exp(LpC);
+            //     const double arg_fw = -Constants::alp * Constants::Cst1 * eta;
+            //     const double arg_bw = Constants::alp * Constants::Cst1 * eta;
+
+            //     // Diagnostics
+            //     if (!std::isfinite(arg_fw) ||
+            //         !std::isfinite(arg_bw) ||
+            //         !std::isfinite(Mud))
+            //     {
+            //         std::cout
+            //             << "[ERROR] Non-finite LFP BV quantities at vi = "
+            //             << vi << std::endl;
+
+            //         std::cout
+            //             << "eta = " << eta
+            //             << " LpC = " << LpC
+            //             << " Mud = " << Mud
+            //             << std::endl;
+            //     }
+
+            //     Rx(vi) = (AvP_in)(vi) * ((*Kfw)(vi) * std::exp(arg_fw) - (*Kbw)(vi) * Mud * std::exp(arg_bw)) / Constants::Frd;
+            // }
         }
     }
 }

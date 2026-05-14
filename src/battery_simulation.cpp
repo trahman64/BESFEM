@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     cfg.init_cathode_particles = {0.30, 0.30, 0.30};
     cfg.init_anode_particles   = {0.2, 0.15, 0.10}; 
 
-    cfg.cathode_materials = {sim::MaterialType::LFP, sim::MaterialType::LFP, sim::MaterialType::LFP};
+    cfg.cathode_materials = {sim::MaterialType::LFP, sim::MaterialType::LFP, sim::MaterialType::NMC};
     cfg.anode_materials = {sim::MaterialType::Graphite, sim::MaterialType::Graphite, sim::MaterialType::Graphite};
 
     std::string outdir = Utils::BuildRunOutdir(cfg.mesh_file, cfg.num_timesteps);
@@ -252,33 +252,19 @@ int main(int argc, char *argv[]) {
                     }
 
                         // while loop
-                        // while (globalerror_P > 1e-6 || globalerror_E > 1e-6) {
-                        // while (globalerror_P > 1e-6) {
+                        while (globalerror_P > 1e-5 || globalerror_E > 1e-5) {
                             *state.Rxn_gf = 0.0;
 
                             for (int j = 0; j < np; ++j) {
                                 state.cathode_particles[j].reaction->ButlerVolmer(*state.cathode_particles[j].Rxn_gf, *state.cathode_particles[j].Cn_gf, *state.CnE_gf, *state.phC_gf, *state.phE_gf, *domain_parameters.AvEs[j], state.cathode_particles[j].material);
                                 *state.Rxn_gf += *state.cathode_particles[j].Rxn_gf;
                             }
-                            if (mfem::Mpi::WorldRank() == 0)
-                            {
-                                std::cout << "[DEBUG] before potential update" << std::endl;
-                            }
-                            // state.cathode_potential->UpdatePotential(*state.Rxn_gf, *state.phC_gf, *domain_parameters.psi, globalerror_P);
+                            state.cathode_potential->UpdatePotential(*state.Rxn_gf, *state.phC_gf, *domain_parameters.psi, globalerror_P);
+                            state.electrolyte_potential->UpdatePotential(*state.Rxn_gf, *state.phE_gf, *domain_parameters.pse, globalerror_E);
 
-                            
-                            std::cout << "Rxn max = "
-                                    << state.Rxn_gf->Max()
-                                    << " Rxn min = "
-                                    << state.Rxn_gf->Min()
-                                    << std::endl;
+                            // std::cout << "Timestep " << t << ": Global Error P = " << globalerror_P << ", Global Error E = " << globalerror_E << std::endl;
 
-                            if (mfem::Mpi::WorldRank() == 0)
-                            {
-                                std::cout << "[DEBUG] before electrolyte potential update" << std::endl;
-                            }
-                            // state.electrolyte_potential->UpdatePotential(*state.Rxn_gf, *state.phE_gf, *domain_parameters.pse, globalerror_E);
-                        // }
+                        }
                     
                     for (int j = 0; j < np; ++j){
                         state.cathode_particles[j].reaction->TotalReactionCurrent(*state.cathode_particles[j].Rxn_gf, global_currents[j]);

@@ -29,6 +29,7 @@ namespace Constants {
     const double alp = 0.5;                                 ///< Symmetry factor for electrochemical kinetics
     const double rho_A = 0.0312;                             ///< Anode Lithium site density (graphite)
     const double rho_C = 0.0501;                             ///< Cathode Lithium site density (NMC)
+    const double rho_LFP = 0.02273544498;
     const double Cr = 2.0;                                   ///< C-rate for charging/discharging cycles
     const double Vsr0 = 0.009466;                                 ///< Voltage scanning rate (same value for anode, cathode, and electrolyte)
     const double VCut = 0.0;                                ///< Cut-off voltage
@@ -36,8 +37,14 @@ namespace Constants {
     const double init_CnC = 0.30;                            ///< initial concentration in the cathode
     const double init_CnE = 0.001;                           ///< initial concentration in the electrolyte
     const double init_BvA = -0.01;                            ///< boundary condition for anode potential (full)
-    const double init_BvC = 3.96;                         ///< boundary condition for cathode potential
-    const double init_BvE = -0.1;                         ///< boundary condition for electrolyte potential (full & half cathode)
+    // const double init_BvC = 3.96;                         ///< boundary condition for cathode potential
+    // const double init_BvE = -0.1;                         ///< boundary condition for electrolyte potential (full & half cathode)
+    // const double init_BvC = 3.0363;                         ///< boundary condition for cathode potential
+    // const double init_BvE = -0.374871996710822;
+
+    const double init_BvC = 3.7;
+    const double init_BvE = -0.1;
+
     const double RT = 2494.33859;                           ///< RT constant at 300K
     const double Perm = 1.0e-7;                              ///< Permittivity constant (paper uses 1.0e-7)
 

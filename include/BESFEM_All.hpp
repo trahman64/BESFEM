@@ -19,4 +19,5 @@
 #include "../include/Adjust.hpp"
 #include "../include/BoundaryConditions.hpp"
 #include "../include/SimulationState.hpp"
+#include "../include/MaterialProperties.hpp"
 

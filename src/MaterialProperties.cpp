@@ -7,22 +7,6 @@
 
 namespace MaterialProperties
 {
-    // static double GetTableValues(double cn, const mfem::Vector &ticks, const mfem::Vector &data)
-    // {
-    //     const double dx = ticks(1) - ticks(0);
-
-    //     if (cn < 1.0e-6) cn = 1.0e-6;
-    //     if (cn > 0.999999) cn = 0.999999;
-
-    //     int idx = std::floor((cn - ticks(0)) / dx);
-    //     if (idx < 0) idx = 0;
-
-    //     const int max_idx = ticks.Size() - 2;
-    //     if (idx > max_idx) idx = max_idx;
-
-    //     return data(idx) + (cn - ticks(idx)) / dx * (data(idx + 1) - data(idx));
-    // }
-
     static double GetTableValues(double x, const mfem::Vector &ticks, const mfem::Vector &data)
     {
         const int n = ticks.Size();
@@ -39,8 +23,8 @@ namespace MaterialProperties
 
     bool UsesDirectReactionTables(sim::MaterialType material)
     {
-        return material == sim::MaterialType::LFP;
-        // return false;
+        // return material == sim::MaterialType::LFP;
+        return false;
     }
     
     static double NMC_OCV(double c)
@@ -57,6 +41,12 @@ namespace MaterialProperties
     {
         double val = -0.2 * (c - 0.37) - 1.559 - 0.9376 * std::tanh(8.961 * c - 3.195);
         return std::pow(10.0, val) * 1.0e-3;
+    }
+
+    static double LFP_i0(double c)
+    {
+        double val = 1.2e-5 * std::pow(c, 0.35) * std::pow(1.0 - c, 2.5);
+        return val;
     }
 
     static double LFP_mu(double c)
@@ -81,7 +71,8 @@ namespace MaterialProperties
             loaded = true;
         }
 
-        return -Constants::Frd * (GetTableValues(c, Ticks, chmPot) + 3.4);
+        // return -Constants::Frd * (GetTableValues(c, Ticks, chmPot) + 3.4);
+        return (-1 * GetTableValues(c, Ticks, chmPot) +3.4) * -Constants::Frd;
     }
 
     static double LFP_OCV(double c)
@@ -106,7 +97,7 @@ namespace MaterialProperties
             loaded = true;
         }
         
-        return (GetTableValues(c, Ticks, chmPot) + 3.4);    
+        return (-1*GetTableValues(c, Ticks, chmPot)) + 3.4;    
     }
 
     double LFP_ChpValue(double c)
@@ -134,11 +125,13 @@ namespace MaterialProperties
         return GetTableValues(c, Ticks, chmPot) ;
     }
 
+
     static double LFP_Kfw(double c)
     {
-        static mfem::Vector LpCAxis(201);
+        static mfem::Vector WmuAxis(201);
         static mfem::Vector KfLog(201);
         static bool loaded = false;
+        static bool printed = false;
 
         if (!loaded)
         {
@@ -151,34 +144,61 @@ namespace MaterialProperties
 
             for (int i = 0; i < 201; i++)
             {
-                file >> LpCAxis(i);
+                file >> WmuAxis(i);
                 file >> KfLog(i);
             }
 
             loaded = true;
         }
 
+        // ===== Fortran equivalent =====
         const double dfdX = LFP_ChpValue(c);
+
         const double LpC = dfdX * Constants::Cst1;
 
-        const double logK = GetTableValues(LpC, LpCAxis, KfLog);
+        // equivalent to:
+        // Wmu = (LpC - RxTbl(1,1)) / (RxTbl(1,RxI)-RxTbl(1,1))
 
+        const double RxMin = WmuAxis(0);
+        const double RxMax = WmuAxis(WmuAxis.Size() - 1);
+
+        // std::cout << WmuAxis(0) << " " << WmuAxis(200) << std::endl;
+
+        double Wmu = (LpC - RxMin) / (RxMax - RxMin);
+
+        // optional clamp
+        // Wmu = std::max(0.0, std::min(1.0, Wmu));
+
+        // interpolate ln(Kfw)
+        const double logK =
+            GetTableValues(Wmu, WmuAxis, KfLog);
+
+        if (!printed && mfem::Mpi::WorldRank() == 0)
+        {
             std::cout
-            << "c = " << c
-            << " dfdX = " << dfdX
-            << " LpC = " << LpC
-            << " logK = " << logK
-            << std::endl;
+                << "LFP DEBUG: "
+                << "c = " << c
+                << " dfdX = " << dfdX
+                << " LpC = " << LpC
+                << " Wmu = " << Wmu
+                << " logK = " << logK
+                << std::endl;
+
+            printed = true;
+        }
+
+        // std::cout << "Kfw Wmu Axis: "<< WmuAxis(0) << " " << WmuAxis(200) << std::endl;
+
 
         return std::exp(logK);
-
     }
 
     static double LFP_Kbw(double c)
     {
-        static mfem::Vector LpCAxis(201);
+        static mfem::Vector WmuAxis(201);
         static mfem::Vector KbLog(201);
         static bool loaded = false;
+        static bool printed = false;
 
         if (!loaded)
         {
@@ -191,7 +211,7 @@ namespace MaterialProperties
 
             for (int i = 0; i < 201; i++)
             {
-                file >> LpCAxis(i);
+                file >> WmuAxis(i);
                 file >> KbLog(i);
             }
 
@@ -201,8 +221,29 @@ namespace MaterialProperties
         const double dfdX = LFP_ChpValue(c);
         const double LpC = dfdX * Constants::Cst1;
 
+        const double RxMin = WmuAxis(0);
+        const double RxMax = WmuAxis(WmuAxis.Size() - 1);
+
+        double Wmu = (LpC - RxMin) / (RxMax - RxMin);
+
         const double logK =
-            GetTableValues(LpC, LpCAxis, KbLog);
+            GetTableValues(Wmu, WmuAxis, KbLog);
+
+        if (!printed && mfem::Mpi::WorldRank() == 0)
+        {
+            std::cout
+                << "LFP DEBUG: "
+                << "c = " << c
+                << " dfdX = " << dfdX
+                << " LpC = " << LpC
+                << " Wmu = " << Wmu
+                << " logK = " << logK
+                << std::endl;
+
+            printed = true;
+        }
+
+        // std::cout << "Kbw Wmu Axis: "<< WmuAxis(0) << " " << WmuAxis(200) << std::endl;
 
         return std::exp(logK);
     }
@@ -241,7 +282,7 @@ namespace MaterialProperties
                 return NMC_OCV(c);
 
             case sim::MaterialType::LFP:
-                return 3.4;
+                return LFP_OCV(c);
 
             default:
                 mfem::mfem_error("Unknown cathode material in CathodeOCV.");
@@ -273,8 +314,7 @@ namespace MaterialProperties
                 return NMC_i0(c);
 
             case sim::MaterialType::LFP:
-                // placeholder until LFP kinetics are added
-                return 7.0e-5;
+                return LFP_i0(c);
 
             // case sim::MaterialType::LFP:
             //     // placeholder until LFP kinetics are added
