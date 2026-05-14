@@ -20,12 +20,6 @@ namespace MaterialProperties
         const double dx = ticks(idx + 1) - ticks(idx);
         return data(idx) + (x - ticks(idx)) / dx * (data(idx + 1) - data(idx));
     }
-
-    bool UsesDirectReactionTables(sim::MaterialType material)
-    {
-        // return material == sim::MaterialType::LFP;
-        return false;
-    }
     
     static double NMC_OCV(double c)
     {
@@ -35,11 +29,7 @@ namespace MaterialProperties
     static double NMC_mu(double c)
     {
         double val = -Constants::Frd * NMC_OCV(c);
-
-        // std::cout << "NMC mu debug: c = " << c << " OCV = " << NMC_OCV(c) << " mu = " << val << std::endl;
-
         return val;
-        
     }
 
     static double NMC_i0(double c)
@@ -76,16 +66,8 @@ namespace MaterialProperties
             loaded = true;
         }
 
-        // return -Constants::Frd * (GetTableValues(c, Ticks, chmPot) + 3.4);
         double val = (-1 * GetTableValues(c, Ticks, chmPot) +3.4) * -Constants::Frd;
-        // return (-1 * GetTableValues(c, Ticks, chmPot) +3.4) * -Constants::Frd;
-        
-        // std::cout << "LFP mu debug: c = " << c << " chmPot = " << GetTableValues(c, Ticks, chmPot) << " mu = " << val << std::endl;
-
         return val;
-
-
-        
     }
 
     static double LFP_OCV(double c)
@@ -138,155 +120,6 @@ namespace MaterialProperties
         return GetTableValues(c, Ticks, chmPot) ;
     }
 
-
-    static double LFP_Kfw(double c)
-    {
-        static mfem::Vector WmuAxis(201);
-        static mfem::Vector KfLog(201);
-        static bool loaded = false;
-        static bool printed = false;
-
-        if (!loaded)
-        {
-            std::ifstream file("../inputs/LFP_RCAKfL_201_A.txt");
-
-            if (!file)
-            {
-                mfem::mfem_error("Could not open LFP_RCAKfL_201_A.txt");
-            }
-
-            for (int i = 0; i < 201; i++)
-            {
-                file >> WmuAxis(i);
-                file >> KfLog(i);
-            }
-
-            loaded = true;
-        }
-
-        // ===== Fortran equivalent =====
-        const double dfdX = LFP_ChpValue(c);
-
-        const double LpC = dfdX * Constants::Cst1;
-
-        // equivalent to:
-        // Wmu = (LpC - RxTbl(1,1)) / (RxTbl(1,RxI)-RxTbl(1,1))
-
-        const double RxMin = WmuAxis(0);
-        const double RxMax = WmuAxis(WmuAxis.Size() - 1);
-
-        // std::cout << WmuAxis(0) << " " << WmuAxis(200) << std::endl;
-
-        double Wmu = (LpC - RxMin) / (RxMax - RxMin);
-
-        // optional clamp
-        // Wmu = std::max(0.0, std::min(1.0, Wmu));
-
-        // interpolate ln(Kfw)
-        const double logK =
-            GetTableValues(Wmu, WmuAxis, KfLog);
-
-        if (!printed && mfem::Mpi::WorldRank() == 0)
-        {
-            std::cout
-                << "LFP DEBUG: "
-                << "c = " << c
-                << " dfdX = " << dfdX
-                << " LpC = " << LpC
-                << " Wmu = " << Wmu
-                << " logK = " << logK
-                << std::endl;
-
-            printed = true;
-        }
-
-        // std::cout << "Kfw Wmu Axis: "<< WmuAxis(0) << " " << WmuAxis(200) << std::endl;
-
-
-        return std::exp(logK);
-    }
-
-    static double LFP_Kbw(double c)
-    {
-        static mfem::Vector WmuAxis(201);
-        static mfem::Vector KbLog(201);
-        static bool loaded = false;
-        static bool printed = false;
-
-        if (!loaded)
-        {
-            std::ifstream file("../inputs/LFP_RCAKbL_201_A.txt");
-
-            if (!file)
-            {
-                mfem::mfem_error("Could not open LFP_RCAKbL_201_A.txt");
-            }
-
-            for (int i = 0; i < 201; i++)
-            {
-                file >> WmuAxis(i);
-                file >> KbLog(i);
-            }
-
-            loaded = true;
-        }
-
-        const double dfdX = LFP_ChpValue(c);
-        const double LpC = dfdX * Constants::Cst1;
-
-        const double RxMin = WmuAxis(0);
-        const double RxMax = WmuAxis(WmuAxis.Size() - 1);
-
-        double Wmu = (LpC - RxMin) / (RxMax - RxMin);
-
-        const double logK =
-            GetTableValues(Wmu, WmuAxis, KbLog);
-
-        if (!printed && mfem::Mpi::WorldRank() == 0)
-        {
-            std::cout
-                << "LFP DEBUG: "
-                << "c = " << c
-                << " dfdX = " << dfdX
-                << " LpC = " << LpC
-                << " Wmu = " << Wmu
-                << " logK = " << logK
-                << std::endl;
-
-            printed = true;
-        }
-
-        // std::cout << "Kbw Wmu Axis: "<< WmuAxis(0) << " " << WmuAxis(200) << std::endl;
-
-        return std::exp(logK);
-    }
-
-    double CathodeKfw(sim::MaterialType material, double c)
-    {
-        switch (material)
-        {
-            case sim::MaterialType::LFP:
-                return LFP_Kfw(c);
-
-            default:
-                mfem::mfem_error("CathodeKfw only implemented for table-based materials.");
-                return 0.0;
-        }
-    }
-
-    double CathodeKbw(sim::MaterialType material, double c)
-    {
-        switch (material)
-        {
-            case sim::MaterialType::LFP:
-                return LFP_Kbw(c);
-
-            default:
-                mfem::mfem_error("CathodeKbw only implemented for table-based materials.");
-                return 0.0;
-        }
-    }
-
     double CathodeOCV(sim::MaterialType material, double c)
     {
         switch (material)
@@ -328,10 +161,6 @@ namespace MaterialProperties
 
             case sim::MaterialType::LFP:
                 return LFP_i0(c);
-
-            // case sim::MaterialType::LFP:
-            //     // placeholder until LFP kinetics are added
-            //     return NMC_i0(c);
 
             default:
                 mfem::mfem_error("Unknown cathode material in CathodeExchangeCurrentDensity.");

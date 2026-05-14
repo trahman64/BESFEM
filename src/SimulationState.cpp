@@ -47,94 +47,6 @@ static void InitializePairWorkspaces(SimulationState& state, Initialize_Geometry
     }
 }
 
-
-// static inline double GetTableValues(double cn, const mfem::Vector &ticks, const mfem::Vector &data)
-// {
-//     const double dx = ticks(1) - ticks(0);
-
-//     if (cn < 1.0e-6) cn = 1.0e-6;
-//     if (cn > 0.999999) cn = 0.999999;
-
-//     int idx = std::floor((cn - ticks(0)) / dx);
-//     if (idx < 0) idx = 0;
-
-//     const int max_idx = ticks.Size() - 2;
-//     if (idx > max_idx) idx = max_idx;
-
-//     return data(idx) + (cn - ticks(idx)) / dx * (data(idx + 1) - data(idx));
-// }
-
-// static inline double NMC_mu(double c)
-// {
-//     return -Constants::Frd * ((1.095 * c * c) - (8.234e-7 * std::exp(14.31 * c)) + (4.692 * std::exp(-0.5389 * c)));
-// }
-
-// static inline double LFP_mu(double c)
-// {
-//     static mfem::Vector Ticks(201);
-//     static mfem::Vector chmPot(201);
-//     static bool loaded = false;
-
-//     if (!loaded)
-//     {
-//         std::ifstream myXfile("../inputs/LFP_Chm_Pot_Ticks.txt");
-//         std::ifstream mydFfile("../inputs/LFP_Chm_Pot.txt");
-
-//         if (!myXfile || !mydFfile)
-//         {
-//             mfem::mfem_error("Could not open LFP chemical potential input files.");
-//         }
-
-//         for (int i = 0; i < 201; i++) myXfile >> Ticks(i);
-//         for (int i = 0; i < 201; i++) mydFfile >> chmPot(i);
-
-//         loaded = true;
-//     }
-
-//     return -Constants::Frd * (GetTableValues(c, Ticks, chmPot) + 3.4);
-// }
-
-// static inline double Graphite_mu(double c)
-// {
-//     static mfem::Vector Ticks(101);
-//     static mfem::Vector chmPot(101);
-//     static bool loaded = false;
-
-//     if (!loaded)
-//     {
-//         std::ifstream myXfile("../inputs/C_Li_X_101.txt");
-//         std::ifstream mydFfile("../inputs/C_Li_M6_101.txt");
-
-//         if (!myXfile || !mydFfile)
-//         {
-//             mfem::mfem_error("Could not open graphite chemical potential input files.");
-//         }
-
-//         for (int i = 0; i < 101; i++) myXfile >> Ticks(i);
-//         for (int i = 0; i < 101; i++) mydFfile >> chmPot(i);
-
-//         loaded = true;
-//     }
-
-//     return GetTableValues(c, Ticks, chmPot);
-// }
-
-// static inline double CathodeChemicalPotential(sim::MaterialType material, double c)
-// {
-//     switch (material)
-//     {
-//         case sim::MaterialType::NMC:
-//             return NMC_mu(c);
-
-//         case sim::MaterialType::LFP:
-//             return LFP_mu(c);
-        
-//         default:
-//             mfem::mfem_error("Unknown cathode material type.");
-//             return 0.0;
-//     }
-// }
-
 void UpdateCathodePairChemicalPotentials(SimulationState& state, Initialize_Geometry& geometry, Domain_Parameters& domain_parameters)
 {
     const int np = static_cast<int>(state.cathode_particles.size());
@@ -156,61 +68,14 @@ void UpdateCathodePairChemicalPotentials(SimulationState& state, Initialize_Geom
             mu_j = 0.0;
             mu_k = 0.0;
 
-            // bool printed_pair = false;
-            // int interface_count = 0;
-
             for (int vi = 0; vi < geometry.nV; ++vi)
             {
                 if (AvP_pair(vi) > 1000.0)
                 {
-                    // interface_count++;
-
-                    // std::cout << "[DEBUG] Computing chemical potentials for pair (" << j << "," << k
-                    //         << ") at vertex " << vi
-                    //         << " with AvP_pair = " << AvP_pair(vi)
-                    //         << std::endl;
-
                     mu_j(vi) = MaterialProperties::CathodeChemicalPotential(mat_j, Cj(vi));
                     mu_k(vi) = MaterialProperties::CathodeChemicalPotential(mat_k, Ck(vi));
-
-                    // if (!printed_pair && mfem::Mpi::WorldRank() == 0)
-                    // {
-                    //     auto MaterialName = [](sim::MaterialType mat)
-                    //     {
-                    //         switch (mat)
-                    //         {
-                    //             case sim::MaterialType::NMC: return "NMC";
-                    //             case sim::MaterialType::LFP: return "LFP";
-                    //             default: return "Unknown";
-                    //         }
-                    //     };
-
-                        // std::cout << "\n[DEBUG MU TEST]" << std::endl;
-                        // std::cout << "Pair (" << j << "," << k << ")" << std::endl;
-
-                        // std::cout << "Particle " << j
-                        //         << " material = " << MaterialName(mat_j)
-                        //         << ", C = " << Cj(vi)
-                        //         << ", mu = " << mu_j(vi)
-                        //         << std::endl;
-
-                        // std::cout << "Particle " << k
-                        //         << " material = " << MaterialName(mat_k)
-                        //         << ", C = " << Ck(vi)
-                        //         << ", mu = " << mu_k(vi)
-                        //         << std::endl;
-
-                        // printed_pair = true;
-                    // }
                 }
             }
-
-            // if (mfem::Mpi::WorldRank() == 0)
-            // {
-            //     std::cout << "[DEBUG MU] Pair (" << j << "," << k
-            //             << ") interface_count = " << interface_count
-            //             << std::endl;
-            // }
         }
     }
 }

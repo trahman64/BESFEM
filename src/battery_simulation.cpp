@@ -256,7 +256,7 @@ int main(int argc, char *argv[]) {
                             *state.Rxn_gf = 0.0;
 
                             for (int j = 0; j < np; ++j) {
-                                state.cathode_particles[j].reaction->ButlerVolmer(*state.cathode_particles[j].Rxn_gf, *state.cathode_particles[j].Cn_gf, *state.CnE_gf, *state.phC_gf, *state.phE_gf, *domain_parameters.AvEs[j], state.cathode_particles[j].material);
+                                state.cathode_particles[j].reaction->ButlerVolmer(*state.cathode_particles[j].Rxn_gf, *state.cathode_particles[j].Cn_gf, *state.CnE_gf, *state.phC_gf, *state.phE_gf, *domain_parameters.AvEs[j]);
                                 *state.Rxn_gf += *state.cathode_particles[j].Rxn_gf;
                             }
                             state.cathode_potential->UpdatePotential(*state.Rxn_gf, *state.phC_gf, *domain_parameters.psi, globalerror_P);
