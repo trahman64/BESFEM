@@ -165,6 +165,11 @@ void UpdateCathodePairChemicalPotentials(SimulationState& state, Initialize_Geom
                 {
                     // interface_count++;
 
+                    // std::cout << "[DEBUG] Computing chemical potentials for pair (" << j << "," << k
+                    //         << ") at vertex " << vi
+                    //         << " with AvP_pair = " << AvP_pair(vi)
+                    //         << std::endl;
+
                     mu_j(vi) = MaterialProperties::CathodeChemicalPotential(mat_j, Cj(vi));
                     mu_k(vi) = MaterialProperties::CathodeChemicalPotential(mat_k, Ck(vi));
 

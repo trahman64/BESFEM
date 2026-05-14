@@ -34,7 +34,12 @@ namespace MaterialProperties
 
     static double NMC_mu(double c)
     {
-        return -Constants::Frd * NMC_OCV(c);
+        double val = -Constants::Frd * NMC_OCV(c);
+
+        // std::cout << "NMC mu debug: c = " << c << " OCV = " << NMC_OCV(c) << " mu = " << val << std::endl;
+
+        return val;
+        
     }
 
     static double NMC_i0(double c)
@@ -72,7 +77,15 @@ namespace MaterialProperties
         }
 
         // return -Constants::Frd * (GetTableValues(c, Ticks, chmPot) + 3.4);
-        return (-1 * GetTableValues(c, Ticks, chmPot) +3.4) * -Constants::Frd;
+        double val = (-1 * GetTableValues(c, Ticks, chmPot) +3.4) * -Constants::Frd;
+        // return (-1 * GetTableValues(c, Ticks, chmPot) +3.4) * -Constants::Frd;
+        
+        // std::cout << "LFP mu debug: c = " << c << " chmPot = " << GetTableValues(c, Ticks, chmPot) << " mu = " << val << std::endl;
+
+        return val;
+
+
+        
     }
 
     static double LFP_OCV(double c)
