@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     cfg.init_cathode_particles = {0.30, 0.30, 0.30};
     cfg.init_anode_particles   = {0.2, 0.15, 0.10}; 
 
-    cfg.cathode_materials = {sim::MaterialType::NMC, sim::MaterialType::NMC, sim::MaterialType::NMC};
+    cfg.cathode_materials = {sim::MaterialType::LFP, sim::MaterialType::LFP, sim::MaterialType::NMC};
     cfg.anode_materials = {sim::MaterialType::Graphite, sim::MaterialType::Graphite, sim::MaterialType::Graphite};
 
     std::string outdir = Utils::BuildRunOutdir(cfg.mesh_file, cfg.num_timesteps);

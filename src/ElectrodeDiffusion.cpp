@@ -63,6 +63,7 @@ void ElectrodeDiffusion::UpdateConcentration(mfem::ParGridFunction &Rx, mfem::Pa
     for (int vi = 0; vi < nV; vi++){
         const double cn_val = Cn(vi);
         Dp(vi) = psx(vi) * MaterialProperties::Diffusivity(material, cn_val);
+        if (Dp(vi) > 4.6e-10){Dp(vi) = 4.6e-10;}
     }
     cDp.SetGridFunction(&Dp);
 

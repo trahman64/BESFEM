@@ -40,7 +40,7 @@ namespace MaterialProperties
 
     static double NMC_diff(double c)
     {
-        double val = 0.0277 - 0.084 * c + 0.1003 * c * c * 1.0e-8;
+        double val = (0.0277 - 0.084 * c + 0.1003 * c * c) * 1.0e-8;
         return val;
     }
 
@@ -184,8 +184,8 @@ namespace MaterialProperties
             case sim::MaterialType::NMC:
                 return NMC_diff(c);
 
-            // case sim::MaterialType::LFP:
-            //     return LFP_diff(c);
+            case sim::MaterialType::LFP:
+                return NMC_diff(c);
 
             default:
                 mfem::mfem_error("Unknown material in Diffusivity.");
