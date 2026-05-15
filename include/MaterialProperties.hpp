@@ -13,4 +13,5 @@ namespace MaterialProperties
     double CathodeKbw(sim::MaterialType material, double c);
     bool UsesDirectReactionTables(sim::MaterialType material); 
     double LFP_ChpValue(double c); 
+    double Diffusivity(sim::MaterialType material, double c);
 }

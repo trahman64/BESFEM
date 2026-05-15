@@ -38,6 +38,12 @@ namespace MaterialProperties
         return std::pow(10.0, val) * 1.0e-3;
     }
 
+    static double NMC_diff(double c)
+    {
+        double val = 0.0277 - 0.084 * c + 0.1003 * c * c * 1.0e-8;
+        return val;
+    }
+
     static double LFP_i0(double c)
     {
         double val = 1.2e-5 * std::pow(c, 0.35) * std::pow(1.0 - c, 2.5);
@@ -164,6 +170,25 @@ namespace MaterialProperties
 
             default:
                 mfem::mfem_error("Unknown cathode material in CathodeExchangeCurrentDensity.");
+                return 0.0;
+        }
+    }
+
+    double Diffusivity(sim::MaterialType material, double c)
+    {
+        switch (material)
+        {
+            // case sim::MaterialType::Graphite:
+            //     return Graphite_diff(c);
+
+            case sim::MaterialType::NMC:
+                return NMC_diff(c);
+
+            // case sim::MaterialType::LFP:
+            //     return LFP_diff(c);
+
+            default:
+                mfem::mfem_error("Unknown material in Diffusivity.");
                 return 0.0;
         }
     }
