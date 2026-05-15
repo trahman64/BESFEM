@@ -81,12 +81,11 @@ void ElectrodeDiffusion::UpdateConcentration(mfem::ParGridFunction &Rx, mfem::Pa
     psx.GetTrueDofs(PsVc);
 
     for (int p = 0; p < CpV0.Size(); p++){
-        if (PsVc(p) < 1.0e-5){ // 1e-1 works, but gaps still get smaller
-            // (CpVn)(p) = Constants::init_CnC;} // Cp0 initial value
-            (CpVn)(p) = CpV0(p);} // Cp0 initial value
+        if (PsVc(p) < 1.0e-5){ 
+            (CpVn)(p) = CpV0(p);} 
 
         if (CpVn(p) < 0.0){
-            (CpVn)(p) = 1.0e-6;} // prevent negative concentrations
+            (CpVn)(p) = 1.0e-6;}
     }
 
     Cn.Distribute(CpVn);
