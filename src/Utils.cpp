@@ -1,4 +1,5 @@
 #include "../include/Utils.hpp"
+#include "../include/Constants.hpp"
 #include <numeric>
 
 Utils::Utils(Initialize_Geometry &geo, Domain_Parameters &para)
@@ -77,6 +78,20 @@ void Utils::CalculateGlobalError(mfem::ParGridFunction &px0, mfem::ParGridFuncti
     MPI_Allreduce(&local_sum, &globalerror, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
     globalerror /= gtPsx;
+}
+
+void Utils::ComputePairFlux(mfem::ParGridFunction &sum_part, mfem::ParGridFunction &weight, mfem::ParGridFunction &grad_psi, mfem::ParGridFunction &mu_1, mfem::ParGridFunction &mu_2)
+{
+    for (int vi = 0; vi < nV_; vi++){
+
+        double grad_psi_val = grad_psi(vi);
+        double weight_val = weight(vi);
+        double mu1_val = mu_1(vi);
+        double mu2_val = mu_2(vi);
+
+        sum_part(vi) = weight_val * grad_psi_val * Constants::rho_C * (1.0/Constants::RT) * Constants::Perm * (mu2_val - mu1_val);
+    }
+
 }
 
 // Full Cell

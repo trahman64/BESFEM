@@ -30,7 +30,8 @@ struct CathodeParticleState
 
     sim::MaterialType material = sim::MaterialType::NMC; // Default to NMC for cathode particles
 
-    std::unique_ptr<CnC> concentration;
+    // std::unique_ptr<CnC> concentration;
+    std::unique_ptr<ConcentrationBase> concentration;
     std::unique_ptr<mfem::ParGridFunction> Cn_gf;
     std::unique_ptr<mfem::ParGridFunction> Cn_gf_psi;
 
@@ -49,7 +50,8 @@ struct SimulationState
     std::unique_ptr<PotA> anode_potential;
     std::unique_ptr<mfem::ParGridFunction> CnA_gf, CnA_gf_psi, phA_gf;
 
-    std::unique_ptr<CnC> cathode_concentration;
+    // std::unique_ptr<CnC> cathode_concentration;
+    std::unique_ptr<ConcentrationBase> cathode_concentration;
     std::unique_ptr<PotC> cathode_potential;
     std::unique_ptr<mfem::ParGridFunction> CnC_gf, CnC_gf_psi, phC_gf;
 

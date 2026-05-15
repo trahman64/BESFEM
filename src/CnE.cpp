@@ -237,8 +237,8 @@
 #include <optional>
 
 
-CnE::CnE(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::CellMode mode)
-    : ConcentrationBase(geo, para), geometry(geo), domain_parameters(para), utils(geo, para), boundary_conditions(bc), fespace(geo.parfespace), nbc_bdr(bc.nbc_bdr), fem(geo.parfespace),
+CnE::CnE(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::CellMode mode, sim::MaterialType mat)
+    : ConcentrationBase(geo, para, mat), geometry(geo), domain_parameters(para), utils(geo, para), boundary_conditions(bc), fespace(geo.parfespace), nbc_bdr(bc.nbc_bdr), fem(geo.parfespace),
       De(fespace.get()), Rxe(fespace.get()), PeR(fespace.get()), cDe(&De), cAe(&Rxe), matCoef_R(&PeR),
       nbcCoef(0.0), Fet(fespace.get()), Me_solver(MPI_COMM_WORLD),
       CeV0(fespace.get()), RHCe(fespace.get()), CeVn(fespace.get()),

@@ -34,8 +34,9 @@ public:
      *
      * @param geo  Geometry handler (mesh, FE space, DOF mappings).
      * @param para Domain and physics parameters.
+     * @param mat  Material type for this concentration handler.
      */
-    CnA(Initialize_Geometry &geo, Domain_Parameters &para);
+    CnA(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat);
 
     /**
      * @brief Initialize concentration state and assemble operators.

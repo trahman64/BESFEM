@@ -103,6 +103,10 @@ public:
      */
     void CalculateReactionInfx(mfem::ParGridFunction &Rx, double &xCrnt);
 
+
+    void ComputePairFlux(mfem::ParGridFunction &sum_part, mfem::ParGridFunction &weight, mfem::ParGridFunction &grad_psi,
+                         mfem::ParGridFunction &mu_self, mfem::ParGridFunction &mu_nbr);
+
     /**
      * @brief Compute the global L2/RMS error between two potential fields.
      *

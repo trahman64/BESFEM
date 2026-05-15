@@ -10,7 +10,7 @@
 #include "../include/Concentrations_Base.hpp"
 #include "../include/Potentials_Base.hpp"
 #include "../include/CnA.hpp"
-#include "../include/CnC.hpp"
+// #include "../include/CnC.hpp"
 #include "../include/CnE.hpp"
 #include "../include/PotA.hpp"
 #include "../include/PotC.hpp"
@@ -20,4 +20,5 @@
 #include "../include/BoundaryConditions.hpp"
 #include "../include/SimulationState.hpp"
 #include "../include/MaterialProperties.hpp"
+#include "../include/ElectrodeDiffusion.hpp"
 

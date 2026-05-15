@@ -44,7 +44,7 @@ SRC_FILES = \
     src/Concentrations_Base.cpp \
     src/CnE.cpp \
     src/CnA.cpp \
-    src/CnC.cpp \
+    src/ElectrodeDiffusion.cpp \
     src/Reaction.cpp \
     src/FEMOperators.cpp \
     src/Potentials_Base.cpp \

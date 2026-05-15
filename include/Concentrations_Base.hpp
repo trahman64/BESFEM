@@ -164,6 +164,10 @@
  * - Serve as a shared foundation for MFEM/Hypre-based concentration solvers  
  */
 class ConcentrationBase {
+protected:
+
+    sim::MaterialType material;
+
 public:
 
     /**
@@ -174,8 +178,9 @@ public:
      *
      * @param geo  Geometry handler (mesh, FE space).
      * @param para Domain parameters (material constants, element volumes, etc.).
+     * @param mat  Material type for this concentration handler.
      */
-    ConcentrationBase(Initialize_Geometry &geo, Domain_Parameters &para);
+    ConcentrationBase(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat);
 
     /// Virtual destructor.
     virtual ~ConcentrationBase() = default;

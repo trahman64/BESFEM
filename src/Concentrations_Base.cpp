@@ -3,10 +3,9 @@
 #include "../include/Initialize_Geometry.hpp"
 #include "mfem.hpp"
 
-ConcentrationBase::ConcentrationBase(Initialize_Geometry &geo, Domain_Parameters &para)
+ConcentrationBase::ConcentrationBase(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat)
     : pmesh(geo.parallelMesh.get()), fespace(geo.parfespace), geometry(geo), domain_parameters(para), EVol(para.EVol), gtPsi(para.gtPsi), gtPse(para.gtPse),
-    nE(geo.nE), nC(geo.nC), nV(geo.nV), VtxVal(geo.nC), EAvg(geo.nE), gmesh(geo.globalMesh.get())
-
+    nE(geo.nE), nC(geo.nC), nV(geo.nV), VtxVal(geo.nC), EAvg(geo.nE), gmesh(geo.globalMesh.get()), material(mat)
 
 {
     // Allocate once for reuse

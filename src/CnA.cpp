@@ -7,8 +7,8 @@
  
  using namespace std;
  
- CnA::CnA(Initialize_Geometry &geo, Domain_Parameters &para)
-     : ConcentrationBase(geo, para), geometry(geo), domain_parameters(para), fespace(geo.parfespace), fem(geo.parfespace), utils(geo,para), pmesh(geo.parallelMesh.get()),
+ CnA::CnA(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat)
+     : ConcentrationBase(geo, para, mat), geometry(geo), domain_parameters(para), fespace(geo.parfespace), fem(geo.parfespace), utils(geo,para), pmesh(geo.parallelMesh.get()),
       Mub(fespace.get()), Mob(fespace.get()), RxA(fespace.get()), gtPsi(para.gtPsi), gtPsA(para.gtPsA),
       Lp1(fespace.get()), Lp2(fespace.get()), MuV(fespace.get()),
       PsVc(fespace.get()), CpV0(fespace.get()), RHCp(fespace.get()), CpVn(fespace.get()),

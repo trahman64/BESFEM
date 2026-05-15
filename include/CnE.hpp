@@ -404,7 +404,7 @@ public:
     CnE(Initialize_Geometry &geo,
         Domain_Parameters  &para,
         BoundaryConditions &bc,
-        sim::CellMode mode);
+        sim::CellMode mode, sim::MaterialType mat);
 
     /**
      * @brief Initialize electrolyte concentration and assemble operators.
