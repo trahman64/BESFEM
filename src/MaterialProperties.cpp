@@ -101,6 +101,11 @@ namespace MaterialProperties
         return (-1*GetTableValues(c, Ticks, chmPot)) + 3.4;    
     }
 
+    static double LFP_Mob(double c)
+    {
+        return 6e-12; // placeholder, constant mobility for LFP
+    }
+
     double LFP_ChpValue(double c)
     {
         static mfem::Vector Ticks(201);
@@ -142,22 +147,6 @@ namespace MaterialProperties
         }
     }
 
-    double CathodeChemicalPotential(sim::MaterialType material, double c)
-    {
-        switch (material)
-        {
-            case sim::MaterialType::NMC:
-                return NMC_mu(c);
-
-            case sim::MaterialType::LFP:
-                return LFP_mu(c);
-
-            default:
-                mfem::mfem_error("Unknown cathode material in CathodeChemicalPotential.");
-                return 0.0;
-        }
-    }
-
     double CathodeExchangeCurrentDensity(sim::MaterialType material, double c)
     {
         switch (material)
@@ -183,20 +172,58 @@ namespace MaterialProperties
     {
         switch (material)
         {
-            // case sim::MaterialType::Graphite:
-            //     return Graphite_diff(c);
-
             case sim::MaterialType::NMC:
-                return NMC_diff(c);
-
-            case sim::MaterialType::LFP:
                 return NMC_diff(c);
 
             case sim::MaterialType::Electrolyte:
                 return Electrolyte_diff(c);
 
+            case sim::MaterialType::LFP:
+                return NMC_diff(c);
+
             default:
-                mfem::mfem_error("Unknown material in Diffusivity.");
+                mfem::mfem_error("Material does not have a defined diffusivity.");
+                return 0.0;
+        }
+    }
+
+    static double Graphite_Mob(double c)
+    {
+        static mfem::Vector Ticks(101);
+        static mfem::Vector Mob(101);
+        static bool loaded = false;
+
+        if (!loaded)
+        {
+            std::ifstream myXfile("../inputs/C_Li_X_101.txt");
+            std::ifstream mydFfile("../inputs/C_Li_Mb5_101.txt");
+
+            if (!myXfile || !mydFfile)
+            {
+                mfem::mfem_error("Could not open graphite mobility input files.");
+            }
+
+            for (int i = 0; i < 101; i++) myXfile >> Ticks(i);
+            for (int i = 0; i < 101; i++) mydFfile >> Mob(i);
+
+            loaded = true;
+        }
+        
+        return GetTableValues(c, Ticks, Mob);  
+    }
+
+    double Mobility(sim::MaterialType material, double c)
+    {
+        switch (material)
+        {
+            case sim::MaterialType::Graphite:
+                return Graphite_Mob(c);
+
+            case sim::MaterialType::LFP:
+                return LFP_Mob(c);
+
+            default:
+                mfem::mfem_error("Unknown material in Mobility.");
                 return 0.0;
         }
     }
@@ -226,14 +253,20 @@ namespace MaterialProperties
         return GetTableValues(c, Ticks, chmPot);
     }
 
-    double AnodeChemicalPotential(sim::MaterialType material, double c)
+    double ChemicalPotential(sim::MaterialType material, double c)
     {
         switch (material)
         {
             case sim::MaterialType::Graphite:
                 return Graphite_mu(c);
+            
+            case sim::MaterialType::NMC:
+                return NMC_mu(c);
+
+            case sim::MaterialType::LFP:
+                return LFP_mu(c);
             default:
-                mfem::mfem_error("Unknown anode material in AnodeChemicalPotential.");
+                mfem::mfem_error("Unknown material in Chemical Potential.");
                 return 0.0;
         }
     }

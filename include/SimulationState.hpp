@@ -12,7 +12,8 @@ struct AnodeParticleState
 
     sim::MaterialType material = sim::MaterialType::Graphite; // Default to Graphite for anode particles
 
-    std::unique_ptr<CnA> concentration;
+    // std::unique_ptr<CnA> concentration;
+    std::unique_ptr<ConcentrationBase> concentration;
     std::unique_ptr<mfem::ParGridFunction> Cn_gf;
     std::unique_ptr<mfem::ParGridFunction> Cn_gf_psi;
 
@@ -46,7 +47,8 @@ struct CathodeParticleState
 
 struct SimulationState
 {
-    std::unique_ptr<CnA> anode_concentration;
+    // std::unique_ptr<CnA> anode_concentration;
+    std::unique_ptr<ConcentrationBase> anode_concentration;
     std::unique_ptr<PotA> anode_potential;
     std::unique_ptr<mfem::ParGridFunction> CnA_gf, CnA_gf_psi, phA_gf;
 

@@ -43,7 +43,7 @@ SRC_FILES = \
     src/BoundaryConditions.cpp \
     src/Concentrations_Base.cpp \
     src/ElectrolyteDiffusion.cpp \
-    src/CnA.cpp \
+    src/ElectrodeCahnHilliard.cpp \
     src/ElectrodeDiffusion.cpp \
     src/Reaction.cpp \
     src/FEMOperators.cpp \

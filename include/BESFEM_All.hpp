@@ -9,7 +9,7 @@
 #include "../include/Domain_Parameters.hpp"
 #include "../include/Concentrations_Base.hpp"
 #include "../include/Potentials_Base.hpp"
-#include "../include/CnA.hpp"
+// #include "../include/CnA.hpp"
 // #include "../include/CnC.hpp"
 // #include "../include/CnE.hpp"
 #include "../include/PotA.hpp"
@@ -22,4 +22,5 @@
 #include "../include/MaterialProperties.hpp"
 #include "../include/ElectrodeDiffusion.hpp"
 #include "../include/ElectrolyteDiffusion.hpp"
+#include "../include/ElectrodeCahnHilliard.hpp"
 
