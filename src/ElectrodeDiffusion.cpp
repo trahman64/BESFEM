@@ -4,8 +4,7 @@
 #include "mfem.hpp"
 
 ElectrodeDiffusion::ElectrodeDiffusion(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat)
-    : ConcentrationBase(geo, para, mat), geometry(geo), domain_parameters(para), fespace(geo.parfespace), fem(geo.parfespace), utils(geo, para), 
-    Dp(fespace.get()), Mp_solver(MPI_COMM_WORLD), cDp(&Dp), Fct(fespace.get()), PsVc(fespace.get()), CpV0(fespace.get()), RHCp(fespace.get()), 
+    : ConcentrationBase(geo, para, mat), Dp(fespace.get()), Mp_solver(MPI_COMM_WORLD), cDp(&Dp), Fct(fespace.get()), PsVc(fespace.get()), CpV0(fespace.get()), RHCp(fespace.get()), 
     CpVn(fespace.get()), Rxn(fespace.get()), cAp(&Rxn)
 {}
 

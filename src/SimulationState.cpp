@@ -276,10 +276,12 @@ void InitializeFields(SimulationState& state, Initialize_Geometry& geometry, Dom
     state.CnP_together = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
     state.CnE_gf_psi   = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
 
-    state.electrolyte_concentration = std::make_unique<CnE>(geometry, domain_parameters, bc, cfg.mode, sim::MaterialType::Graphite);
+    // state.electrolyte_concentration = std::make_unique<CnE>(geometry, domain_parameters, bc, cfg.mode, sim::MaterialType::Graphite);
+    // state.CnE_gf = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
+    state.electrolyte_concentration = std::make_unique<ElectrolyteDiffusion>(geometry, domain_parameters, bc, cfg.mode, sim::MaterialType::Electrolyte);
     state.CnE_gf = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
     state.electrolyte_concentration->SetupField(*state.CnE_gf, Constants::init_CnE, *domain_parameters.pse, domain_parameters.gtPse);
-
+    
     state.electrolyte_potential = std::make_unique<PotE>(geometry, domain_parameters, bc, cfg.mode);
     state.phE_gf = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
     state.electrolyte_potential->SetupField(*state.phE_gf, Constants::init_BvE, *domain_parameters.pse);

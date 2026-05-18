@@ -42,7 +42,7 @@ SRC_FILES = \
     src/Domain_Parameters.cpp \
     src/BoundaryConditions.cpp \
     src/Concentrations_Base.cpp \
-    src/CnE.cpp \
+    src/ElectrolyteDiffusion.cpp \
     src/CnA.cpp \
     src/ElectrodeDiffusion.cpp \
     src/Reaction.cpp \

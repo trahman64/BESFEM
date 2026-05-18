@@ -55,7 +55,8 @@ struct SimulationState
     std::unique_ptr<PotC> cathode_potential;
     std::unique_ptr<mfem::ParGridFunction> CnC_gf, CnC_gf_psi, phC_gf;
 
-    std::unique_ptr<CnE> electrolyte_concentration;
+    // std::unique_ptr<CnE> electrolyte_concentration;
+    std::unique_ptr<ConcentrationBase> electrolyte_concentration;
     std::unique_ptr<PotE> electrolyte_potential;
     std::unique_ptr<mfem::ParGridFunction> CnE_gf, CnE_gf_psi, phE_gf;
 

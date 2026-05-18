@@ -174,6 +174,11 @@ namespace MaterialProperties
         }
     }
 
+    static double Electrolyte_diff(double c)
+    {
+        return Constants::D0 * std::exp(-7.02 - 830 * c + 50000 * c * c);
+    }
+
     double Diffusivity(sim::MaterialType material, double c)
     {
         switch (material)
@@ -186,6 +191,9 @@ namespace MaterialProperties
 
             case sim::MaterialType::LFP:
                 return NMC_diff(c);
+
+            case sim::MaterialType::Electrolyte:
+                return Electrolyte_diff(c);
 
             default:
                 mfem::mfem_error("Unknown material in Diffusivity.");

@@ -17,12 +17,6 @@ public:
                              double gtPsx, mfem::ParGridFunction &weight_elec, const std::vector<ConcentrationBase::PairCoupling> &pair_terms);
 
 private:
-    
-    Initialize_Geometry &geometry;
-    Domain_Parameters   &domain_parameters;
-    std::shared_ptr<mfem::ParFiniteElementSpace> fespace;
-    FEMOperators fem;
-    Utils utils;
 
     mfem::ParGridFunction Dp;
     mfem::ParGridFunction Rxn;

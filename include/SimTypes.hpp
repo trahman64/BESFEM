@@ -46,12 +46,14 @@ enum class Electrode {
  * - **Graphite** — Common anode material
  * - **NMC**       — Nickel Manganese Cobalt Oxide, a common cathode material
  * - **LFP**       — Lithium Iron Phosphate, another common cathode material
+ * - **Electrolyte** — Represents the electrolyte domain (not a solid electrode)
  */
 
 enum class MaterialType {
     Graphite, ///< Anode material
     NMC,       ///< Cathode material: Nickel Manganese Cobalt Oxide
-    LFP        ///< Cathode material: Lithium Iron Phosphate
+    LFP,        ///< Cathode material: Lithium Iron Phosphate
+    Electrolyte   ///< Electrolyte material
 };
 
 } // namespace sim

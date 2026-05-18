@@ -222,7 +222,7 @@ int main(int argc, char *argv[]) {
                         
                     if (t > 0 && t % 50 == 0) {
                         state.electrolyte_concentration->SaltConservation(*state.CnE_gf, *domain_parameters.pse);
-                    }   
+                    } 
 
                     // ============================================================
                     // Assemble one combined cathode potential
