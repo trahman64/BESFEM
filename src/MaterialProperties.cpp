@@ -73,6 +73,7 @@ namespace MaterialProperties
         }
 
         double val = (-1 * GetTableValues(c, Ticks, chmPot) +3.4) * -Constants::Frd;
+        // double val = GetTableValues(c, Ticks, chmPot);
         return val;
     }
 

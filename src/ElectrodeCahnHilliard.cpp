@@ -66,10 +66,24 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     fem.Update(B_init); 
     Fct = *B_init; 
 
+    // // Tabulate the chemical potential and mobility values
+    // for (int i = 0; i < Cn.Size(); i++) {
+    //     double val = Cn(i);  // get value at DOF i
+    //     Mub(i) = MaterialProperties::ChemicalPotential(material, val);
+    // }
+
     // Tabulate the chemical potential and mobility values
-    for (int i = 0; i < Cn.Size(); i++) {
-        double val = Cn(i);  // get value at DOF i
-        Mub(i) = MaterialProperties::ChemicalPotential(material, val);
+    for (int i = 0; i < Cn.Size(); i++)
+    {
+        double val = Cn(i);
+        double mu = MaterialProperties::ChemicalPotential(material, val);
+
+        if (std::abs(mu) > 1.0e4)
+        {
+            mu = (-mu / Constants::Frd) + 3.4;
+        }
+
+        Mub(i) = mu;
     }
 
     for (int i = 0; i < Cn.Size(); i++) {

@@ -269,7 +269,7 @@ static void InitializeCathodeParticles(SimulationState& state, Initialize_Geomet
 
             case sim::MaterialType::LFP:
             {
-                p.concentration = std::make_unique<ElectrodeDiffusion>(geometry, domain_parameters, p.material);
+                p.concentration = std::make_unique<ElectrodeCahnHilliard>(geometry, domain_parameters, p.material);
                 break;
             }
 
