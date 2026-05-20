@@ -78,12 +78,16 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
         double val = Cn(i);
         double mu = MaterialProperties::ChemicalPotential(material, val);
 
+        // std::cout << "Cn(" << i << ") = " << val << ", Chemical Potential Before = " << mu << std::endl;
+
         if (std::abs(mu) > 1.0e4)
         {
-            mu = (-mu / Constants::Frd) + 3.4;
+            mu = ((mu / (-1*Constants::Frd)) - 3.4) * -1;
         }
 
         Mub(i) = mu;
+
+        // std::cout << "Cn(" << i << ") = " << val << ", Chemical Potential After = " << mu << std::endl;
     }
 
     for (int i = 0; i < Cn.Size(); i++) {

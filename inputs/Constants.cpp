@@ -14,7 +14,7 @@ namespace Constants {
     const int order = 1;                                    ///< Order of the finite element basis functions
     // const double dh =  0.0000200; 
     // const double dh = 0.0000325;                            ///< Mesh element size (disk)
-    const double dh = 2.07407e-05;                            ///< Mesh element size (TIFF)
+    const double dh = 2.01005e-05;                            ///< Mesh element size (TIFF)
     const double gc = 3.3800e-10 *2;			            ///< gradient coefficient
     const double zeta = 1.0;                                ///< Interfacial thickness
     const double thres = 1.0e-3;                            ///< Threshold value for numerical operations
@@ -42,11 +42,11 @@ namespace Constants {
     // const double init_BvC = 3.0363;                         ///< boundary condition for cathode potential
     // const double init_BvE = -0.374871996710822;
 
-    const double init_BvC = 3.7;
+    const double init_BvC = 3.34;
     const double init_BvE = -0.1;
 
     const double RT = 2494.33859;                           ///< RT constant at 300K
-    const double Perm = 1.0e-7;                              ///< Permittivity constant (paper uses 1.0e-7)
+    const double Perm = 0;                              ///< Permittivity constant (paper uses 1.0e-7)
 
 
     // // constants for half cell - anode side 

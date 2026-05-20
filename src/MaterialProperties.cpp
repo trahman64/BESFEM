@@ -46,7 +46,7 @@ namespace MaterialProperties
 
     static double LFP_i0(double c)
     {
-        double val = 1.2e-5 * std::pow(c, 0.35) * std::pow(1.0 - c, 2.5);
+        double val = * 1.2e-5 * std::pow(c, 0.35) * std::pow(1.0 - c, 2.5);
         return val;
     }
 
@@ -72,7 +72,7 @@ namespace MaterialProperties
             loaded = true;
         }
 
-        double val = (-1 * GetTableValues(c, Ticks, chmPot) +3.4) * -Constants::Frd;
+        double val = ((-1 * GetTableValues(c, Ticks, chmPot)) + 3.4) * -Constants::Frd;
         // double val = GetTableValues(c, Ticks, chmPot);
         return val;
     }

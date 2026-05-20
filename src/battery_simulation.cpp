@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     cfg.init_cathode_particles = {0.30, 0.30, 0.30};
     cfg.init_anode_particles   = {0.2, 0.15, 0.10}; 
 
-    cfg.cathode_materials = {sim::MaterialType::LFP, sim::MaterialType::LFP, sim::MaterialType::NMC};
+    cfg.cathode_materials = {sim::MaterialType::LFP, sim::MaterialType::LFP, sim::MaterialType::LFP};
     cfg.anode_materials = {sim::MaterialType::Graphite, sim::MaterialType::Graphite, sim::MaterialType::Graphite};
 
     std::string outdir = Utils::BuildRunOutdir(cfg.mesh_file, cfg.num_timesteps);
@@ -281,8 +281,11 @@ int main(int argc, char *argv[]) {
 
                     double VCell = state.cathode_potential->BvC - state.electrolyte_potential->BvE;
 
-                    double sgn = std::copysign(1.0, total_target - total_current);
-                    double dV  = Constants::dt * Constants::Vsr0 * sgn;
+                    // double sgn = std::copysign(1.0, total_target - total_current);
+                    // double dV  = Constants::dt * Constants::Vsr0 * sgn;
+
+                    double err = (total_target - total_current) / total_target;
+                    double dV  = Constants::dt * Constants::Vsr0 * err;
 
                     state.electrolyte_potential->BvE += dV;
                     *state.phE_gf += dV;
@@ -338,32 +341,32 @@ int main(int argc, char *argv[]) {
                     
                 }
 
-                // if (cfg.half_electrode == sim::Electrode::ANODE)
-                // {
-                //     std::vector<mfem::ParGridFunction*> anode_cn_fields;
-                //     anode_cn_fields.reserve(state.anode_particles.size());
+                if (cfg.half_electrode == sim::Electrode::ANODE)
+                {
+                    std::vector<mfem::ParGridFunction*> anode_cn_fields;
+                    anode_cn_fields.reserve(state.anode_particles.size());
 
-                //     for (auto &p : state.anode_particles)
-                //     {
-                //         anode_cn_fields.push_back(p.Cn_gf.get());
-                //     }
+                    for (auto &p : state.anode_particles)
+                    {
+                        anode_cn_fields.push_back(p.Cn_gf.get());
+                    }
 
-                //     Utils::SaveSimulationSnapshotMulti(t, outdir, geometry, domain_parameters,
-                //         anode_cn_fields, state.anode_out, 100);
-                // }
-                // else
-                // {
-                //     std::vector<mfem::ParGridFunction*> cathode_cn_fields;
-                //     cathode_cn_fields.reserve(state.cathode_particles.size());
+                    Utils::SaveSimulationSnapshotMulti(t, outdir, geometry, domain_parameters,
+                        anode_cn_fields, state.anode_out, 100);
+                }
+                else
+                {
+                    std::vector<mfem::ParGridFunction*> cathode_cn_fields;
+                    cathode_cn_fields.reserve(state.cathode_particles.size());
 
-                //     for (auto &p : state.cathode_particles)
-                //     {
-                //         cathode_cn_fields.push_back(p.Cn_gf.get());
-                //     }
+                    for (auto &p : state.cathode_particles)
+                    {
+                        cathode_cn_fields.push_back(p.Cn_gf.get());
+                    }
 
-                //     Utils::SaveSimulationSnapshotMulti(t, outdir, geometry, domain_parameters,
-                //         cathode_cn_fields, state.cathode_out, 100);
-                // }
+                    Utils::SaveSimulationSnapshotMulti(t, outdir, geometry, domain_parameters,
+                        cathode_cn_fields, state.cathode_out, 100);
+                }
             }
 
         
