@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     cfg.init_cathode_particles = {0.30, 0.30, 0.30};
     cfg.init_anode_particles   = {0.2, 0.15, 0.10}; 
 
-    cfg.cathode_materials = {sim::MaterialType::LFP, sim::MaterialType::LFP, sim::MaterialType::LFP};
+    cfg.cathode_materials = {sim::MaterialType::NMC, sim::MaterialType::NMC, sim::MaterialType::NMC};
     cfg.anode_materials = {sim::MaterialType::Graphite, sim::MaterialType::Graphite, sim::MaterialType::Graphite};
 
     std::string outdir = Utils::BuildRunOutdir(cfg.mesh_file, cfg.num_timesteps);
@@ -55,6 +55,8 @@ int main(int argc, char *argv[]) {
 
         // Initialize Mesh & Geometry
         Initialize_Geometry geometry;
+        geometry.combine_particle_groups = cfg.combine_particle_groups;
+
         if (cfg.mode == sim::CellMode::HALF) {
             geometry.InitializeMesh(cfg.mesh_file, active_dsF, cfg.mesh_type, MPI_COMM_WORLD, cfg.order);
         } else {
@@ -251,7 +253,10 @@ int main(int argc, char *argv[]) {
                         state.cathode_particles[j].reaction->ExchangeCurrentDensity(*state.cathode_particles[j].Cn_gf, *domain_parameters.AvEs[j], state.cathode_particles[j].material);
                     }
 
-                        // while loop
+                        // // while loop
+                        int iter = 0;
+                        const int max_iter = 50; // Maximum number of iterations to prevent infinite loops
+
                         while (globalerror_P > 1e-5 || globalerror_E > 1e-5) {
                             *state.Rxn_gf = 0.0;
 
@@ -261,9 +266,13 @@ int main(int argc, char *argv[]) {
                             }
                             state.cathode_potential->UpdatePotential(*state.Rxn_gf, *state.phC_gf, *domain_parameters.psi, globalerror_P);
                             state.electrolyte_potential->UpdatePotential(*state.Rxn_gf, *state.phE_gf, *domain_parameters.pse, globalerror_E);
+                            
+                            iter++;
 
-                            // std::cout << "Timestep " << t << ": Global Error P = " << globalerror_P << ", Global Error E = " << globalerror_E << std::endl;
+                        }
 
+                        if (iter == max_iter && mfem::Mpi::WorldRank() == 0) {
+                            std::cout << "Warning: Maximum iterations reached at timestep " << t << " with Global Error P = " << globalerror_P << ", Global Error E = " << globalerror_E << std::endl;
                         }
                     
                     for (int j = 0; j < np; ++j){
@@ -281,11 +290,8 @@ int main(int argc, char *argv[]) {
 
                     double VCell = state.cathode_potential->BvC - state.electrolyte_potential->BvE;
 
-                    // double sgn = std::copysign(1.0, total_target - total_current);
-                    // double dV  = Constants::dt * Constants::Vsr0 * sgn;
-
-                    double err = (total_target - total_current) / total_target;
-                    double dV  = Constants::dt * Constants::Vsr0 * err;
+                    double sgn = std::copysign(1.0, total_target - total_current);
+                    double dV  = Constants::dt * Constants::Vsr0 * sgn;
 
                     state.electrolyte_potential->BvE += dV;
                     *state.phE_gf += dV;
@@ -310,7 +316,7 @@ int main(int argc, char *argv[]) {
 
                     if (t % 100 == 0 && mfem::Mpi::WorldRank() == 0)
                     {
-                        std::ofstream outfile("cathode_concentrations_mp_same.txt", std::ios::app);
+                        std::ofstream outfile("NMC_concentrations_ONE.txt", std::ios::app);
 
                         double XfrC_avg = 0.0;
                         double total_weight = 0.0;
@@ -326,6 +332,8 @@ int main(int argc, char *argv[]) {
 
                             XfrC_avg += weight_j * Xfr_j;
                             total_weight += weight_j;
+
+                            // std::cout << "Total Weight: " << total_weight << std::endl;
 
                             outfile << ", Xfr_" << j << " = " << Xfr_j;
                         }

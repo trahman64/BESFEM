@@ -6,7 +6,7 @@
 #include "../include/PotE.hpp"
 #include "../include/Constants.hpp"
 #include "mfem.hpp"
-#include "../include/CnE.hpp"
+// #include "../include/CnE.hpp"
 #include <optional>
 #include "../include/SimTypes.hpp"
 #include <mpi.h>

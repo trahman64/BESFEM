@@ -52,6 +52,9 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
         utils.InitializeReaction(Rx, RxA, (1.0/Constants::rho_A)); 
     }
     
+    // std::cout << "Min Weight: " << weight_elec.Min() << ", Max Weight: " << weight_elec.Max() << std::endl;
+
+
     RxA *= weight_elec; 
 
     // Add all particle-particle pair exchange terms

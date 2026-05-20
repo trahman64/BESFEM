@@ -19,6 +19,7 @@ SimulationConfig ParseSimulationArgs(int argc, char *argv[])
     args.AddOption(&cfg.num_timesteps, "-n", "--num-steps", "Number of timesteps.");
     args.AddOption(&mode, "-mode", "--mode", "Cell mode: half | full.");
     args.AddOption(&half_elec, "-elec", "--electrode", "HALF mode only: anode | cathode.");
+    args.AddOption(&cfg.combine_particle_groups, "-combine", "--combine-particles", "-separate", "--separate-particles", "Combine all particle groups into one.");
     args.ParseCheck();
 
     cfg.mode = (std::strcmp(mode, "full") == 0)

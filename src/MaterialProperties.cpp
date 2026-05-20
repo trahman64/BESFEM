@@ -46,7 +46,7 @@ namespace MaterialProperties
 
     static double LFP_i0(double c)
     {
-        double val = * 1.2e-5 * std::pow(c, 0.35) * std::pow(1.0 - c, 2.5);
+        double val = 1.2e-5 * std::pow(c, 0.35) * std::pow(1.0 - c, 2.5);
         return val;
     }
 
@@ -178,9 +178,6 @@ namespace MaterialProperties
 
             case sim::MaterialType::Electrolyte:
                 return Electrolyte_diff(c);
-
-            case sim::MaterialType::LFP:
-                return NMC_diff(c);
 
             default:
                 mfem::mfem_error("Material does not have a defined diffusivity.");

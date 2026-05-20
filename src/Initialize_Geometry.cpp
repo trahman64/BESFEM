@@ -195,6 +195,17 @@ void Initialize_Geometry::InitializeMesh(const char* meshFile, const char* dista
         // discover particle labels automatically from TIFF
         particle_labels = GetParticleLabelsFromTiff();
 
+        if (combine_particle_groups)
+        {
+            particle_labels.clear();
+            particle_labels.push_back(1);
+
+            if (mfem::Mpi::WorldRank() == 0)
+            {
+                std::cout << "[Initialize_Geometry] Combining all particle labels into one group.\n";
+            }
+        }        
+
         if (mfem::Mpi::WorldRank() == 0)
         {
             std::cout << "[Initialize_Geometry] particle labels found: ";
@@ -1077,7 +1088,15 @@ void Initialize_Geometry::ComputePDEFilterLabel(mfem::ParGridFunction &dist,
         for (int i = 0; i < nx; ++i)
         {
             const int idx = i + nx*j + nx*ny*k;
-            fg[idx] = (tiffData[k][j][i] == target_label) ? 1 : 0;
+            // fg[idx] = (tiffData[k][j][i] == target_label) ? 1 : 0;
+            if (combine_particle_groups)
+            {
+                fg[idx] = (tiffData[k][j][i] > 0) ? 1 : 0;
+            }
+            else
+            {
+                fg[idx] = (tiffData[k][j][i] == target_label) ? 1 : 0;
+            }
         }
 
         if (keep_boundary_connected)

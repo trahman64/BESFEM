@@ -185,6 +185,7 @@ mpirun -np 8 ./battery_simulation \
 | `-o <order>`            | Finite element polynomial order         |
 | `-t <ml/v>`             | Mesh type: MATLAB (`ml`) or voxel (`v`) |
 | `-n <steps>`            | Number of time steps                    |
+| `-combine`              | Combine particle groups to act as one   |
 
 ---
 

@@ -39,6 +39,9 @@ public:
     Initialize_Geometry();
     virtual ~Initialize_Geometry();
 
+    bool combine_particle_groups = false; ///< Whether to combine particle groups for performance.
+
+
     // -------------------------------------------------------------------------
     // Distance function preprocessing
     // -------------------------------------------------------------------------

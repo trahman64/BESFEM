@@ -32,6 +32,8 @@ struct SimulationConfig {
     int order = Constants::order; ///< Finite element polynomial order.
     int num_timesteps = 1000;     ///< Number of global time steps for the simulation.
 
+    bool combine_particle_groups = false; ///< Whether to combine particle groups for performance
+
 
     std::vector<double> init_anode_particles;
     std::vector<double> init_cathode_particles;

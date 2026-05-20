@@ -6,7 +6,7 @@
 #include "../include/Reaction.hpp"
 #include "../include/Constants.hpp"
 #include "mfem.hpp"
-#include "../include/CnE.hpp"
+// #include "../include/CnE.hpp"
 #include "../include/PotE.hpp"
 #include "../include/PotC.hpp"
 #include "../include/PotA.hpp"
@@ -176,10 +176,7 @@ void Reaction::TotalReactionCurrent(mfem::ParGridFunction &Rx, double &global_cu
         Rx.GetNodalValues(ei, VtxVal);
         double sum = std::accumulate(VtxVal.begin(), VtxVal.end(), 0.0);
         EAvg(ei) = sum / nC;
-    //  std::cout << "Sum at element " << ei << ": " << sum << ", Average: " << EAvg(ei) << std::endl;
         local_current += EAvg(ei) * EVol(ei);
-    //  local_current *= (pow(Constants::dh, 2)); // Scale by area element
-
     }
 
     MPI_Allreduce(&local_current, &global_current, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
