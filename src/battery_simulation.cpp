@@ -82,6 +82,170 @@ int main(int argc, char *argv[]) {
         SimulationState state;
         InitializeFields(state, geometry, domain_parameters, bc, cfg);
 
+        // if (mfem::Mpi::WorldRank() == 0)
+        // {
+        //     const int np = static_cast<int>(state.cathode_particles.size());
+
+        //     for (int j = 0; j < np; ++j)
+        //     {
+        //         int interface_nodes = 0;
+        //         int particle_nodes  = 0;
+
+        //         for (int i = 0; i < domain_parameters.AvEs[j]->Size(); i++)
+        //         {
+        //             // Count interface nodes
+        //             if ((*domain_parameters.AvEs[j])(i) * Constants::dh > 0.05)
+        //             {
+        //                 interface_nodes++;
+        //             }
+
+        //             // Count particle interior nodes
+        //             if ((*domain_parameters.ps[j])(i) > 0.5)
+        //             {
+        //                 particle_nodes++;
+        //             }
+        //         }
+
+        //         double ratio = 0.0;
+
+        //         if (particle_nodes > 0)
+        //         {
+        //             ratio = static_cast<double>(interface_nodes)
+        //                     / static_cast<double>(particle_nodes);
+        //         }
+
+        //         std::cout << "Particle " << j
+        //                 << " Interface Nodes = " << interface_nodes
+        //                 << ", Particle Nodes = " << particle_nodes
+        //                 << ", Interface/Volume Ratio = " << ratio
+        //                 << std::endl;
+        //     }
+        // }
+
+        const int np = static_cast<int>(state.cathode_particles.size());
+
+        for (int j = 0; j < np; ++j)
+        {
+            int local_interface_nodes = 0;
+            int local_particle_nodes  = 0;
+
+            for (int i = 0; i < domain_parameters.AvEs[j]->Size(); i++)
+            {
+                if ((*domain_parameters.AvEs[j])(i) * Constants::dh > 0.05)
+                {
+                    local_interface_nodes++;
+                }
+
+                if ((*domain_parameters.ps[j])(i) > 0.5)
+                {
+                    local_particle_nodes++;
+                }
+            }
+
+            int global_interface_nodes = 0;
+            int global_particle_nodes  = 0;
+
+            MPI_Allreduce(&local_interface_nodes,
+                        &global_interface_nodes,
+                        1,
+                        MPI_INT,
+                        MPI_SUM,
+                        MPI_COMM_WORLD);
+
+            MPI_Allreduce(&local_particle_nodes,
+                        &global_particle_nodes,
+                        1,
+                        MPI_INT,
+                        MPI_SUM,
+                        MPI_COMM_WORLD);
+
+            double ratio = 0.0;
+
+            if (global_particle_nodes > 0)
+            {
+                ratio =
+                    static_cast<double>(global_interface_nodes)
+                    / static_cast<double>(global_particle_nodes);
+            }
+
+            if (mfem::Mpi::WorldRank() == 0)
+            {
+                std::cout << "Particle " << j
+                        << " Interface Nodes = " << global_interface_nodes
+                        << ", Particle Nodes = " << global_particle_nodes
+                        << ", Interface/Volume Ratio = " << ratio
+                        << std::endl;
+            }
+        }
+
+        int total_local_interface_nodes = 0;
+        int total_local_particle_nodes  = 0;
+
+        // Sum over all particles
+        for (int j = 0; j < np; ++j)
+        {
+            for (int i = 0; i < domain_parameters.AvEs[j]->Size(); i++)
+            {
+                // Interface nodes
+                if ((*domain_parameters.AvEs[j])(i) * Constants::dh > 0.05)
+                {
+                    total_local_interface_nodes++;
+                }
+
+                // Particle nodes
+                if ((*domain_parameters.ps[j])(i) > 0.5)
+                {
+                    total_local_particle_nodes++;
+                }
+            }
+        }
+
+        // Global MPI reduction
+        int total_global_interface_nodes = 0;
+        int total_global_particle_nodes  = 0;
+
+        MPI_Allreduce(&total_local_interface_nodes,
+                    &total_global_interface_nodes,
+                    1,
+                    MPI_INT,
+                    MPI_SUM,
+                    MPI_COMM_WORLD);
+
+        MPI_Allreduce(&total_local_particle_nodes,
+                    &total_global_particle_nodes,
+                    1,
+                    MPI_INT,
+                    MPI_SUM,
+                    MPI_COMM_WORLD);
+
+        // Compute overall ratio
+        double total_ratio = 0.0;
+
+        if (total_global_particle_nodes > 0)
+        {
+            total_ratio =
+                static_cast<double>(total_global_interface_nodes)
+                / static_cast<double>(total_global_particle_nodes);
+        }
+
+        // Print only on rank 0
+        if (mfem::Mpi::WorldRank() == 0)
+        {
+            std::cout << "=================================================="
+                    << std::endl;
+
+            std::cout << "TOTAL Interface Nodes = "
+                    << total_global_interface_nodes
+                    << ", TOTAL Particle Nodes = "
+                    << total_global_particle_nodes
+                    << ", TOTAL Interface/Volume Ratio = "
+                    << total_ratio
+                    << std::endl;
+
+            std::cout << "=================================================="
+                    << std::endl;
+        }
+
         // double VCell = 0.0;
 
         // ============================================================================
@@ -266,7 +430,7 @@ int main(int argc, char *argv[]) {
                             }
                             state.cathode_potential->UpdatePotential(*state.Rxn_gf, *state.phC_gf, *domain_parameters.psi, globalerror_P);
                             state.electrolyte_potential->UpdatePotential(*state.Rxn_gf, *state.phE_gf, *domain_parameters.pse, globalerror_E);
-                            
+
                             iter++;
 
                         }

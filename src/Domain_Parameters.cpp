@@ -377,6 +377,7 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
 
             // Building AvPs
             ComputeGradMagnitude(*psi, *AvP);      // total solid
+            ComputeGradMagnitude(*pse, *AvE);      // electrolyte
 
             for (int k = 0; k < (int)ps.size(); ++k)
             {
@@ -715,5 +716,7 @@ void Domain_Parameters::PrintInfo() {
         cout << "Total Pse: " << gtPse << endl;
         cout << "Target Current: " << gTrgI << endl;
     }
+
+    
 }
 
