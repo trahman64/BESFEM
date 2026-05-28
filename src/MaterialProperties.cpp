@@ -268,4 +268,38 @@ namespace MaterialProperties
                 return 0.0;
         }
     }
+
+    static double GraphiteConductivity(double c)
+    {
+        return 3.3; 
+    }
+
+    static double NMCConductivity(double c)
+    {
+        return (0.01929 + 0.7045 * tanh(2.399 * c) - 0.7238 * tanh(2.412 * c) - 4.2106e-6); 
+    }
+
+    static double LFPConductivity(double c)
+    {
+        return 1e-9; // TODO LFP Conductivity
+    }
+
+    double Conductivity(sim::MaterialType material, double c)
+    {
+        switch (material)
+        {
+            case sim::MaterialType::Graphite:
+                return GraphiteConductivity(c);
+
+            case sim::MaterialType::NMC:
+                return NMCConductivity(c);
+
+            case sim::MaterialType::LFP:
+                return LFPConductivity(c);
+
+            default:
+                mfem::mfem_error("Unknown material in Conductivity.");
+                return 0.0;
+        }
+    }
 }

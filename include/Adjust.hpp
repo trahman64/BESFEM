@@ -4,9 +4,10 @@
 #include "mfem.hpp"
 #include "Initialize_Geometry.hpp"
 #include "Domain_Parameters.hpp"
-#include "PotA.hpp"
-#include "PotC.hpp"
+// #include "PotA.hpp"
+// #include "PotC.hpp"
 #include "PotE.hpp"
+#include "ElectrodePotential.hpp"
 
 /**
  * @class Adjust
@@ -50,7 +51,7 @@ public:
      * @param phC_gf The ParGridFunction storing the cathodic potential field.
      * @param VCell  Output: computed or updated cell voltage (V).
      */
-    void AdjustConstantCurrent(double current_A, double current_C, PotA &anode_potential, PotC &cathode_potential,
+    void AdjustConstantCurrent(double current_A, double current_C, ElectrodePotential &anode_potential, ElectrodePotential &cathode_potential,
                               mfem::ParGridFunction &phA_gf, mfem::ParGridFunction &phC_gf, double &VCell);
 
 private:

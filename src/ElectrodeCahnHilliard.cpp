@@ -4,7 +4,7 @@
 #include "mfem.hpp"
 
 ElectrodeCahnHilliard::ElectrodeCahnHilliard(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat)
-     : ConcentrationBase(geo, para, mat), pmesh(geo.parallelMesh.get()),
+     : ConcentrationBase(geo, para, mat), pmesh(geo.parallelMesh.get()), combine_particle_groups(geo.combine_particle_groups),
       Mub(fespace.get()), Mob(fespace.get()), RxA(fespace.get()), gtPsi(para.gtPsi), gtPsA(para.gtPsA),
       Lp1(fespace.get()), Lp2(fespace.get()), MuV(fespace.get()),
       PsVc(fespace.get()), CpV0(fespace.get()), RHCp(fespace.get()), CpVn(fespace.get()),
@@ -46,7 +46,7 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
 {   
     
     
-    if (Constants::Perm > 0.0){
+    if (!combine_particle_groups){
         utils.InitializeReaction(Rx, RxA, (1.0)); 
     } else {
         utils.InitializeReaction(Rx, RxA, (1.0/Constants::rho_A)); 
@@ -55,13 +55,14 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     // std::cout << "Min Weight: " << weight_elec.Min() << ", Max Weight: " << weight_elec.Max() << std::endl;
 
 
-    RxA *= weight_elec; 
-
-    // Add all particle-particle pair exchange terms
-    for (const auto &pair : pair_terms)
-    {
-        utils.ComputePairFlux(*pair.sum_part, *pair.weight, *pair.grad_psi, *pair.mu_self, *pair.mu_nbr);
-        RxA += *pair.sum_part;
+    if (!combine_particle_groups){
+        
+        RxA *= weight_elec; 
+        for (const auto &pair : pair_terms)
+        {
+            utils.ComputePairFlux(*pair.sum_part, *pair.weight, *pair.grad_psi, *pair.mu_self, *pair.mu_nbr);
+            RxA += *pair.sum_part;
+        }
     }
 
     cAp.SetGridFunction(&RxA); 

@@ -15,4 +15,5 @@ namespace MaterialProperties
     double LFP_ChpValue(double c); 
     double Diffusivity(sim::MaterialType material, double c);
     double Mobility(sim::MaterialType material, double c);
+    double Conductivity(sim::MaterialType material, double c);
 }

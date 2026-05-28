@@ -55,7 +55,10 @@ private:
     double gtPsi = 0.0;
 
     mfem::CGSolver       MCH_solver;            
-    mfem::HypreSmoother  MCH_prec;              
+    mfem::HypreSmoother  MCH_prec;  
+    
+    bool combine_particle_groups = false;
+
 };
 
 #endif // ELECTRODE_CAHN_HILLIARD_HPP

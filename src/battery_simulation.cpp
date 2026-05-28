@@ -82,169 +82,130 @@ int main(int argc, char *argv[]) {
         SimulationState state;
         InitializeFields(state, geometry, domain_parameters, bc, cfg);
 
-        // if (mfem::Mpi::WorldRank() == 0)
+
+        // const int np = static_cast<int>(state.cathode_particles.size());
+
+        // for (int j = 0; j < np; ++j)
         // {
-        //     const int np = static_cast<int>(state.cathode_particles.size());
+        //     int local_interface_nodes = 0;
+        //     int local_particle_nodes  = 0;
 
-        //     for (int j = 0; j < np; ++j)
+        //     for (int i = 0; i < domain_parameters.AvEs[j]->Size(); i++)
         //     {
-        //         int interface_nodes = 0;
-        //         int particle_nodes  = 0;
-
-        //         for (int i = 0; i < domain_parameters.AvEs[j]->Size(); i++)
+        //         if ((*domain_parameters.AvEs[j])(i) * Constants::dh > 0.05)
         //         {
-        //             // Count interface nodes
-        //             if ((*domain_parameters.AvEs[j])(i) * Constants::dh > 0.05)
-        //             {
-        //                 interface_nodes++;
-        //             }
-
-        //             // Count particle interior nodes
-        //             if ((*domain_parameters.ps[j])(i) > 0.5)
-        //             {
-        //                 particle_nodes++;
-        //             }
+        //             local_interface_nodes++;
         //         }
 
-        //         double ratio = 0.0;
-
-        //         if (particle_nodes > 0)
+        //         if ((*domain_parameters.ps[j])(i) > 0.5)
         //         {
-        //             ratio = static_cast<double>(interface_nodes)
-        //                     / static_cast<double>(particle_nodes);
+        //             local_particle_nodes++;
         //         }
+        //     }
 
+        //     int global_interface_nodes = 0;
+        //     int global_particle_nodes  = 0;
+
+        //     MPI_Allreduce(&local_interface_nodes,
+        //                 &global_interface_nodes,
+        //                 1,
+        //                 MPI_INT,
+        //                 MPI_SUM,
+        //                 MPI_COMM_WORLD);
+
+        //     MPI_Allreduce(&local_particle_nodes,
+        //                 &global_particle_nodes,
+        //                 1,
+        //                 MPI_INT,
+        //                 MPI_SUM,
+        //                 MPI_COMM_WORLD);
+
+        //     double ratio = 0.0;
+
+        //     if (global_particle_nodes > 0)
+        //     {
+        //         ratio =
+        //             static_cast<double>(global_interface_nodes)
+        //             / static_cast<double>(global_particle_nodes);
+        //     }
+
+        //     if (mfem::Mpi::WorldRank() == 0)
+        //     {
         //         std::cout << "Particle " << j
-        //                 << " Interface Nodes = " << interface_nodes
-        //                 << ", Particle Nodes = " << particle_nodes
+        //                 << " Interface Nodes = " << global_interface_nodes
+        //                 << ", Particle Nodes = " << global_particle_nodes
         //                 << ", Interface/Volume Ratio = " << ratio
         //                 << std::endl;
         //     }
         // }
 
-        const int np = static_cast<int>(state.cathode_particles.size());
+        // int total_local_interface_nodes = 0;
+        // int total_local_particle_nodes  = 0;
 
-        for (int j = 0; j < np; ++j)
-        {
-            int local_interface_nodes = 0;
-            int local_particle_nodes  = 0;
+        // // Sum over all particles
+        // for (int j = 0; j < np; ++j)
+        // {
+        //     for (int i = 0; i < domain_parameters.AvEs[j]->Size(); i++)
+        //     {
+        //         // Interface nodes
+        //         if ((*domain_parameters.AvEs[j])(i) * Constants::dh > 0.05)
+        //         {
+        //             total_local_interface_nodes++;
+        //         }
 
-            for (int i = 0; i < domain_parameters.AvEs[j]->Size(); i++)
-            {
-                if ((*domain_parameters.AvEs[j])(i) * Constants::dh > 0.05)
-                {
-                    local_interface_nodes++;
-                }
+        //         // Particle nodes
+        //         if ((*domain_parameters.ps[j])(i) > 0.5)
+        //         {
+        //             total_local_particle_nodes++;
+        //         }
+        //     }
+        // }
 
-                if ((*domain_parameters.ps[j])(i) > 0.5)
-                {
-                    local_particle_nodes++;
-                }
-            }
+        // // Global MPI reduction
+        // int total_global_interface_nodes = 0;
+        // int total_global_particle_nodes  = 0;
 
-            int global_interface_nodes = 0;
-            int global_particle_nodes  = 0;
+        // MPI_Allreduce(&total_local_interface_nodes,
+        //             &total_global_interface_nodes,
+        //             1,
+        //             MPI_INT,
+        //             MPI_SUM,
+        //             MPI_COMM_WORLD);
 
-            MPI_Allreduce(&local_interface_nodes,
-                        &global_interface_nodes,
-                        1,
-                        MPI_INT,
-                        MPI_SUM,
-                        MPI_COMM_WORLD);
+        // MPI_Allreduce(&total_local_particle_nodes,
+        //             &total_global_particle_nodes,
+        //             1,
+        //             MPI_INT,
+        //             MPI_SUM,
+        //             MPI_COMM_WORLD);
 
-            MPI_Allreduce(&local_particle_nodes,
-                        &global_particle_nodes,
-                        1,
-                        MPI_INT,
-                        MPI_SUM,
-                        MPI_COMM_WORLD);
+        // // Compute overall ratio
+        // double total_ratio = 0.0;
 
-            double ratio = 0.0;
+        // if (total_global_particle_nodes > 0)
+        // {
+        //     total_ratio =
+        //         static_cast<double>(total_global_interface_nodes)
+        //         / static_cast<double>(total_global_particle_nodes);
+        // }
 
-            if (global_particle_nodes > 0)
-            {
-                ratio =
-                    static_cast<double>(global_interface_nodes)
-                    / static_cast<double>(global_particle_nodes);
-            }
+        // // Print only on rank 0
+        // if (mfem::Mpi::WorldRank() == 0)
+        // {
+        //     std::cout << "=================================================="
+        //             << std::endl;
 
-            if (mfem::Mpi::WorldRank() == 0)
-            {
-                std::cout << "Particle " << j
-                        << " Interface Nodes = " << global_interface_nodes
-                        << ", Particle Nodes = " << global_particle_nodes
-                        << ", Interface/Volume Ratio = " << ratio
-                        << std::endl;
-            }
-        }
+        //     std::cout << "TOTAL Interface Nodes = "
+        //             << total_global_interface_nodes
+        //             << ", TOTAL Particle Nodes = "
+        //             << total_global_particle_nodes
+        //             << ", TOTAL Interface/Volume Ratio = "
+        //             << total_ratio
+        //             << std::endl;
 
-        int total_local_interface_nodes = 0;
-        int total_local_particle_nodes  = 0;
-
-        // Sum over all particles
-        for (int j = 0; j < np; ++j)
-        {
-            for (int i = 0; i < domain_parameters.AvEs[j]->Size(); i++)
-            {
-                // Interface nodes
-                if ((*domain_parameters.AvEs[j])(i) * Constants::dh > 0.05)
-                {
-                    total_local_interface_nodes++;
-                }
-
-                // Particle nodes
-                if ((*domain_parameters.ps[j])(i) > 0.5)
-                {
-                    total_local_particle_nodes++;
-                }
-            }
-        }
-
-        // Global MPI reduction
-        int total_global_interface_nodes = 0;
-        int total_global_particle_nodes  = 0;
-
-        MPI_Allreduce(&total_local_interface_nodes,
-                    &total_global_interface_nodes,
-                    1,
-                    MPI_INT,
-                    MPI_SUM,
-                    MPI_COMM_WORLD);
-
-        MPI_Allreduce(&total_local_particle_nodes,
-                    &total_global_particle_nodes,
-                    1,
-                    MPI_INT,
-                    MPI_SUM,
-                    MPI_COMM_WORLD);
-
-        // Compute overall ratio
-        double total_ratio = 0.0;
-
-        if (total_global_particle_nodes > 0)
-        {
-            total_ratio =
-                static_cast<double>(total_global_interface_nodes)
-                / static_cast<double>(total_global_particle_nodes);
-        }
-
-        // Print only on rank 0
-        if (mfem::Mpi::WorldRank() == 0)
-        {
-            std::cout << "=================================================="
-                    << std::endl;
-
-            std::cout << "TOTAL Interface Nodes = "
-                    << total_global_interface_nodes
-                    << ", TOTAL Particle Nodes = "
-                    << total_global_particle_nodes
-                    << ", TOTAL Interface/Volume Ratio = "
-                    << total_ratio
-                    << std::endl;
-
-            std::cout << "=================================================="
-                    << std::endl;
-        }
+        //     std::cout << "=================================================="
+        //             << std::endl;
+        // }
 
         // double VCell = 0.0;
 
@@ -406,7 +367,7 @@ int main(int argc, char *argv[]) {
                         cathode_psi_fields.push_back(domain_parameters.ps[j].get());
                     }
 
-                    state.cathode_potential->AssembleSystemMulti(cathode_cn_fields, cathode_psi_fields, *state.phC_gf);
+                    state.cathode_potential->AssembleSystem(cathode_cn_fields, cathode_psi_fields, *state.phC_gf);
                     state.electrolyte_potential->AssembleSystem(*state.CnE_gf, *domain_parameters.pse, *state.phE_gf);
 
                     double globalerror_P = 1.0; // Error for particle potential
@@ -452,27 +413,26 @@ int main(int argc, char *argv[]) {
                         total_target  += domain_parameters.gTrgPs[j];
                     }
 
-                    double VCell = state.cathode_potential->BvC - state.electrolyte_potential->BvE;
+                    double VCell = state.cathode_potential->GetBoundaryVoltage() - state.electrolyte_potential->GetBoundaryVoltage();
 
                     double sgn = std::copysign(1.0, total_target - total_current);
                     double dV  = Constants::dt * Constants::Vsr0 * sgn;
 
-                    state.electrolyte_potential->BvE += dV;
+                    // state.electrolyte_potential->BvE += dV;
+                    state.electrolyte_potential->AddBoundaryVoltage(dV);
                     *state.phE_gf += dV;
+
+
 
                     if (t % 100 == 0 && mfem::Mpi::WorldRank() == 0)
                     {
                         std::ofstream outfile("cathode_currents_mp.txt", std::ios::app);
 
-                        outfile << "timestep: " << t
-                                << ", VCell = " << VCell
-                                << ", TotalCurrent = " << total_current
-                                << ", TotalTarget = " << total_target;
+                        outfile << "timestep: " << t << ", VCell = " << VCell << ", TotalCurrent = " << total_current << ", TotalTarget = " << total_target;
 
                         for (int j = 0; j < np; ++j)
                         {
-                            outfile << ", Current_" << j << " = " << global_currents[j]
-                                    << ", Target_" << j << " = " << domain_parameters.gTrgPs[j];
+                            outfile << ", Current_" << j << " = " << global_currents[j] << ", Target_" << j << " = " << domain_parameters.gTrgPs[j];
                         }
 
                         outfile << std::endl;
@@ -485,9 +445,7 @@ int main(int argc, char *argv[]) {
                         double XfrC_avg = 0.0;
                         double total_weight = 0.0;
 
-                        outfile << "timestep: " << t
-                                << " [CATHODE HALF-CELL]"
-                                << ", VCell = " << VCell;
+                        outfile << "timestep: " << t << " [CATHODE HALF-CELL]" << ", VCell = " << VCell << ", BvE = " << state.electrolyte_potential->GetBoundaryVoltage();
 
                         for (int j = 0; j < np; ++j)
                         {
@@ -496,8 +454,6 @@ int main(int argc, char *argv[]) {
 
                             XfrC_avg += weight_j * Xfr_j;
                             total_weight += weight_j;
-
-                            // std::cout << "Total Weight: " << total_weight << std::endl;
 
                             outfile << ", Xfr_" << j << " = " << Xfr_j;
                         }

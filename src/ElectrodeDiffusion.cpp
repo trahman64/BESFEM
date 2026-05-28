@@ -1,10 +1,11 @@
 #include "../include/ElectrodeDiffusion.hpp"
 #include "../include/Constants.hpp"
 #include "../include/MaterialProperties.hpp"
+#include "../include/SimTypes.hpp"
 #include "mfem.hpp"
 
 ElectrodeDiffusion::ElectrodeDiffusion(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat)
-    : ConcentrationBase(geo, para, mat), Dp(fespace.get()), Mp_solver(MPI_COMM_WORLD), cDp(&Dp), Fct(fespace.get()), PsVc(fespace.get()), CpV0(fespace.get()), RHCp(fespace.get()), 
+    : ConcentrationBase(geo, para, mat),  combine_particle_groups(geo.combine_particle_groups), Dp(fespace.get()), Mp_solver(MPI_COMM_WORLD), cDp(&Dp), Fct(fespace.get()), PsVc(fespace.get()), CpV0(fespace.get()), RHCp(fespace.get()), 
     CpVn(fespace.get()), Rxn(fespace.get()), cAp(&Rxn)
 {}
 
@@ -39,19 +40,31 @@ void ElectrodeDiffusion::UpdateConcentration(mfem::ParGridFunction &Rx, mfem::Pa
 
 {
 
-    if (Constants::Perm > 0.0){
+    if (!combine_particle_groups){
         utils.InitializeReaction(Rx, Rxn, (1.0)); 
+        // std::cout << "Not combining particle groups: using raw reaction field." << std::endl;
     } else {
         utils.InitializeReaction(Rx, Rxn, (1.0/Constants::rho_C)); // TODO: fix rho for material
+        // std::cout << "Treating all particles as a single group: normalizing reaction by rho_C." << std::endl;
     }
 
-    Rxn *= weight_elec;
-
-    for (const auto &pair : pair_terms)
-    {
-        utils.ComputePairFlux(*pair.sum_part, *pair.weight, *pair.grad_psi, *pair.mu_self, *pair.mu_nbr);
-        Rxn += *pair.sum_part;
+    if (!combine_particle_groups){
+        // std::cout << "Different particle groups, need to compute pair fluxes." << std::endl;
+        Rxn *= weight_elec;
+        for (const auto &pair : pair_terms)
+        {
+            utils.ComputePairFlux(*pair.sum_part, *pair.weight, *pair.grad_psi, *pair.mu_self, *pair.mu_nbr);
+            Rxn += *pair.sum_part;
+        }
     }
+
+    // Rxn *= weight_elec;
+
+    // for (const auto &pair : pair_terms)
+    // {
+    //     utils.ComputePairFlux(*pair.sum_part, *pair.weight, *pair.grad_psi, *pair.mu_self, *pair.mu_nbr);
+    //     Rxn += *pair.sum_part;
+    // }
 
     cAp.SetGridFunction(&Rxn);
 

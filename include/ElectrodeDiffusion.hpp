@@ -3,6 +3,8 @@
 
 #include "Utils.hpp"
 #include "Concentrations_Base.hpp"
+#include "SimTypes.hpp"
+
 
 class Initialize_Geometry;
 class Domain_Parameters;
@@ -47,6 +49,9 @@ private:
 
     double gtPsC = 0.0;
     double gtPsi = 0.0;
+
+    bool combine_particle_groups = false;
+
 };
 
 #endif // ELECTRODE_DIFFUSION_HPP

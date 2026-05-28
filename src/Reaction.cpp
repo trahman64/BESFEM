@@ -6,10 +6,6 @@
 #include "../include/Reaction.hpp"
 #include "../include/Constants.hpp"
 #include "mfem.hpp"
-// #include "../include/CnE.hpp"
-#include "../include/PotE.hpp"
-#include "../include/PotC.hpp"
-#include "../include/PotA.hpp"
 #include "../include/MaterialProperties.hpp"
 #include "../include/SimTypes.hpp"
 #include <fstream>

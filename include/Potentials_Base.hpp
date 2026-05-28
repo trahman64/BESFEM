@@ -8,39 +8,9 @@
 #include "FEMOperators.hpp"
 #include <memory>
 
-/**
- * @class PotentialBase
- * @brief Abstract base class for electrochemical potential solvers in BESFEM.
- *
- * This base class provides the common FEM infrastructure used for solving
- * electrochemical potentials in:
- * - **PotA** (anode potential)
- * - **PotC** (cathode potential)
- * - **PotE** (electrolyte potential)
- *
- * Responsibilities of PotentialBase:
- * - Store mesh/geometry and FE-space context
- * - Provide virtual interfaces for setup, assembly, and updates
- * - Manage temporary vectors and per-element volume info
- * - Serve as a uniform interface for potential solvers in the BESFEM pipeline
- *
- * Derived classes must implement:
- * - SetupField()       — Initialize potential field and assemble operators  
- * - AssembleSystem()   — Form system matrices/vectors based on C, ψ, etc.  
- * - UpdatePotential()  — Advance potential using reaction terms and FEM solves  
- */
 class PotentialBase {
 public:
 
-    /**
-     * @brief Construct the base potential solver.
-     *
-     * Stores geometry and domain parameters, initializes mesh pointers and
-     * basic FEM quantities shared by PotA, PotC, and PotE.
-     *
-     * @param geo  Geometry/mesh handler (serial + parallel).
-     * @param para Domain parameters (material constants, psi fields, etc.).
-     */
     PotentialBase(Initialize_Geometry &geo, Domain_Parameters &para);
 
     /// Virtual destructor.
@@ -65,21 +35,22 @@ public:
      */
     virtual void SetupField(mfem::ParGridFunction &ph, double initial_value, mfem::ParGridFunction &psx) = 0;
 
-    /**
-     * @brief Assemble linear system operators for the current timestep.
-     *
-     * Typical responsibilities:
-     * - build mass/stiffness contributions depending on concentration Cn,
-     * - apply ψ-based masking,
-     * - assemble RHS and boundary contributions,
-     * - prepare Hypre matrices for solving.
-     *
-     * @param Cn        Concentration field used for conductivity terms.
-     * @param psx       Phase-field mask ψ.
-     * @param potential Potential field (input/output).
-     */
+    // /**
+    //  * @brief Assemble linear system operators for the current timestep.
+    //  *
+    //  * Typical responsibilities:
+    //  * - build mass/stiffness contributions depending on concentration Cn,
+    //  * - apply ψ-based masking,
+    //  * - assemble RHS and boundary contributions,
+    //  * - prepare Hypre matrices for solving.
+    //  *
+    //  * @param Cn        Concentration field used for conductivity terms.
+    //  * @param psx       Phase-field mask ψ.
+    //  * @param potential Potential field (input/output).
+    //  */
+    // virtual void AssembleSystem(mfem::ParGridFunction &Cn, mfem::ParGridFunction &psx, mfem::ParGridFunction &potential) = 0;
     virtual void AssembleSystem(mfem::ParGridFunction &Cn, mfem::ParGridFunction &psx, mfem::ParGridFunction &potential) = 0;
-
+    virtual void AssembleSystem(const std::vector<mfem::ParGridFunction*> &Cn_groups, const std::vector<mfem::ParGridFunction*> &psi_groups, mfem::ParGridFunction &potential);
     /**
      * @brief Solve for the updated potential and compute error metrics.
      *
@@ -94,6 +65,9 @@ public:
      * @param gerror Output global error measure (MPI-reduced).
      */
     virtual void UpdatePotential(mfem::ParGridFunction &Rx, mfem::ParGridFunction &phx, mfem::ParGridFunction &psx, double &gerror) = 0;
+
+    virtual double GetBoundaryVoltage() const = 0;
+    virtual void AddBoundaryVoltage(double dV) = 0;
 
     // -------------------------------------------------------------------------
     // General FEM state / diagnostics (inherited by all potential solvers)

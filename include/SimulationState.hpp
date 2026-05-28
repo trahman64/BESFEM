@@ -21,7 +21,7 @@ struct AnodeParticleState
     std::unique_ptr<mfem::ParGridFunction> Rxn_gf;
     std::unique_ptr<mfem::ParGridFunction> Rx_src;
 
-    std::unique_ptr<PotA> potential;
+    std::unique_ptr<PotentialBase> potential;
     std::unique_ptr<mfem::ParGridFunction> ph_gf;
 };
 
@@ -40,7 +40,8 @@ struct CathodeParticleState
     std::unique_ptr<mfem::ParGridFunction> Rxn_gf;
     std::unique_ptr<mfem::ParGridFunction> Rx_src;
 
-    std::unique_ptr<PotC> potential;
+    // std::unique_ptr<PotC> potential;
+    std::unique_ptr<PotentialBase> potential;
     std::unique_ptr<mfem::ParGridFunction> ph_gf;
 };
 
@@ -49,17 +50,17 @@ struct SimulationState
 {
     // std::unique_ptr<CnA> anode_concentration;
     std::unique_ptr<ConcentrationBase> anode_concentration;
-    std::unique_ptr<PotA> anode_potential;
+    std::unique_ptr<PotentialBase> anode_potential;
     std::unique_ptr<mfem::ParGridFunction> CnA_gf, CnA_gf_psi, phA_gf;
 
     // std::unique_ptr<CnC> cathode_concentration;
     std::unique_ptr<ConcentrationBase> cathode_concentration;
-    std::unique_ptr<PotC> cathode_potential;
+    std::unique_ptr<PotentialBase> cathode_potential;
     std::unique_ptr<mfem::ParGridFunction> CnC_gf, CnC_gf_psi, phC_gf;
 
     // std::unique_ptr<CnE> electrolyte_concentration;
     std::unique_ptr<ConcentrationBase> electrolyte_concentration;
-    std::unique_ptr<PotE> electrolyte_potential;
+    std::unique_ptr<PotentialBase> electrolyte_potential;
     std::unique_ptr<mfem::ParGridFunction> CnE_gf, CnE_gf_psi, phE_gf;
 
     std::unique_ptr<Reaction> reaction;

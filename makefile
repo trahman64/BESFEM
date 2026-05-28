@@ -48,14 +48,13 @@ SRC_FILES = \
     src/Reaction.cpp \
     src/FEMOperators.cpp \
     src/Potentials_Base.cpp \
-    src/PotC.cpp \
-    src/PotA.cpp \
-    src/PotE.cpp \
     src/Adjust.cpp \
     src/Utils.cpp \
     src/dist_solver.cpp \
     src/SimulationState.cpp \
-    src/MaterialProperties.cpp
+    src/MaterialProperties.cpp \
+    src/ElectrodePotential.cpp \
+    src/ElectrolytePotential.cpp
 
 # SRC_FILES = example.cpp
             
