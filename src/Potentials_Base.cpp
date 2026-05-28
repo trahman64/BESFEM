@@ -16,7 +16,7 @@ PotentialBase::PotentialBase(Initialize_Geometry &geo, Domain_Parameters &para)
     TmpF = mfem::ParGridFunction(fespace.get()); // Temporary grid function for error calculations
 }
 
-void PotentialBase::AssembleSystem(const std::vector<mfem::ParGridFunction*> &Cn_groups, const std::vector<mfem::ParGridFunction*> &psi_groups, mfem::ParGridFunction &potential)
+void PotentialBase::AssembleSystem(const std::vector<mfem::ParGridFunction*> &Cn_groups, const std::vector<mfem::ParGridFunction*> &psi_groups, const std::vector<sim::MaterialType> &materials, mfem::ParGridFunction &potential)
 {
     mfem::mfem_error(
         "Multi-group AssembleSystem not implemented for this potential.");

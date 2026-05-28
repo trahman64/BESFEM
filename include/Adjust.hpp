@@ -4,9 +4,6 @@
 #include "mfem.hpp"
 #include "Initialize_Geometry.hpp"
 #include "Domain_Parameters.hpp"
-// #include "PotA.hpp"
-// #include "PotC.hpp"
-#include "PotE.hpp"
 #include "ElectrodePotential.hpp"
 
 /**

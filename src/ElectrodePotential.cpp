@@ -84,13 +84,13 @@ void ElectrodePotential::SetupField(mfem::ParGridFunction &ph, double initial_va
     fem.FormLinearSystem(Kp2, ess_tdof_list, ph, Fpt, KmP, X1v, Fpb);
 }
 
-void ElectrodePotential::AssembleSystem(const std::vector<mfem::ParGridFunction*> &Cn_groups, const std::vector<mfem::ParGridFunction*> &psi_groups, mfem::ParGridFunction &potential)
+void ElectrodePotential::AssembleSystem(const std::vector<mfem::ParGridFunction*> &Cn_groups, const std::vector<mfem::ParGridFunction*> &psi_groups, const std::vector<sim::MaterialType> &materials, mfem::ParGridFunction &potential)
 {
     mfem::ConstantCoefficient dbc_Coef(Bv);
     cgPP_solver.SetPreconditioner(*Mpp);
     cgPP_solver.SetOperator(KmP);
 
-    ParticleConductivityMulti(Cn_groups, psi_groups);
+    ParticleConductivityMulti(Cn_groups, psi_groups, materials);
     fem.Update(Kp2);
 
     if (electrode == sim::Electrode::ANODE)
@@ -112,7 +112,7 @@ void ElectrodePotential::AssembleSystem(const std::vector<mfem::ParGridFunction*
     cgPP_solver.SetOperator(KmP);
 }
 
-void ElectrodePotential::ParticleConductivityMulti(const std::vector<mfem::ParGridFunction*> &Cn_groups, const std::vector<mfem::ParGridFunction*> &psi_groups)
+void ElectrodePotential::ParticleConductivityMulti(const std::vector<mfem::ParGridFunction*> &Cn_groups, const std::vector<mfem::ParGridFunction*> &psi_groups, const std::vector<sim::MaterialType> &materials)
 {
     for (int vi = 0; vi < kap.Size(); vi++)
     {
@@ -123,7 +123,7 @@ void ElectrodePotential::ParticleConductivityMulti(const std::vector<mfem::ParGr
             const double c_val = (*Cn_groups[j])(vi);
             const double psi_val = (*psi_groups[j])(vi);
 
-            kap_sum += psi_val * MaterialProperties::Conductivity(material, c_val);
+            kap_sum += psi_val * MaterialProperties::Conductivity(materials[j], c_val);
         }
 
         kap(vi) = kap_sum;
@@ -164,6 +164,7 @@ void ElectrodePotential::AssembleSystem(mfem::ParGridFunction &Cn, mfem::ParGrid
 {
     std::vector<mfem::ParGridFunction*> Cn_groups  = { &Cn };
     std::vector<mfem::ParGridFunction*> psi_groups = { &psx };
+    std::vector<sim::MaterialType> materials = { material };
 
-    AssembleSystem(Cn_groups, psi_groups, potential);
+    AssembleSystem(Cn_groups, psi_groups, materials, potential);
 }

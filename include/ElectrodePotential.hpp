@@ -15,10 +15,10 @@ public:
     ElectrodePotential(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::Electrode electrode, sim::MaterialType material);
 
     void SetupField(mfem::ParGridFunction &ph, double initial_value, mfem::ParGridFunction &psx);
-    void AssembleSystem(const std::vector<mfem::ParGridFunction*> &Cn_groups, const std::vector<mfem::ParGridFunction*> &psi_groups, mfem::ParGridFunction &potential);
     void UpdatePotential(mfem::ParGridFunction &Rx, mfem::ParGridFunction &phx, mfem::ParGridFunction &psx, double &gerror);
 
     void AssembleSystem(mfem::ParGridFunction &Cn,mfem::ParGridFunction &psx,mfem::ParGridFunction &potential) override;
+    void AssembleSystem(const std::vector<mfem::ParGridFunction*> &Cn_groups, const std::vector<mfem::ParGridFunction*> &psi_groups, const std::vector<sim::MaterialType> &materials, mfem::ParGridFunction &potential);
 
     double GetBoundaryVoltage() const override { return Bv; }
     void AddBoundaryVoltage(double dV){Bv += dV;}
@@ -61,7 +61,7 @@ private:
 
     mfem::CGSolver cgPP_solver; // Conjugate gradient solver for potential update
 
-    void ParticleConductivityMulti(const std::vector<mfem::ParGridFunction*> &Cn_groups, const std::vector<mfem::ParGridFunction*> &psi_groups);
+    void ParticleConductivityMulti(const std::vector<mfem::ParGridFunction*> &Cn_groups, const std::vector<mfem::ParGridFunction*> &psi_groups, const std::vector<sim::MaterialType> &materials);
 };
 
 #endif // ELECTRODE_POTENTIAL_HPP

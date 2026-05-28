@@ -357,17 +357,20 @@ int main(int argc, char *argv[]) {
 
                     std::vector<mfem::ParGridFunction*> cathode_cn_fields; // vector of pointers to cathode concentration fields
                     std::vector<mfem::ParGridFunction*> cathode_psi_fields; // vector of pointers to cathode potential fields
+                    std::vector<sim::MaterialType> cathode_materials; // vector of cathode material types
  
                     cathode_cn_fields.reserve(np); // pre-allocate memory
                     cathode_psi_fields.reserve(np); // pre-allocate memory
+                    cathode_materials.reserve(np); // pre-allocate memory
 
                     for (int j = 0; j < np; ++j)
                     {
                         cathode_cn_fields.push_back(state.cathode_particles[j].Cn_gf.get()); 
                         cathode_psi_fields.push_back(domain_parameters.ps[j].get());
+                        cathode_materials.push_back(state.cathode_particles[j].material);
                     }
 
-                    state.cathode_potential->AssembleSystem(cathode_cn_fields, cathode_psi_fields, *state.phC_gf);
+                    state.cathode_potential->AssembleSystem(cathode_cn_fields, cathode_psi_fields, cathode_materials, *state.phC_gf);
                     state.electrolyte_potential->AssembleSystem(*state.CnE_gf, *domain_parameters.pse, *state.phE_gf);
 
                     double globalerror_P = 1.0; // Error for particle potential
