@@ -1,0 +1,21 @@
+mode = half
+electrode = cathode
+
+mesh_file = ../inputs/colored_labels_labels.tif
+mesh_type = v
+
+cathode_distance = ../inputs/dummy.gf
+
+num_steps = 1000
+combine_particles = false
+
+cathode_materials = LFP,LFP,LFP
+anode_materials = Graphite,Graphite,Graphite
+
+init_cathode_particles = 0.25,0.20,0.30
+init_anode_particles = 0.20,0.15,0.10
+
+init_CnE = 0.001
+init_BvA = -0.01
+init_BvC = 3.30
+init_BvE = -0.10
