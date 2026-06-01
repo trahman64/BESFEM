@@ -19,7 +19,9 @@ BESFEM/
 ├── inputs/
 │   ├── mesh/            # Mesh files
 │   ├── distance/        # SBM distance fields
-│   └── constants/       # Material + parameter files
+│   ├── materials/       # Material Property Data
+│   ├── Constants.cpp    # Constants
+│   └── run_config.txt   # Simulation config file
 │
 ├── outputs/
 │   └── Results/         # Auto-generated simulation outputs
@@ -55,137 +57,257 @@ cd bin
 
 ---
 
-## Running Simulations
+## Running BESFEM
 
-### Half Cell Example (Multi-Particle Cathode & TIFF)
-This is an example for running a cathode half-cell simulation that involves three different particle groups. 
-The particle groups are automatically identified in `src/Initialize_Geometry.cpp`. The initial concentration values of the particle groups can be changed in `src/battery_simulation.cpp`:
+### Configuration File
 
-```bash
-cfg.init_cathode_particles = {0.15, 0.20, 0.10};
+BESFEM simulations are configured through a user-editable text file:
+
+```text
+inputs/run_config.txt
 ```
 
- At this point, it is assumed that all of the particles are the same material (NMC).
+All simulation settings, including geometry, materials, initial lithiation, boundary conditions, and runtime options, are specified in this file.
 
-```bash
-mpirun -np 8 ./battery_simulation \
-    -mode half \
-    -elec cathode \
-    -m ../inputs/colored_labels_labels.tif  \
-    -dC ../inputs/dummy.gf \
-    -t v \
-    -n 3200
+
+### Example Configuration
+
+```ini
+mode = half
+electrode = cathode
+
+mesh_file = ../inputs/colored_labels_labels.tif
+mesh_type = v
+
+cathode_distance = ../inputs/dummy.gf
+
+num_steps = 1000
+combine_particles = false
+
+cathode_materials = NMC,NMC,NMC
+anode_materials = Graphite,Graphite,Graphite
+
+init_cathode_particles = 0.30,0.30,0.30
+init_anode_particles = 0.20,0.15,0.10
+
+init_CnE = 0.001
+init_BvA = -0.01
+init_BvC = 3.96
+init_BvE = -0.10
 ```
-
-<!-- ### Full Cell Example
-```bash
-mpirun -np 8 ./battery_simulation \
-    -mode full \
-    -m ../inputs/mesh/Mesh_40x60x3_3D_disk_full.mesh \
-    -dA ../inputs/distance/dsF_A_40x60x3_3D_disk_full.txt \
-    -dC ../inputs/distance/dsF_C_40x60x3_3D_disk_full.txt \
-    -t ml \
-    -n 600
-```
-
-### Half Cell Example (Cathode)
-```bash
-mpirun -np 8 ./battery_simulation \
-    -mode half \
-    -elec cathode \
-    -m ../inputs/mesh/Mesh_40x60_F00.mesh \
-    -dC ../inputs/distance/dsFC_41x61_F00.txt \
-    -t ml \
-    -n 1200
-```
-
-### Half Cell Example (Cathode & TIFF)
-To run this TIFF example, you will need to modify the boundary conditions and 2D Connectivity regions. 
-First go to `src/Initialize_Geometry.cpp` and ensure the lines below are changed to reflect the following:
-
-```bash
-    
-    KeepOnlyConnectedToBoundary_2D(fg, nx, ny, eight_conn, false, 0); // psi boundary
-
-    KeepOnlyConnectedToBoundary_2D(fg, nx, ny, eight_conn, false, 1); // pse boundary
-
-```
-
-Next, go to `src/BoundaryConditions.cpp` and ensure the lines below are changed to reflect the following:
-
-```bash
-    // Neumann Boundary Condition - used for electrolye concentration
-    nbc_w_bdr.SetSize(parallelMesh.bdr_attributes.Max());
-    nbc_w_bdr = 0;
-    nbc_w_bdr[2] = 1; 
-
-    // Dirichlet Boundary Condition - used for electrolyte potential 
-    dbc_w_bdr.SetSize(parallelMesh.bdr_attributes.Max());
-    dbc_w_bdr = 0;
-    dbc_w_bdr[2] = 1;
-
-    // Dirichlet Boundary Condition - used for particle potential
-    dbc_e_bdr.SetSize(parallelMesh.bdr_attributes.Max());
-    dbc_e_bdr = 0;
-    dbc_e_bdr[0] = 1;
-
-```
-
-Then to run the simulation:
-
-```bash
-mpirun -np 8 ./battery_simulation \
-    -mode half \
-    -elec cathode \
-    -m ../inputs/II_1_bin.tif \
-    -dC ../inputs/dummy.gf \
-    -t v \
-    -n 1200
-```
-
-### Half Cell Example (Anode)
-The constants defined in `inputs/Constants.cpp` are configured for full-cell simulations by default. 
-When running a half-cell anode simulation, some constants need to be modified to ensure correct reactions. 
-Before running a half-cell anode simulation, please update the following values in `inputs/Constants.cpp`:
-
-```bash
-// -----------------------------------------------------------------------------
-// Constants for half-cell simulation (anode side)
-// -----------------------------------------------------------------------------
-
-const double init_CnA = 2.0e-2;     ///< Initial lithium concentration in the anode
-const double init_BvA = -0.1;       ///< Anode potential boundary condition (half-cell)
-const double init_BvE = -0.4686;    ///< Electrolyte potential boundary condition (half-cell)
-const double init_CnE = 0.001;      ///< Initial lithium concentration in the electrolyte
-```
-
-Now you can go ahead and run the example:
-
-```bash
-mpirun -np 8 ./battery_simulation \
-    -mode half \
-    -elec anode \
-    -m ../inputs/mesh/Mesh_40x60_F00.mesh \
-    -dA ../inputs/distance/dsFA_41x61_F00.txt \
-    -t ml \
-    -n 1200
-``` -->
 
 ---
 
-## Command Line Options
+### Configuration Options
 
-| Option                  | Description                             |
-| ----------------------- | --------------------------------------- |
-| `-m <MeshFile>`         | Path to `.mesh` file                    |
-| `-mode <half/full>`     | Select simulation mode                  |
-| `-elec <anode/cathode>` | Required for half-cell mode             |
-| `-dA <file>`            | Anode distance field (`.txt`)           |
-| `-dC <file>`            | Cathode distance field (`.txt`)         |
-| `-o <order>`            | Finite element polynomial order         |
-| `-t <ml/v>`             | Mesh type: MATLAB (`ml`) or voxel (`v`) |
-| `-n <steps>`            | Number of time steps                    |
-| `-combine`              | Combine particle groups to act as one   |
+#### Simulation Mode
+
+| Parameter   | Options                                          |
+| ----------- | ------------------------------------------------ |
+| `mode`      | `half`, `full`                                   |
+| `electrode` | `anode`, `cathode` (used only in half-cell mode) |
+
+Example:
+
+```ini
+mode = half
+electrode = cathode
+```
+
+---
+
+#### Mesh Settings
+
+| Parameter   | Description                                 |
+| ----------- | ------------------------------------------- |
+| `mesh_file` | Mesh or TIFF file                           |
+| `mesh_type` | `ml` (MATLAB mesh) or `v` (voxel/TIFF mesh) |
+
+Example:
+
+```ini
+mesh_file = ../inputs/colored_labels_labels.tif
+mesh_type = v
+```
+
+---
+
+#### Distance Functions
+
+| Parameter          | Description            |
+| ------------------ | ---------------------- |
+| `cathode_distance` | Cathode distance field |
+| `anode_distance`   | Anode distance field   |
+
+For half-cell cathode simulations:
+
+```ini
+cathode_distance = ../inputs/dummy.gf
+anode_distancce = ../inputs/distance/dsF_3x90_r.txt
+```
+
+---
+
+#### Time Stepping
+
+```ini
+num_steps = 1000
+```
+
+---
+
+#### Particle Grouping
+
+If all particles should behave as a single particle:
+
+```ini
+combine_particles = true
+```
+
+Otherwise:
+
+```ini
+combine_particles = false
+```
+
+---
+
+#### Material Assignment
+
+Materials are assigned per particle group.
+
+Example:
+
+```ini
+cathode_materials = LFP,LFP,NMC
+```
+
+This corresponds to:
+
+| Particle | Material |
+| -------- | -------- |
+| 0        | LFP      |
+| 1        | LFP      |
+| 2        | NMC      |
+
+Supported cathode materials:
+
+* `LFP`
+* `NMC`
+
+Supported anode materials:
+
+* `Graphite`
+
+Example:
+
+```ini
+anode_materials = Graphite,Graphite,Graphite
+```
+
+---
+
+#### Initial Particle Lithiation
+
+Initial lithiation is specified per particle.
+
+Example:
+
+```ini
+init_cathode_particles = 0.15,0.20,0.10
+```
+
+corresponds to:
+
+| Particle | Initial Lithiation |
+| -------- | ------------------ |
+| 0        | 0.15               |
+| 1        | 0.20               |
+| 2        | 0.10               |
+
+---
+
+#### Electrolyte Initial Condition
+
+```ini
+init_CnE = 0.001
+```
+
+---
+
+#### Boundary Conditions
+
+Initial potentials are specified using:
+
+```ini
+init_BvA = -0.01
+init_BvC = 3.96
+init_BvE = -0.10
+```
+
+where:
+
+* `init_BvA` = anode potential
+* `init_BvC` = cathode potential
+* `init_BvE` = electrolyte potential
+
+---
+
+### Running a Simulation
+
+#### Default Configuration
+
+If using the default configuration file:
+
+```bash
+mpirun -np 8 ./battery_simulation
+```
+
+---
+
+#### Specifying a Configuration File
+
+```bash
+mpirun -np 8 ./battery_simulation \
+    -cfg ../inputs/run_config.txt
+```
+
+---
+
+#### Example: Mixed LFP/NMC Cathode
+
+```ini
+mode = half
+electrode = cathode
+
+mesh_file = ../inputs/colored_labels_labels.tif
+mesh_type = v
+
+cathode_distance = ../inputs/dummy.gf
+
+num_steps = 3200
+
+cathode_materials = LFP,LFP,NMC
+
+init_cathode_particles = 0.15,0.20,0.10
+
+init_CnE = 0.001
+
+init_BvC = 3.40
+init_BvE = -0.10
+```
+
+Run:
+
+```bash
+mpirun -np 8 ./battery_simulation \
+    -cfg ../inputs/run_config.txt
+```
+
+
+
+
+
 
 ---
 
@@ -338,9 +460,15 @@ FormLinearSystem(ess_tdof_list, x, b, A, X, B);
 ```
 
 
+<!-- 
+# Running BESFEM
 
+## Configuration File
 
+BESFEM simulations are configured through a user-editable text file:
 
+```text
+inputs/run_config.txt
+```
 
-
-
+All simulation settings, including geometry, materials, initial lithiation, boundary conditions, and runtime options, are specified in this file. -->
