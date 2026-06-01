@@ -5,6 +5,7 @@ mesh_file = ../inputs/colored_labels_labels.tif
 mesh_type = v
 
 cathode_distance = ../inputs/dummy.gf
+anode_distance = ../inputs/dummy.gf
 
 num_steps = 150000
 combine_particles = true

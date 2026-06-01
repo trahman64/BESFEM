@@ -80,6 +80,7 @@ mesh_file = ../inputs/colored_labels_labels.tif
 mesh_type = v
 
 cathode_distance = ../inputs/dummy.gf
+anode_distance = ../inputs/dummy.gf
 
 num_steps = 1000
 combine_particles = false
