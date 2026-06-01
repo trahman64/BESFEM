@@ -28,7 +28,7 @@ namespace Constants {
     const double Cst1 = 1.6021766e-19 / (1.3806488e-23 * 300.0);   ///< Constant derived from the Nernst equation (e/kT for T = 300 K)
     const double alp = 0.5;                                 ///< Symmetry factor for electrochemical kinetics
     const double rho_A = 0.0312;                             ///< Anode Lithium site density (graphite)
-    const double rho_C = 0.0501;                             ///< Cathode Lithium site density (NMC)
+    // const double rho_C = 0.0501;                             ///< Cathode Lithium site density (NMC)
     const double rho_LFP = 0.02273544498;
     const double Cr = 1.0;                                   ///< C-rate for charging/discharging cycles
     const double Vsr0 = 0.009466;                                 ///< Voltage scanning rate (same value for anode, cathode, and electrolyte)
@@ -37,13 +37,14 @@ namespace Constants {
     const double init_CnC = 0.30;                            ///< initial concentration in the cathode
     const double init_CnE = 0.001;                           ///< initial concentration in the electrolyte
     const double init_BvA = -0.01;                            ///< boundary condition for anode potential (full)
-    const double init_BvC = 3.96;                         ///< boundary condition for cathode potential
-    const double init_BvE = -0.1;                         ///< boundary condition for electrolyte potential (full & half cathode)
+    // const double init_BvC = 3.96;                         ///< boundary condition for cathode potential
+    // const double init_BvE = -0.1;                         ///< boundary condition for electrolyte potential (full & half cathode)
     // const double init_BvC = 3.0363;                         ///< boundary condition for cathode potential
     // const double init_BvE = -0.374871996710822;
 
-    // const double init_BvC = 3.34;
-    // const double init_BvE = -0.1;
+    const double init_BvC = 3.30;
+    const double init_BvE = -0.1;
+    const double rho_C = 0.02273544498;
 
     const double RT = 2494.33859;                           ///< RT constant at 300K
     const double Perm = 0;                              ///< Permittivity constant (paper uses 1.0e-7)

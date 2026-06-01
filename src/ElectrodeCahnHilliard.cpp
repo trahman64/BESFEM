@@ -82,21 +82,8 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
         double val = Cn(i);
         double mu = MaterialProperties::ChemicalPotential(material, val);
 
-        // std::cout << "Cn(" << i << ") = " << val << ", Chemical Potential Before = " << mu << std::endl;
-
-        if (std::abs(mu) > 1.0e4)
-        {
-            mu = ((mu / (-1*Constants::Frd)) - 3.4) * -1;
-        }
-
         Mub(i) = mu;
-
-        // std::cout << "Cn(" << i << ") = " << val << ", Chemical Potential After = " << mu << std::endl;
-    }
-
-    for (int i = 0; i < Cn.Size(); i++) {
-        double cn_val = Cn(i);
-        Mob(i) = psx(i) * MaterialProperties::Mobility(material, cn_val);
+        Mob(i) = psx(i) * MaterialProperties::Mobility(material, val);
     }
 
     Cn.GetTrueDofs(CpV0);
@@ -123,17 +110,20 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     MmatCH.Mult(CpV0, RHCp); 
     RHCp += Lp2; 
 
-    MCH_solver.Mult(RHCp, CpV0); 
+    MCH_solver.Mult(RHCp, CpVn); 
 
     // Ensure that the concentration values are within the valid range
     for (int i = 0; i < CpV0.Size(); i++) {
         if (PsVc(i) < 1.0e-5) {
-            (CpVn)(i) = CpV0(i); 
+            (CpVn)(i) = 0.3; 
         }
+
+        if (CpVn(i) < 0.0){
+            (CpVn)(i) = 1.0e-6;}
     }
 
     // recover the GridFunction from the HypreParVector
-    Cn.Distribute(CpV0); 
+    Cn.Distribute(CpVn); 
 
     utils.CalculateLithiation(Cn, psx, gtPsx); 
     Xfr = utils.GetLithiation();

@@ -44,10 +44,21 @@ namespace MaterialProperties
         return val;
     }
 
+    // static double LFP_i0(double c)
+    // {
+    //     double val = 1.2e-5 * std::pow(c, 0.35) * std::pow(1.0 - c, 2.5);
+    //     return val * 6;
+    // }
+
     static double LFP_i0(double c)
     {
-        double val = 1.2e-5 * std::pow(c, 0.35) * std::pow(1.0 - c, 2.5);
-        return val;
+        c = std::min(1.0 - 1.0e-8, std::max(1.0e-8, c));
+
+        double i0_mA = 2.75
+                    * (1.0 - std::exp(-18.0 * c))
+                    * (1.0 - std::exp(-18.0 * (1.0 - c)));
+
+        return i0_mA * 1.0e-6; // mA/cm^2 to A/cm^2
     }
 
     static double LFP_mu(double c)
@@ -102,9 +113,38 @@ namespace MaterialProperties
         return (-1*GetTableValues(c, Ticks, chmPot)) + 3.4;    
     }
 
+    static double LFP_dmu_dc(double c)
+    {
+        const double h = 0.005;
+
+        double c1 = std::max(0.0, c - h);
+        double c2 = std::min(1.0, c + h);
+
+        return (LFP_mu(c2) - LFP_mu(c1)) / (c2 - c1);
+    }
+
+    static double LFP_diff(double c)
+    {
+        return 5.0e-14; // LFP diffusivity
+    }
+
     static double LFP_Mob(double c)
     {
-        return 6e-12; // placeholder, constant mobility for LFP
+        c = std::min(1.0 - 1.0e-8, std::max(1.0e-8, c));
+
+        double D = LFP_diff(c);
+        double dmu_dc = LFP_dmu_dc(c);
+
+        double M = D / std::abs(dmu_dc);
+
+        if (!std::isfinite(M))
+        {
+            std::cout << "Bad mobility at c = " << c
+                    << " dmu_dc = " << dmu_dc
+                    << std::endl;
+        }
+
+        return D / std::abs(dmu_dc);
     }
 
     double LFP_ChpValue(double c)
@@ -179,6 +219,9 @@ namespace MaterialProperties
             case sim::MaterialType::Electrolyte:
                 return Electrolyte_diff(c);
 
+            case sim::MaterialType::LFP:
+                return LFP_diff(c); // placeholder, constant diffusivity for LFP
+
             default:
                 mfem::mfem_error("Material does not have a defined diffusivity.");
                 return 0.0;
@@ -203,6 +246,8 @@ namespace MaterialProperties
 
             for (int i = 0; i < 101; i++) myXfile >> Ticks(i);
             for (int i = 0; i < 101; i++) mydFfile >> Mob(i);
+            for (int i = 0; i < 101; i++) Mob(i) *= 100.0 * 2.0/3.0;
+
 
             loaded = true;
         }
@@ -281,7 +326,8 @@ namespace MaterialProperties
 
     static double LFPConductivity(double c)
     {
-        return 1e-9; // TODO LFP Conductivity
+        // return 1e-11; // S/cm
+        return 1e-4;
     }
 
     double Conductivity(sim::MaterialType material, double c)
