@@ -6,9 +6,9 @@
  */
 namespace Constants {
 
-    const char* mesh_file = "../inputs/mesh/Mesh_3x90_r.mesh";            ///< Path to the mesh file
-    const char* dsF_file_C = "../inputs/distance/dsF_3x90_r.txt";               ///< Path to the cathode flux data file
-    const char* dsF_file_A = "../inputs/distance/dsF_3x90_r.txt";               ///< Path to the anode flux data file
+    // const char* mesh_file = "../inputs/mesh/Mesh_3x90_r.mesh";            ///< Path to the mesh file
+    // const char* dsF_file_C = "../inputs/distance/dsF_3x90_r.txt";               ///< Path to the cathode flux data file
+    // const char* dsF_file_A = "../inputs/distance/dsF_3x90_r.txt";               ///< Path to the anode flux data file
 
     bool visualization = true;
     const int order = 1;                                    ///< Order of the finite element basis functions
@@ -33,17 +33,17 @@ namespace Constants {
     const double Cr = 1.0;                                   ///< C-rate for charging/discharging cycles
     const double Vsr0 = 0.009466;                                 ///< Voltage scanning rate (same value for anode, cathode, and electrolyte)
     const double VCut = 0.0;                                ///< Cut-off voltage
-    const double init_CnA = 0.95;                        ///< initial concentration in the anode (full)
-    const double init_CnC = 0.30;                            ///< initial concentration in the cathode
-    const double init_CnE = 0.001;                           ///< initial concentration in the electrolyte
-    const double init_BvA = -0.01;                            ///< boundary condition for anode potential (full)
+    // const double init_CnA = 0.95;                        ///< initial concentration in the anode (full)
+    // const double init_CnC = 0.30;                            ///< initial concentration in the cathode
+    // const double init_CnE = 0.001;                           ///< initial concentration in the electrolyte
+    // const double init_BvA = -0.01;                            ///< boundary condition for anode potential (full)
     // const double init_BvC = 3.96;                         ///< boundary condition for cathode potential
     // const double init_BvE = -0.1;                         ///< boundary condition for electrolyte potential (full & half cathode)
     // const double init_BvC = 3.0363;                         ///< boundary condition for cathode potential
     // const double init_BvE = -0.374871996710822;
 
-    const double init_BvC = 3.30;
-    const double init_BvE = -0.1;
+    // const double init_BvC = 3.30;
+    // const double init_BvE = -0.1;
     const double rho_C = 0.02273544498;
 
     const double RT = 2494.33859;                           ///< RT constant at 300K
@@ -57,10 +57,8 @@ namespace Constants {
     // const double init_CnE = 0.001;                           ///< initial concentration in the electrolyte
 
 
-    // const double init_Rxn = 1e-7;                             ///< initial reaction rate
-
     const double init_Rxn = 1e-7;                             ///< initial reaction rate
-    const double init_RxA = 0.0;                             ///< initial anode reaction
+    const double init_RxA = 1e-7;                             ///< initial anode reaction
     const double init_RxC = 1e-7;                             ///< initial cathode reaction
 
 }   

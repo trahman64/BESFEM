@@ -69,8 +69,8 @@ namespace MaterialProperties
 
         if (!loaded)
         {
-            std::ifstream myXfile("../inputs/LFP_Chm_Pot_Ticks.txt");
-            std::ifstream mydFfile("../inputs/LFP_Chm_Pot.txt");
+            std::ifstream myXfile("../inputs/materials/LFP_Chm_Pot_Ticks.txt");
+            std::ifstream mydFfile("../inputs/materials/LFP_Chm_Pot.txt");
 
             if (!myXfile || !mydFfile)
             {
@@ -96,8 +96,8 @@ namespace MaterialProperties
 
         if (!loaded)
         {
-            std::ifstream myXfile("../inputs/LFP_Chm_Pot_Ticks.txt");
-            std::ifstream mydFfile("../inputs/LFP_Chm_Pot.txt");
+            std::ifstream myXfile("../inputs/materials/LFP_Chm_Pot_Ticks.txt");
+            std::ifstream mydFfile("../inputs/materials/LFP_Chm_Pot.txt");
 
             if (!myXfile || !mydFfile)
             {
@@ -155,8 +155,8 @@ namespace MaterialProperties
 
         if (!loaded)
         {
-            std::ifstream myXfile("../inputs/LFP_Chm_Pot_Ticks.txt");
-            std::ifstream mydFfile("../inputs/LFP_Chm_Pot.txt");
+            std::ifstream myXfile("../inputs/materials/LFP_Chm_Pot_Ticks.txt");
+            std::ifstream mydFfile("../inputs/materials/LFP_Chm_Pot.txt");
 
             if (!myXfile || !mydFfile)
             {
@@ -236,8 +236,8 @@ namespace MaterialProperties
 
         if (!loaded)
         {
-            std::ifstream myXfile("../inputs/C_Li_X_101.txt");
-            std::ifstream mydFfile("../inputs/C_Li_Mb5_101.txt");
+            std::ifstream myXfile("../inputs/materials/C_Li_X_101.txt");
+            std::ifstream mydFfile("../inputs/materials/C_Li_Mb5_101.txt");
 
             if (!myXfile || !mydFfile)
             {
@@ -279,8 +279,8 @@ namespace MaterialProperties
 
         if (!loaded)
         {
-            std::ifstream myXfile("../inputs/C_Li_X_101.txt");
-            std::ifstream mydFfile("../inputs/C_Li_M6_101.txt");
+            std::ifstream myXfile("../inputs/materials/C_Li_X_101.txt");
+            std::ifstream mydFfile("../inputs/materials/C_Li_M6_101.txt");
 
             if (!myXfile || !mydFfile)
             {

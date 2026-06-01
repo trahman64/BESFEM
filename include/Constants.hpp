@@ -29,9 +29,9 @@ namespace Constants {
     // File paths
     // -------------------------------------------------------------------------
 
-    extern const char* mesh_file;   ///< Default mesh file path.
-    extern const char* dsF_file_A;  ///< Distance-function file for anode.
-    extern const char* dsF_file_C;  ///< Distance-function file for cathode.
+    // extern const char* mesh_file;   ///< Default mesh file path.
+    // extern const char* dsF_file_A;  ///< Distance-function file for anode.
+    // extern const char* dsF_file_C;  ///< Distance-function file for cathode.
 
     // -------------------------------------------------------------------------
     // Discretization parameters
@@ -80,14 +80,6 @@ namespace Constants {
     // -------------------------------------------------------------------------
     // Initial conditions
     // -------------------------------------------------------------------------
-
-    extern const double init_CnA; ///< Initial anode concentration.
-    extern const double init_CnC; ///< Initial cathode concentration.
-    extern const double init_CnE; ///< Initial electrolyte concentration.
-
-    extern const double init_BvA; ///< Initial boundary value for anode potential.
-    extern const double init_BvC; ///< Initial boundary value for cathode potential.
-    extern const double init_BvE; ///< Initial boundary value for electrolyte potential.
 
     extern const double init_Rxn; ///< Initial reaction rate (global).
     extern const double init_RxA; ///< Initial anode reaction rate.

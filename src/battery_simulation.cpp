@@ -29,11 +29,11 @@ int main(int argc, char *argv[]) {
     SimulationConfig cfg = ParseSimulationArgs(argc, argv);
     ValidateConfig(cfg, argc, argv);
 
-    cfg.init_cathode_particles = {0.30, 0.30, 0.30};
-    cfg.init_anode_particles   = {0.2, 0.15, 0.10}; 
+    // cfg.init_cathode_particles = {0.30, 0.30, 0.30};
+    // cfg.init_anode_particles   = {0.2, 0.15, 0.10}; 
 
-    cfg.cathode_materials = {sim::MaterialType::LFP, sim::MaterialType::LFP, sim::MaterialType::LFP};
-    cfg.anode_materials = {sim::MaterialType::Graphite, sim::MaterialType::Graphite, sim::MaterialType::Graphite};
+    // cfg.cathode_materials = {sim::MaterialType::LFP, sim::MaterialType::LFP, sim::MaterialType::LFP};
+    // cfg.anode_materials = {sim::MaterialType::Graphite, sim::MaterialType::Graphite, sim::MaterialType::Graphite};
 
     std::string outdir = Utils::BuildRunOutdir(cfg.mesh_file, cfg.num_timesteps);
     if (mfem::Mpi::WorldRank() == 0)
@@ -331,6 +331,8 @@ int main(int argc, char *argv[]) {
 
                     UpdateCathodePairChemicalPotentials(state, geometry, domain_parameters);
 
+                    // std::cout << "Max Rxn_gf before update: " << state.Rxn_gf->Max() << std::endl;
+
                     *state.Rxn_gf = 0.0;
                     for (int j = 0; j < np; ++j)
                     {
@@ -339,6 +341,8 @@ int main(int argc, char *argv[]) {
                         
                         std::vector<ConcentrationBase::PairCoupling> pair_terms;
                         Pairs(state, geometry, domain_parameters, j, pair_terms, np, t);
+
+                        // std::cout << "Max Rxn_gf after adding particle " << j << " contribution: " << state.Rxn_gf->Max() << std::endl;
                         
                         state.cathode_particles[j].concentration->UpdateConcentration(*state.cathode_particles[j].Rx_src, *state.cathode_particles[j].Cn_gf,
                             *domain_parameters.ps[j], domain_parameters.gtPs[j], *domain_parameters.WeightEs[j], pair_terms);
@@ -381,7 +385,7 @@ int main(int argc, char *argv[]) {
                         state.cathode_particles[j].reaction->ExchangeCurrentDensity(*state.cathode_particles[j].Cn_gf, *domain_parameters.AvEs[j], state.cathode_particles[j].material);
                     }
 
-                        // // while loop
+                        // while loop
                         int iter = 0;
                         const int max_iter = 50; // Maximum number of iterations to prevent infinite loops
 
@@ -421,10 +425,8 @@ int main(int argc, char *argv[]) {
                     double sgn = std::copysign(1.0, total_target - total_current);
                     double dV  = Constants::dt * Constants::Vsr0 * sgn;
 
-                    // state.electrolyte_potential->BvE += dV;
                     state.electrolyte_potential->AddBoundaryVoltage(dV);
                     *state.phE_gf += dV;
-
 
 
                     if (t % 100 == 0 && mfem::Mpi::WorldRank() == 0)
