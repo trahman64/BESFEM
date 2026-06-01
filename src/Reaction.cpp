@@ -79,8 +79,8 @@ void Reaction::ExchangeCurrentDensity(mfem::ParGridFunction &Cn, mfem::ParGridFu
         {
             const double cn_val = Cn(vi);
 
-            (*i0C)(vi) = MaterialProperties::CathodeExchangeCurrentDensity(material, cn_val);
-            (*OCV)(vi) = MaterialProperties::CathodeOCV(material, cn_val);
+            (*i0C)(vi) = MaterialProperties::ExchangeCurrentDensity(material, cn_val);
+            (*OCV)(vi) = MaterialProperties::OCV(material, cn_val);
 
             (*Kfw)(vi) = (*i0C)(vi) / (Constants::Frd * 0.001) * std::exp(Constants::alp * Constants::Cst1 * (*OCV)(vi));
             (*Kbw)(vi) = (*i0C)(vi) / (Constants::Frd * cn_val) * std::exp(-Constants::alp * Constants::Cst1 * (*OCV)(vi));

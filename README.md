@@ -286,13 +286,16 @@ mesh_type = v
 cathode_distance = ../inputs/dummy.gf
 
 num_steps = 3200
+combine_particles = false
 
 cathode_materials = LFP,LFP,NMC
+anode_materials = Graphite,Graphite,Graphite
 
 init_cathode_particles = 0.15,0.20,0.10
+init_anode_particles = 0.02, 0.02, 0.02
 
 init_CnE = 0.001
-
+init_BvA = -0.1
 init_BvC = 3.40
 init_BvE = -0.10
 ```

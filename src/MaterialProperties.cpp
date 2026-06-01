@@ -172,7 +172,32 @@ namespace MaterialProperties
         return GetTableValues(c, Ticks, chmPot) ;
     }
 
-    double CathodeOCV(sim::MaterialType material, double c)
+    static double Graphite_OCV(double c)
+    {
+        static mfem::Vector Ticks(101);
+        static mfem::Vector OCV(101);
+        static bool loaded = false;
+
+        if (!loaded)
+        {
+            std::ifstream myXfile("../inputs/materials/C_Li_X_101.txt");
+            std::ifstream myOCVfile("../inputs/materials/C_Li_O3_101.txt");
+
+            if (!myXfile || !myOCVfile)
+            {
+                mfem::mfem_error("Could not open graphite OCV input files.");
+            }
+
+            for (int i = 0; i < 101; i++) myXfile >> Ticks(i);
+            for (int i = 0; i < 101; i++) myOCVfile >> OCV(i);
+
+            loaded = true;
+        }
+
+        return GetTableValues(c, Ticks, OCV);
+    }
+
+    double OCV(sim::MaterialType material, double c)
     {
         switch (material)
         {
@@ -182,13 +207,42 @@ namespace MaterialProperties
             case sim::MaterialType::LFP:
                 return LFP_OCV(c);
 
+            case sim::MaterialType::Graphite:
+                return Graphite_OCV(c);
+
             default:
-                mfem::mfem_error("Unknown cathode material in CathodeOCV.");
+                mfem::mfem_error("Unknown material in OCV.");
                 return 0.0;
         }
     }
 
-    double CathodeExchangeCurrentDensity(sim::MaterialType material, double c)
+    static double Graphite_i0(double c)
+    {
+        static mfem::Vector Ticks(101);
+        static mfem::Vector i0(101);
+        static bool loaded = false;
+
+        if (!loaded)
+        {
+            std::ifstream myXfile("../inputs/materials/C_Li_X_101.txt");
+            std::ifstream myi0file("../inputs/materials/C_Li_J2_101.txt");
+
+            if (!myXfile || !myi0file)
+            {
+                mfem::mfem_error("Could not open graphite i0 input files.");
+            }
+
+            for (int i = 0; i < 101; i++) myXfile >> Ticks(i);
+            for (int i = 0; i < 101; i++) myi0file >> i0(i);
+
+            loaded = true;
+        }
+
+        return GetTableValues(c, Ticks, i0) * 1.0e-3; // mA/cm^2 to A/cm^2
+
+    }
+
+    double ExchangeCurrentDensity(sim::MaterialType material, double c)
     {
         switch (material)
         {
@@ -198,8 +252,11 @@ namespace MaterialProperties
             case sim::MaterialType::LFP:
                 return LFP_i0(c);
 
+            case sim::MaterialType::Graphite:
+                return Graphite_i0(c);
+
             default:
-                mfem::mfem_error("Unknown cathode material in CathodeExchangeCurrentDensity.");
+                mfem::mfem_error("Unknown material in ExchangeCurrentDensity.");
                 return 0.0;
         }
     }

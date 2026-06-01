@@ -46,14 +46,15 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
 {   
     
     
-    if (!combine_particle_groups){
-        utils.InitializeReaction(Rx, RxA, (1.0)); 
-    } else {
-        utils.InitializeReaction(Rx, RxA, (1.0/Constants::rho_A)); 
-    }
+    // if (!combine_particle_groups){
+    //     utils.InitializeReaction(Rx, RxA, (1.0)); 
+    // } else {
+    //     utils.InitializeReaction(Rx, RxA, (1.0/Constants::rho_A)); 
+    // }
     
     // std::cout << "Min Weight: " << weight_elec.Min() << ", Max Weight: " << weight_elec.Max() << std::endl;
 
+    utils.InitializeReaction(Rx, RxA, (1.0/Constants::rho_A)); 
 
     if (!combine_particle_groups){
         

@@ -47,7 +47,7 @@ namespace Constants {
     const double rho_C = 0.02273544498;
 
     const double RT = 2494.33859;                           ///< RT constant at 300K
-    const double Perm = 0;                              ///< Permittivity constant (paper uses 1.0e-7)
+    const double Perm = 1e-7;                              ///< Permittivity constant (paper uses 1.0e-7)
 
 
     // // constants for half cell - anode side 

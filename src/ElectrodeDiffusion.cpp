@@ -40,13 +40,15 @@ void ElectrodeDiffusion::UpdateConcentration(mfem::ParGridFunction &Rx, mfem::Pa
 
 {
 
-    if (!combine_particle_groups){
-        utils.InitializeReaction(Rx, Rxn, (1.0)); 
-        // std::cout << "Not combining particle groups: using raw reaction field." << std::endl;
-    } else {
-        utils.InitializeReaction(Rx, Rxn, (1.0/Constants::rho_C)); // TODO: fix rho for material
-        // std::cout << "Treating all particles as a single group: normalizing reaction by rho_C." << std::endl;
-    }
+    // if (!combine_particle_groups){
+    //     utils.InitializeReaction(Rx, Rxn, (1.0/Constants::rho_C)); 
+    //     // std::cout << "Not combining particle groups: using raw reaction field." << std::endl;
+    // } else {
+    //     utils.InitializeReaction(Rx, Rxn, (1.0/Constants::rho_C)); // TODO: fix rho for material
+    //     // std::cout << "Treating all particles as a single group: normalizing reaction by rho_C." << std::endl;
+    // }
+
+    utils.InitializeReaction(Rx, Rxn, (1.0/Constants::rho_C));
 
     if (!combine_particle_groups){
         // std::cout << "Different particle groups, need to compute pair fluxes." << std::endl;
