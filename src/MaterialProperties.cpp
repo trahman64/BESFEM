@@ -61,33 +61,7 @@ namespace MaterialProperties
         return i0_mA * 1.0e-6; // mA/cm^2 to A/cm^2
     }
 
-    static double LFP_mu(double c)
-    {
-        static mfem::Vector Ticks(201);
-        static mfem::Vector chmPot(201);
-        static bool loaded = false;
-
-        if (!loaded)
-        {
-            std::ifstream myXfile("../inputs/materials/LFP_Chm_Pot_Ticks.txt");
-            std::ifstream mydFfile("../inputs/materials/LFP_Chm_Pot.txt");
-
-            if (!myXfile || !mydFfile)
-            {
-                mfem::mfem_error("Could not open LFP chemical potential input files.");
-            }
-
-            for (int i = 0; i < 201; i++) myXfile >> Ticks(i);
-            for (int i = 0; i < 201; i++) mydFfile >> chmPot(i);
-
-            loaded = true;
-        }
-
-        double val = ((-1 * GetTableValues(c, Ticks, chmPot)) + 3.4) * -Constants::Frd;
-        // double val = GetTableValues(c, Ticks, chmPot);
-        return val;
-    }
-
+    
     static double LFP_OCV(double c)
     {
         static mfem::Vector Ticks(201);
@@ -112,6 +86,36 @@ namespace MaterialProperties
         
         return (-1*GetTableValues(c, Ticks, chmPot)) + 3.4;    
     }
+    
+    static double LFP_mu(double c)
+    {
+	/*
+        static mfem::Vector Ticks(201);
+        static mfem::Vector chmPot(201);
+        static bool loaded = false;
+
+        if (!loaded)
+        {
+            std::ifstream myXfile("../inputs/materials/LFP_Chm_Pot_Ticks.txt");
+            std::ifstream mydFfile("../inputs/materials/LFP_Chm_Pot.txt");
+
+            if (!myXfile || !mydFfile)
+            {
+                mfem::mfem_error("Could not open LFP chemical potential input files.");
+            }
+
+            for (int i = 0; i < 201; i++) myXfile >> Ticks(i);
+            for (int i = 0; i < 201; i++) mydFfile >> chmPot(i);
+
+            loaded = true;
+        }
+
+        double val = ((-1 * GetTableValues(c, Ticks, chmPot)) + 3.4) * -Constants::Frd;
+        */
+	double val = -Constants::Frd*LFP_OCV(c);
+        return val;
+    }
+
 
     static double LFP_dmu_dc(double c)
     {
