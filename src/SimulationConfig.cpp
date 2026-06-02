@@ -238,18 +238,21 @@ SimulationConfig ParseSimulationArgs(int argc, char *argv[])
     const char* config_file = "../inputs/run_config.txt";
     bool list_options = false;
 
-    mfem::OptionsParser args(argc, argv);
-
-    args.AddOption(&config_file,
-                   "-cfg", "--config",
-                   "User-editable BESFEM config file.");
-
-    args.AddOption(&list_options,
-                   "-opts", "--list-options",
-                   "-no-opts", "--no-list-options",
-                   "Print available BESFEM option choices.");
-
-    args.ParseCheck();
+    for (int i = 1; i < argc; ++i)
+    {
+        if ((std::strcmp(argv[i], "-cfg") == 0 ||
+            std::strcmp(argv[i], "--config") == 0) &&
+            i + 1 < argc)
+        {
+            config_file = argv[i + 1];
+            ++i;
+        }
+        else if (std::strcmp(argv[i], "-opts") == 0 ||
+                std::strcmp(argv[i], "--list-options") == 0)
+        {
+            list_options = true;
+        }
+    }
 
     cfg.config_file = config_file;
 
@@ -260,6 +263,48 @@ SimulationConfig ParseSimulationArgs(int argc, char *argv[])
     }
 
     ApplyConfigFile(cfg);
+
+    const char* mode =
+        (cfg.mode == sim::CellMode::FULL) ? "full" : "half";
+
+    const char* half_elec =
+        (cfg.half_electrode == sim::Electrode::CATHODE) ? "cathode" : "anode";
+
+    mfem::OptionsParser args(argc, argv);
+
+    args.AddOption(&cfg.config_file,
+                   "-cfg", "--config",
+                   "User-editable BESFEM config file.");
+
+    args.AddOption(&list_options,
+                   "-opts", "--list-options",
+                   "-no-opts", "--no-list-options",
+                   "Print available BESFEM option choices.");
+
+    args.AddOption(&cfg.mesh_file, "-m", "--mesh", "Mesh file to use.");
+    args.AddOption(&cfg.dsF_file_C, "-dC", "--cathode-distance", "Cathode distance file.");
+    args.AddOption(&cfg.dsF_file_A, "-dA", "--anode-distance", "Anode distance file.");
+    args.AddOption(&cfg.order, "-o", "--order", "Finite element polynomial degree.");
+    args.AddOption(&cfg.mesh_type, "-t", "--type", "Mesh type: ml | v.");
+    args.AddOption(&cfg.num_timesteps, "-n", "--num-steps", "Number of timesteps.");
+    args.AddOption(&mode, "-mode", "--mode", "Cell mode: half | full.");
+    args.AddOption(&half_elec, "-elec", "--electrode", "HALF mode only: anode | cathode.");
+
+    args.ParseCheck();
+
+    if (std::strcmp(mode, "half") == 0)
+        cfg.mode = sim::CellMode::HALF;
+    else if (std::strcmp(mode, "full") == 0)
+        cfg.mode = sim::CellMode::FULL;
+    else
+        mfem::mfem_error("Invalid -mode. Use: half | full.");
+
+    if (std::strcmp(half_elec, "anode") == 0)
+        cfg.half_electrode = sim::Electrode::ANODE;
+    else if (std::strcmp(half_elec, "cathode") == 0)
+        cfg.half_electrode = sim::Electrode::CATHODE;
+    else
+        mfem::mfem_error("Invalid -elec. Use: anode | cathode.");
 
     return cfg;
 }
