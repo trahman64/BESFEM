@@ -336,14 +336,14 @@ int main(int argc, char *argv[]) {
                     {
                         std::ofstream outfile("anode_currents_mp.txt", std::ios::app);
 
-                        outfile << "timestep: " << t << ", VCell = " << VCell << ", TotalCurrent = " << total_current << ", TotalTarget = " << total_target;
+                        std::cout << "timestep: " << t << ", VCell = " << VCell << ", TotalCurrent = " << total_current << ", TotalTarget = " << total_target;
 
                         for (int j = 0; j < np; ++j)
                         {
-                            outfile << ", Current_" << j << " = " << global_currents[j] << ", Target_" << j << " = " << domain_parameters.gTrgPs[j];
+                            std::cout << ", Current_" << j << " = " << global_currents[j] << ", Target_" << j << " = " << domain_parameters.gTrgPs[j];
                         }
 
-                        outfile << std::endl;
+                        std::cout << std::endl;
                     }
 
                     if (t % 100 == 0 && mfem::Mpi::WorldRank() == 0)
@@ -353,7 +353,7 @@ int main(int argc, char *argv[]) {
                         double XfrC_avg = 0.0;
                         double total_weight = 0.0;
 
-                        outfile << "timestep: " << t << " [ANODE HALF-CELL]" << ", VCell = " << VCell << ", BvE = " << state.electrolyte_potential->GetBoundaryVoltage();
+                        std::cout << "timestep: " << t << " [ANODE HALF-CELL]" << ", VCell = " << VCell << ", BvE = " << state.electrolyte_potential->GetBoundaryVoltage();
 
                         for (int j = 0; j < np; ++j)
                         {
@@ -363,7 +363,7 @@ int main(int argc, char *argv[]) {
                             XfrC_avg += weight_j * Xfr_j;
                             total_weight += weight_j;
 
-                            outfile << ", Xfr_" << j << " = " << Xfr_j;
+                            std::cout << ", Xfr_" << j << " = " << Xfr_j;
                         }
 
                         if (total_weight > 0.0)
@@ -371,8 +371,8 @@ int main(int argc, char *argv[]) {
                             XfrC_avg /= total_weight;
                         }
 
-                        outfile << ", XfrC_avg = " << XfrC_avg;
-                        outfile << std::endl;
+                        std::cout << ", XfrC_avg = " << XfrC_avg;
+                        std::cout  << std::endl;
                     }
                     
                 }
@@ -488,14 +488,14 @@ int main(int argc, char *argv[]) {
                     {
                         std::ofstream outfile("cathode_currents_mp.txt", std::ios::app);
 
-                        outfile << "timestep: " << t << ", VCell = " << VCell << ", TotalCurrent = " << total_current << ", TotalTarget = " << total_target;
+                        std::cout << "timestep: " << t << ", VCell = " << VCell << ", TotalCurrent = " << total_current << ", TotalTarget = " << total_target;
 
                         for (int j = 0; j < np; ++j)
                         {
-                            outfile << ", Current_" << j << " = " << global_currents[j] << ", Target_" << j << " = " << domain_parameters.gTrgPs[j];
+                            std::cout << ", Current_" << j << " = " << global_currents[j] << ", Target_" << j << " = " << domain_parameters.gTrgPs[j];
                         }
 
-                        outfile << std::endl;
+                        std::cout << std::endl;
                     }
 
                     if (t % 100 == 0 && mfem::Mpi::WorldRank() == 0)
@@ -505,7 +505,7 @@ int main(int argc, char *argv[]) {
                         double XfrC_avg = 0.0;
                         double total_weight = 0.0;
 
-                        outfile << "timestep: " << t << " [CATHODE HALF-CELL]" << ", VCell = " << VCell << ", BvE = " << state.electrolyte_potential->GetBoundaryVoltage();
+                        std::cout << "timestep: " << t << " [CATHODE HALF-CELL]" << ", VCell = " << VCell << ", BvE = " << state.electrolyte_potential->GetBoundaryVoltage();
 
                         for (int j = 0; j < np; ++j)
                         {
@@ -515,7 +515,7 @@ int main(int argc, char *argv[]) {
                             XfrC_avg += weight_j * Xfr_j;
                             total_weight += weight_j;
 
-                            outfile << ", Xfr_" << j << " = " << Xfr_j;
+                            std::cout << ", Xfr_" << j << " = " << Xfr_j;
                         }
 
                         if (total_weight > 0.0)
@@ -523,8 +523,8 @@ int main(int argc, char *argv[]) {
                             XfrC_avg /= total_weight;
                         }
 
-                        outfile << ", XfrC_avg = " << XfrC_avg;
-                        outfile << std::endl;
+                        std::cout << ", XfrC_avg = " << XfrC_avg;
+                        std::cout << std::endl;
                     }
                     
                 }
