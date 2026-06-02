@@ -275,6 +275,22 @@ mpirun -np 8 ./battery_simulation \
 
 ---
 
+#### Specifying an Output File
+
+To save the outputs of the simulation, redirect to a separate file: 
+
+```bash
+mpirun -np 8 ./battery_simulation \
+    -cfg ../inputs/run_config.txt > output_file.txt
+```
+
+To filter to just the timestepping data, use `grep` :
+```bash
+cat output_file.txt | grep -e timestep > timestep.txt
+```
+
+---
+
 #### Example: Mixed LFP/NMC Cathode
 
 ```ini
