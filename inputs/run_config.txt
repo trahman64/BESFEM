@@ -7,7 +7,7 @@ mesh_type = v
 cathode_distance = ../inputs/dummy.gf
 anode_distance = ../inputs/dummy.gf
 
-num_steps = 150000
+num_steps = 301
 combine_particles = true
 
 cathode_materials = NMC,NMC,NMC
