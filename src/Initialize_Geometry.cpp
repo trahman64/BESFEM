@@ -224,7 +224,7 @@ void Initialize_Geometry::InitializeMesh(const char* meshFile, const char* dista
 
             std::ostringstream name;
             name << "MaskFilter_label_" << particle_labels[k] << ".gf";
-            MaskFilters[k]->SaveAsOne(name.str().c_str());
+            // MaskFilters[k]->SaveAsOne(name.str().c_str());
         }
 
         // // New label-specific filters

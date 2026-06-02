@@ -63,11 +63,11 @@ void Domain_Parameters::SetupDomainParameters(const char* mesh_type){
         std::ostringstream name_AvE;
 
         name << "ps_label_" << particle_labels[k];
-        ps[k]->SaveAsOne(name.str().c_str());
+        // ps[k]->SaveAsOne(name.str().c_str());
         name_AvP << "AvP_" << particle_labels[k];
-        AvPs[k]->SaveAsOne(name_AvP.str().c_str());
+        // AvPs[k]->SaveAsOne(name_AvP.str().c_str());
         name_AvE << "AvE_" << particle_labels[k];
-        AvEs[k]->SaveAsOne(name_AvE.str().c_str());
+        // AvEs[k]->SaveAsOne(name_AvE.str().c_str());
     }
 
 
@@ -77,7 +77,7 @@ void Domain_Parameters::SetupDomainParameters(const char* mesh_type){
         {
             std::ostringstream name;
             name << "AvP_" << particle_labels[j] << "_" << particle_labels[k];
-            AvP_Pairs[j][k]->SaveAsOne(name.str().c_str());
+            // AvP_Pairs[j][k]->SaveAsOne(name.str().c_str());
         }
     }
 
