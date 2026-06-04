@@ -44,7 +44,7 @@ srun --mpi=pmix \
      --cpu-bind=cores \
      --kill-on-bad-exit=1 \
      /usr/bin/time -f "WALL=%e; USER=%U; SYS=%S" \
-     ./battery_simulation -cfg "$CONFIG"
+     ../bin/battery_simulation -cfg "$CONFIG"
 
 
 
