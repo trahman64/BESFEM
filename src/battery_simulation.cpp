@@ -286,7 +286,11 @@ int main(int argc, char *argv[]) {
                     double anode_time = 0.0;
 
                     while ((globalerror_P > 1e-6 || globalerror_E > 1e-6) && iter < max_iter) {
-                        *state.Rxn_gf = 0.0;
+                            
+
+
+			// Calculate reaction rate
+			*state.Rxn_gf = 0.0;
 
                         for (int j = 0; j < np; ++j)
                         {
@@ -295,16 +299,58 @@ int main(int argc, char *argv[]) {
                             *state.Rxn_gf += *state.anode_particles[j].Rxn_gf;
                         }
 
+
+
+
+
+			// Calculate new boundary conditions for potentials
+			if (mfem::Mpi::WorldRank() == 0) {
+			        std::cout << "boundary conditions inside while loop" << std::endl;
+			        std::cout << "Global Error E: " << globalerror_E << std::endl;
+			        std::cout << "Global Error P: " << globalerror_P << std::endl;
+			    }
+
+			    for (int j = 0; j < np; ++j)
+			    {
+				state.anode_particles[j].reaction->TotalReactionCurrent(*state.anode_particles[j].Rxn_gf, global_currents[j]);
+			    }
+
+			    double total_current = 0.0;
+			    double total_target  = 0.0;
+
+			    for (int j = 0; j < np; ++j)
+			    {
+				total_current += global_currents[j];
+				total_target  += domain_parameters.gTrgPs[j];
+			    }
+
+			    double VCell = state.anode_potential->GetBoundaryVoltage() - state.electrolyte_potential->GetBoundaryVoltage();
+
+			    double sgn = std::copysign(1.0, total_target - total_current);
+			    double dV  = Constants::dt * Constants::Vsr0 * sgn;
+
+			    state.electrolyte_potential->AddBoundaryVoltage(dV);
+			    *state.phE_gf += dV;
+
+
+
+
+			
+			// Calculate new potential fields
                         state.anode_potential->UpdatePotential(*state.Rxn_gf, *state.phA_gf, *domain_parameters.psi, globalerror_P);
                         state.electrolyte_potential->UpdatePotential(*state.Rxn_gf, *state.phE_gf, *domain_parameters.pse, globalerror_E);
 
                         iter++;
+
+		    
+			    
+
                     }
 
                     if (iter == max_iter && mfem::Mpi::WorldRank() == 0) {
                         std::cout << "Warning: Maximum iterations reached at timestep " << t << " with Global Error P = " << globalerror_P << ", Global Error E = " << globalerror_E << std::endl;
                     }
-
+		/*
                     for (int j = 0; j < np; ++j)
                     {
                         state.anode_particles[j].reaction->TotalReactionCurrent(*state.anode_particles[j].Rxn_gf, global_currents[j]);
@@ -326,7 +372,16 @@ int main(int argc, char *argv[]) {
 
                     state.electrolyte_potential->AddBoundaryVoltage(dV);
                     *state.phE_gf += dV;
+		*/
+                     double total_current = 0.0;
+                    double total_target  = 0.0;
 
+                    for (int j = 0; j < np; ++j)
+                    {
+                        total_current += global_currents[j];
+                        total_target  += domain_parameters.gTrgPs[j];
+                    }
+		    double VCell = state.anode_potential->GetBoundaryVoltage() - state.electrolyte_potential->GetBoundaryVoltage();
 
                     // ============================================================================
                     // ===============================  PRINT STATEMENTS  =========================
