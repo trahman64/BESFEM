@@ -116,7 +116,7 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     // Ensure that the concentration values are within the valid range
     for (int i = 0; i < CpV0.Size(); i++) {
         if (PsVc(i) < 1.0e-5) {
-            (CpVn)(i) = CpVO(i);; 
+            (CpVn)(i) = CpV0(i);; 
         }
 
         if (CpVn(i) < 0.0){
