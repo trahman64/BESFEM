@@ -760,7 +760,7 @@ std::unique_ptr<mfem::Mesh> Initialize_Geometry::CreateGlobalMeshFromTiffData(co
     // double sy = ny;  // make dy = 1 // size in y direction
     // double sz = nz;  // make dz = 1 // size in z direction
 
-    double scale = 2.0e-5;
+    double scale = Constants::dh;
 
     double sx = nx * scale;  // make dx = 1 // size in x direction
     double sy = ny * scale;  // make dy = 1 // size in y direction
