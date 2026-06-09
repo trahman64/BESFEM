@@ -335,12 +335,13 @@ mpirun -np 8 ./battery_simulation \
 
 ```bash
 module load Doxygen
+module load Graphviz
 doxygen Doxyfile
 cd html
 ```
 Preview doxygen locally:
 ```bash
-python3 -m http.server 8000 --bind 127.0.0.1
+python3 -m http.server 8001 --bind 127.0.0.1
 ```
 
 ---

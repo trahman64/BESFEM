@@ -27,10 +27,10 @@ public:
      */
     Adjust(Initialize_Geometry &geo, Domain_Parameters &para);
 
-    /// Reference to geometry information (parallel mesh, FE space, ψ-fields).
+    // Reference to geometry information (parallel mesh, FE space, ψ-fields).
     Initialize_Geometry &geometry;
 
-    /// Reference to global domain parameters (material constants, scan rates, etc.).
+    // Reference to global domain parameters (material constants, scan rates, etc.).
     Domain_Parameters &domain_parameters;
 
 
