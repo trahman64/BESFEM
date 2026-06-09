@@ -355,6 +355,13 @@ int main(int argc, char *argv[]) {
 
                         std::cout << "timestep: " << t << " [ANODE HALF-CELL]" << ", VCell = " << VCell << ", BvE = " << state.electrolyte_potential->GetBoundaryVoltage();
 
+                        std::cout
+                        << "Cp_min = " << state.anode_particles[0].Cn_gf->Min()
+                        << ", Cp_max = " << state.anode_particles[0].Cn_gf->Max()
+                        << ", Ce_min = " << state.CnE_gf->Min()
+                        << ", Ce_max = " << state.CnE_gf->Max()
+                        << std::endl;
+
                         for (int j = 0; j < np; ++j)
                         {
                             const double Xfr_j = state.anode_particles[j].concentration->GetLithiation();
@@ -458,6 +465,8 @@ int main(int argc, char *argv[]) {
 
                         }
 
+                        state.Rxn_gf->SaveAsOne("Rxn_gf_final.gf");
+
                         if (iter == max_iter && mfem::Mpi::WorldRank() == 0) {
                             std::cout << "Warning: Maximum iterations reached at timestep " << t << " with Global Error P = " << globalerror_P << ", Global Error E = " << globalerror_E << std::endl;
                         }
@@ -507,6 +516,13 @@ int main(int argc, char *argv[]) {
 
                         std::cout << "timestep: " << t << " [CATHODE HALF-CELL]" << ", VCell = " << VCell << ", BvE = " << state.electrolyte_potential->GetBoundaryVoltage();
 
+                        std::cout
+                        << "Cp_min = " << state.cathode_particles[0].Cn_gf->Min()
+                        << ", Cp_max = " << state.cathode_particles[0].Cn_gf->Max()
+                        << ", Ce_min = " << state.CnE_gf->Min()
+                        << ", Ce_max = " << state.CnE_gf->Max()
+                        << std::endl;
+
                         for (int j = 0; j < np; ++j)
                         {
                             const double Xfr_j = state.cathode_particles[j].concentration->GetLithiation();
@@ -553,7 +569,7 @@ int main(int argc, char *argv[]) {
                     }
 
                     Utils::SaveSimulationSnapshotMulti(t, outdir, geometry, domain_parameters,
-                        cathode_cn_fields, state.cathode_out, 100);
+                        cathode_cn_fields, state.cathode_out, 5000);
                 }
             }
 

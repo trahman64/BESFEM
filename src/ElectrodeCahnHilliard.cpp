@@ -54,7 +54,7 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     
     // std::cout << "Min Weight: " << weight_elec.Min() << ", Max Weight: " << weight_elec.Max() << std::endl;
 
-    utils.InitializeReaction(Rx, RxA, (1.0/Constants::rho_A)); 
+    utils.InitializeReaction(Rx, RxA, (1.0/Constants::rho_C)); 
 
     if (!combine_particle_groups){
         
@@ -71,16 +71,12 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     fem.Update(B_init); 
     Fct = *B_init; 
 
-    // // Tabulate the chemical potential and mobility values
-    // for (int i = 0; i < Cn.Size(); i++) {
-    //     double val = Cn(i);  // get value at DOF i
-    //     Mub(i) = MaterialProperties::ChemicalPotential(material, val);
-    // }
-
     // Tabulate the chemical potential and mobility values
     for (int i = 0; i < Cn.Size(); i++)
     {
-        double val = Cn(i);
+        // double val = Cn(i);
+        double val = std::clamp(Cn(i), 1.0e-6, 0.96);
+
         double mu = MaterialProperties::ChemicalPotential(material, val);
 
         Mub(i) = mu;
@@ -121,6 +117,9 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
 
         if (CpVn(i) < 0.0){
             (CpVn)(i) = 1.0e-6;}
+
+        if (CpVn(i) > 0.96){
+            (CpVn)(i) = 0.96;}
     }
 
     // recover the GridFunction from the HypreParVector

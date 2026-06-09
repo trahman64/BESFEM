@@ -58,7 +58,10 @@ namespace MaterialProperties
                     * (1.0 - std::exp(-18.0 * c))
                     * (1.0 - std::exp(-18.0 * (1.0 - c)));
 
-        return i0_mA * 1.0e-6; // mA/cm^2 to A/cm^2
+        // std::cout << "LFP_i0 at c = " << c << " is " << i0_mA * 1.0e-6 << std::endl;
+
+        return 4* i0_mA * 1.0e-6; // mA/cm^2 to A/cm^2
+
     }
 
     
@@ -89,7 +92,7 @@ namespace MaterialProperties
     
     static double LFP_mu(double c)
     {
-	/*
+	
         static mfem::Vector Ticks(201);
         static mfem::Vector chmPot(201);
         static bool loaded = false;
@@ -110,16 +113,19 @@ namespace MaterialProperties
             loaded = true;
         }
 
-        double val = ((-1 * GetTableValues(c, Ticks, chmPot)) + 3.4) * -Constants::Frd;
-        */
-	double val = -Constants::Frd*LFP_OCV(c);
+        // double val = ((-1 * GetTableValues(c, Ticks, chmPot)) + 3.4) * -Constants::Frd;
+        double val = GetTableValues(c, Ticks, chmPot);
+        // std::cout << "LFP_mu at c = " << c << " is " << val << std::endl;
         return val;
+        
+	    // double val = -Constants::Frd*LFP_OCV(c);
+        // return val;
     }
 
 
     static double LFP_dmu_dc(double c)
     {
-        const double h = 0.005;
+        const double h = 0.01;
 
         double c1 = std::max(0.0, c - h);
         double c2 = std::min(1.0, c + h);
@@ -129,26 +135,54 @@ namespace MaterialProperties
 
     static double LFP_diff(double c)
     {
-        return 5.0e-14; // LFP diffusivity
+        // return 5.0e-14; // LFP diffusivity e-14 gives e-12 for mobility
+        return 5.0e-12; // e-12 gives e-10 for mobility
     }
+
+    // static double LFP_Mob(double c)
+    // {
+    //     c = std::min(1.0 - 1.0e-8, std::max(1.0e-8, c));
+
+    //     double D = LFP_diff(c);
+    //     double dmu_dc = LFP_dmu_dc(c);
+
+    //     double M = D / std::abs(dmu_dc);
+
+    //     if (!std::isfinite(M))
+    //     {
+    //         std::cout << "Bad mobility at c = " << c
+    //                 << " dmu_dc = " << dmu_dc
+    //                 << std::endl;
+    //     }
+
+    //     std::cout << "LFP_Mob at c = " << c << " is " << M << std::endl;
+
+    //     return D / std::abs(dmu_dc);
+    // }
 
     static double LFP_Mob(double c)
     {
         c = std::min(1.0 - 1.0e-8, std::max(1.0e-8, c));
 
-        double D = LFP_diff(c);
-        double dmu_dc = LFP_dmu_dc(c);
+        const double Mmin = 8.5e-13;
+        const double B    = 5.0e-14;
 
-        double M = D / std::abs(dmu_dc);
+        const double A1 = 4.5e-12;
+        const double A2 = 4.0e-12;
 
-        if (!std::isfinite(M))
-        {
-            std::cout << "Bad mobility at c = " << c
-                    << " dmu_dc = " << dmu_dc
-                    << std::endl;
-        }
+        const double c1 = 0.07;
+        const double c2 = 0.86;
 
-        return D / std::abs(dmu_dc);
+        const double w1 = 0.04;
+        const double w2 = 0.04;
+
+        const double x1 = (c - c1) / w1;
+        const double x2 = (c - c2) / w2;
+
+        return Mmin
+            + B * (c - 0.5) * (c - 0.5)
+            + A1 / (1.0 + x1 * x1)
+            + A2 / (1.0 + x2 * x2);
     }
 
     double LFP_ChpValue(double c)
