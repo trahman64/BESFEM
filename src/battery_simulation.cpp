@@ -302,13 +302,14 @@ int main(int argc, char *argv[]) {
 
 
 
-
 			// Calculate new boundary conditions for potentials
-			if (mfem::Mpi::WorldRank() == 0) {
+/*
+			    if (mfem::Mpi::WorldRank() == 0) {
 			        std::cout << "boundary conditions inside while loop" << std::endl;
 			        std::cout << "Global Error E: " << globalerror_E << std::endl;
 			        std::cout << "Global Error P: " << globalerror_P << std::endl;
 			    }
+*/
 
 			    for (int j = 0; j < np; ++j)
 			    {
@@ -331,8 +332,11 @@ int main(int argc, char *argv[]) {
 
 			    state.electrolyte_potential->AddBoundaryVoltage(dV);
 			    *state.phE_gf += dV;
-
-
+/*
+			    if (mfem::Mpi::WorldRank() == 0) {
+			        std::cout << "VCell: " << VCell << std::endl;
+			    }
+*/
 
 
 			
@@ -346,6 +350,13 @@ int main(int argc, char *argv[]) {
 			    
 
                     }
+			    double VCell = state.anode_potential->GetBoundaryVoltage() - state.electrolyte_potential->GetBoundaryVoltage();
+			    if (mfem::Mpi::WorldRank() == 0) {
+			        std::cout << "boundary conditions inside while loop" << std::endl;
+			        std::cout << "Global Error E: " << globalerror_E << std::endl;
+			        std::cout << "Global Error P: " << globalerror_P << std::endl;
+			        std::cout << "VCell: " << VCell << std::endl;
+			    }
 
                     if (iter == max_iter && mfem::Mpi::WorldRank() == 0) {
                         std::cout << "Warning: Maximum iterations reached at timestep " << t << " with Global Error P = " << globalerror_P << ", Global Error E = " << globalerror_E << std::endl;
@@ -381,7 +392,7 @@ int main(int argc, char *argv[]) {
                         total_current += global_currents[j];
                         total_target  += domain_parameters.gTrgPs[j];
                     }
-		    double VCell = state.anode_potential->GetBoundaryVoltage() - state.electrolyte_potential->GetBoundaryVoltage();
+		    //double VCell = state.anode_potential->GetBoundaryVoltage() - state.electrolyte_potential->GetBoundaryVoltage();
 
                     // ============================================================================
                     // ===============================  PRINT STATEMENTS  =========================
