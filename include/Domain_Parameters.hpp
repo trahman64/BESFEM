@@ -2,6 +2,7 @@
 #define DOMAIN_PARAMETERS_HPP
 
 #include "mfem.hpp"
+#include "SimulationConfig.hpp"
 #include <memory>
 #include <string>
 #include <vector>
@@ -45,7 +46,7 @@ public:
      *
      * @param geo Reference to the initialized geometry (mesh, FE space, ψ distance fields).
      */
-    Domain_Parameters(Initialize_Geometry &geo);
+    Domain_Parameters(Initialize_Geometry &geo, const SimulationConfig &cfg);
 
     /// Destructor.
     virtual ~Domain_Parameters();
@@ -119,6 +120,8 @@ public:
 
     /// Reference to geometry handler.
     Initialize_Geometry &geometry;
+    const SimulationConfig& cfg;
+
 
 private:
 
@@ -186,7 +189,7 @@ private:
      * @param total_psi Local integral of ψ.
      * @param global_total [out] Global target current contribution after MPI reduction.
      */
-    void CalculateTargetCurrent(double total_psi, double &global_total);
+    void CalculateTargetCurrent(double total_psi, double &global_total, sim::MaterialType material);
 
     /**
      * @brief Print diagnostic totals (rank 0 only).

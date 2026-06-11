@@ -1,10 +1,11 @@
 #include "../include/ElectrolyteDiffusion.hpp"
 #include "../include/Constants.hpp"
 #include "../include/MaterialProperties.hpp"
+#include "../include/SimulationConfig.hpp"
 #include "mfem.hpp"
 
-ElectrolyteDiffusion::ElectrolyteDiffusion(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::CellMode mode, sim::MaterialType mat)
-    : ConcentrationBase(geo, para, mat), boundary_conditions(bc), De(fespace.get()), Rxe(fespace.get()), PeR(fespace.get()), cDe(&De), cAe(&Rxe), matCoef_R(&PeR), nbc_bdr(bc.nbc_bdr), 
+ElectrolyteDiffusion::ElectrolyteDiffusion(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::CellMode mode, sim::MaterialType mat, const SimulationConfig &cfg)
+    : ConcentrationBase(geo, para, mat, cfg), cfg(cfg), boundary_conditions(bc), De(fespace.get()), Rxe(fespace.get()), PeR(fespace.get()), cDe(&De), cAe(&Rxe), matCoef_R(&PeR), nbc_bdr(bc.nbc_bdr), 
     nbcCoef(0.0), Fet(fespace.get()), Me_solver(MPI_COMM_WORLD),
     CeV0(fespace.get()), RHCe(fespace.get()), CeVn(fespace.get()),
     Feb(fespace.get()), X1v(fespace.get()), PsVc(fespace.get()), mode_(mode)
@@ -98,10 +99,10 @@ void ElectrolyteDiffusion::UpdateConcentration(mfem::ParGridFunction &Rx, mfem::
 
     fem.Update(Ke2); 
     fem.FormLinearSystem(Ke2, boundary_dofs, Cn, Fet, Kmate, X1v, Feb); 
-    Feb *= Constants::dt;
+    Feb *= cfg.dt;
 
-    TmatR.reset(Add(1.0, Mmate, -0.5 * Constants::dt, Kmate));
-    TmatL.reset(Add(1.0, Mmate,  0.5 * Constants::dt, Kmate));
+    TmatR.reset(Add(1.0, Mmate, -0.5 * cfg.dt, Kmate));
+    TmatL.reset(Add(1.0, Mmate,  0.5 * cfg.dt, Kmate));
 
     Cn.GetTrueDofs(CeV0);
     TmatR->Mult(CeV0, RHCe);

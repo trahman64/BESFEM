@@ -49,7 +49,7 @@ public:
      * @param geo  Geometry handler (mesh, FE spaces).
      * @param para Domain parameter container.
      */
-    Utils(Initialize_Geometry &geo, Domain_Parameters &para);
+    Utils(Initialize_Geometry &geo, Domain_Parameters &para, const SimulationConfig &cfg);
 
     // ----------------------------------------------------------------------
     // High-level field initialization & reduction utilities
@@ -241,6 +241,8 @@ private:
     // Stored references
     Initialize_Geometry &geometry_;
     Domain_Parameters   &domain_;
+
+    const SimulationConfig& cfg;
 
     // Cached mesh data
     mfem::ParMesh *pmesh_;

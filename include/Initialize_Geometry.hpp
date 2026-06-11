@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include "SimTypes.hpp"
+#include "SimulationConfig.hpp"
 #include <set>
 
 using namespace std;
@@ -29,6 +30,7 @@ using namespace std;
 class Initialize_Geometry {
 private:
     bool tiffDataLoaded = false; ///< Whether TIFF voxel data has been loaded.
+    const SimulationConfig& cfg;
 
 protected:
     mfem::Vector elementVolumes;     ///< Per-element volumes (global or parallel).
@@ -36,7 +38,7 @@ protected:
     std::vector<std::vector<std::vector<int>>> data; ///< Raw voxel data container.
 
 public:
-    Initialize_Geometry();
+    Initialize_Geometry(const SimulationConfig& cfg);
     virtual ~Initialize_Geometry();
 
     bool combine_particle_groups = false; ///< Whether to combine particle groups for performance.

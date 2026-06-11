@@ -53,8 +53,20 @@ int main(int argc, char *argv[]) {
         // ===============================  START SIMULATION  =========================
         // ============================================================================
 
+        if (mfem::Mpi::WorldRank() == 0)
+        {
+            std::cout << "\n===== Simulation Parameters =====\n"
+                    << "dt   = " << cfg.dt   << "\n"
+                    << "dh   = " << cfg.dh   << "\n"
+                    << "gc   = " << cfg.gc   << "\n"
+                    << "Cr   = " << cfg.Cr   << "\n"
+                    << "Vsr0 = " << cfg.Vsr0 << "\n"
+                    << "=================================\n"
+                    << std::endl;
+        }
+
         // Initialize Mesh & Geometry
-        Initialize_Geometry geometry;
+        Initialize_Geometry geometry(cfg);
         geometry.combine_particle_groups = cfg.combine_particle_groups;
 
         if (cfg.mode == sim::CellMode::HALF) {
@@ -64,7 +76,7 @@ int main(int argc, char *argv[]) {
         }
 
         // Initialize and Calculate Domain Parameters
-        Domain_Parameters domain_parameters(geometry);
+        Domain_Parameters domain_parameters(geometry, cfg);
         domain_parameters.SetupDomainParameters(cfg.mesh_type);
 
         // Initialize Boundary Conditions 
@@ -76,136 +88,11 @@ int main(int argc, char *argv[]) {
         }
 
         // Define Adjuster for Surface Voltage & Current
-        Adjust adjust(geometry, domain_parameters);
+        Adjust adjust(geometry, domain_parameters, cfg);
 
         // Initialize Concentration & Potential & Reaction Fields
         SimulationState state;
         InitializeFields(state, geometry, domain_parameters, bc, cfg);
-
-
-        // const int np = static_cast<int>(state.cathode_particles.size());
-
-        // for (int j = 0; j < np; ++j)
-        // {
-        //     int local_interface_nodes = 0;
-        //     int local_particle_nodes  = 0;
-
-        //     for (int i = 0; i < domain_parameters.AvEs[j]->Size(); i++)
-        //     {
-        //         if ((*domain_parameters.AvEs[j])(i) * Constants::dh > 0.05)
-        //         {
-        //             local_interface_nodes++;
-        //         }
-
-        //         if ((*domain_parameters.ps[j])(i) > 0.5)
-        //         {
-        //             local_particle_nodes++;
-        //         }
-        //     }
-
-        //     int global_interface_nodes = 0;
-        //     int global_particle_nodes  = 0;
-
-        //     MPI_Allreduce(&local_interface_nodes,
-        //                 &global_interface_nodes,
-        //                 1,
-        //                 MPI_INT,
-        //                 MPI_SUM,
-        //                 MPI_COMM_WORLD);
-
-        //     MPI_Allreduce(&local_particle_nodes,
-        //                 &global_particle_nodes,
-        //                 1,
-        //                 MPI_INT,
-        //                 MPI_SUM,
-        //                 MPI_COMM_WORLD);
-
-        //     double ratio = 0.0;
-
-        //     if (global_particle_nodes > 0)
-        //     {
-        //         ratio =
-        //             static_cast<double>(global_interface_nodes)
-        //             / static_cast<double>(global_particle_nodes);
-        //     }
-
-        //     if (mfem::Mpi::WorldRank() == 0)
-        //     {
-        //         std::cout << "Particle " << j
-        //                 << " Interface Nodes = " << global_interface_nodes
-        //                 << ", Particle Nodes = " << global_particle_nodes
-        //                 << ", Interface/Volume Ratio = " << ratio
-        //                 << std::endl;
-        //     }
-        // }
-
-        // int total_local_interface_nodes = 0;
-        // int total_local_particle_nodes  = 0;
-
-        // // Sum over all particles
-        // for (int j = 0; j < np; ++j)
-        // {
-        //     for (int i = 0; i < domain_parameters.AvEs[j]->Size(); i++)
-        //     {
-        //         // Interface nodes
-        //         if ((*domain_parameters.AvEs[j])(i) * Constants::dh > 0.05)
-        //         {
-        //             total_local_interface_nodes++;
-        //         }
-
-        //         // Particle nodes
-        //         if ((*domain_parameters.ps[j])(i) > 0.5)
-        //         {
-        //             total_local_particle_nodes++;
-        //         }
-        //     }
-        // }
-
-        // // Global MPI reduction
-        // int total_global_interface_nodes = 0;
-        // int total_global_particle_nodes  = 0;
-
-        // MPI_Allreduce(&total_local_interface_nodes,
-        //             &total_global_interface_nodes,
-        //             1,
-        //             MPI_INT,
-        //             MPI_SUM,
-        //             MPI_COMM_WORLD);
-
-        // MPI_Allreduce(&total_local_particle_nodes,
-        //             &total_global_particle_nodes,
-        //             1,
-        //             MPI_INT,
-        //             MPI_SUM,
-        //             MPI_COMM_WORLD);
-
-        // // Compute overall ratio
-        // double total_ratio = 0.0;
-
-        // if (total_global_particle_nodes > 0)
-        // {
-        //     total_ratio =
-        //         static_cast<double>(total_global_interface_nodes)
-        //         / static_cast<double>(total_global_particle_nodes);
-        // }
-
-        // // Print only on rank 0
-        // if (mfem::Mpi::WorldRank() == 0)
-        // {
-        //     std::cout << "=================================================="
-        //             << std::endl;
-
-        //     std::cout << "TOTAL Interface Nodes = "
-        //             << total_global_interface_nodes
-        //             << ", TOTAL Particle Nodes = "
-        //             << total_global_particle_nodes
-        //             << ", TOTAL Interface/Volume Ratio = "
-        //             << total_ratio
-        //             << std::endl;
-
-        //     std::cout << "=================================================="
-        //             << std::endl;
-        // }
 
         // double VCell = 0.0;
 
@@ -322,7 +209,7 @@ int main(int argc, char *argv[]) {
                     double VCell = state.anode_potential->GetBoundaryVoltage() - state.electrolyte_potential->GetBoundaryVoltage();
 
                     double sgn = std::copysign(1.0, total_target - total_current);
-                    double dV  = Constants::dt * Constants::Vsr0 * sgn;
+                    double dV  = cfg.dt * cfg.Vsr0 * sgn;
 
                     state.electrolyte_potential->AddBoundaryVoltage(dV);
                     *state.phE_gf += dV;
@@ -487,7 +374,7 @@ int main(int argc, char *argv[]) {
                     double VCell = state.cathode_potential->GetBoundaryVoltage() - state.electrolyte_potential->GetBoundaryVoltage();
 
                     double sgn = std::copysign(1.0, total_target - total_current);
-                    double dV  = Constants::dt * Constants::Vsr0 * sgn;
+                    double dV  = cfg.dt * cfg.Vsr0 * sgn;
 
                     state.electrolyte_potential->AddBoundaryVoltage(dV);
                     *state.phE_gf += dV;

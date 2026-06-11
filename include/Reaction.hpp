@@ -41,10 +41,12 @@ public:
      * @param geo  Geometry/mesh handler.
      * @param para Domain parameter container.
      */
-    Reaction(Initialize_Geometry &geo, Domain_Parameters &para);
+    Reaction(Initialize_Geometry &geo, Domain_Parameters &para, const SimulationConfig &cfg);
 
     Initialize_Geometry &geometry;          ///< Geometry and mesh infrastructure.
     Domain_Parameters   &domain_parameters; ///< Material and phase-field parameters.
+
+    const SimulationConfig& cfg;
 
     /**
      * @brief Assign an initial reaction rate.

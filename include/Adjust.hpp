@@ -25,13 +25,15 @@ public:
      * @param geo  Reference to the initialized geometry handler (meshes, FE space).
      * @param para Reference to the simulation domain parameter structure.
      */
-    Adjust(Initialize_Geometry &geo, Domain_Parameters &para);
+    Adjust(Initialize_Geometry &geo, Domain_Parameters &para, const SimulationConfig &cfg);
 
     // Reference to geometry information (parallel mesh, FE space, ψ-fields).
     Initialize_Geometry &geometry;
 
     // Reference to global domain parameters (material constants, scan rates, etc.).
     Domain_Parameters &domain_parameters;
+
+    const SimulationConfig& cfg;
 
 
     /**

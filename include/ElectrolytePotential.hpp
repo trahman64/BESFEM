@@ -48,12 +48,15 @@ public:
      * @param bc    Boundary condition handler.
      * @param mode  Cell mode (HALF or FULL).
      */
-    ElectrolytePotential(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::CellMode mode);
+    ElectrolytePotential(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::CellMode mode, const SimulationConfig &cfg);
 
     Initialize_Geometry  &geometry;            ///< Geometry and mesh infrastructure.
     Domain_Parameters    &domain_parameters;   ///< Material and phase-field parameters.
     BoundaryConditions   &boundary_conditions; ///< Electrode/BC configuration.
     sim::CellMode         mode_;               ///< Half/full-cell selection mode.
+
+    const SimulationConfig& cfg;
+
 
     FEMOperators fem; ///< FEM operator assembly utilities.
     Utils utils;      ///< Miscellaneous helpers (clamping, reductions, etc.).

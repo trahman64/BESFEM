@@ -443,4 +443,27 @@ namespace MaterialProperties
                 return 0.0;
         }
     }
+
+    double SiteDensity(sim::MaterialType material)
+    {
+        switch (material)
+        {
+            case sim::MaterialType::Graphite:
+                // std::cout << "using graphite density" << std::endl;
+                return 0.0312;
+
+            case sim::MaterialType::NMC:
+                // std::cout << "using NMC density" << std::endl;
+                return 0.0501;
+
+            case sim::MaterialType::LFP:
+                // std::cout << "using LFP density" << std::endl;
+                return 0.02273544498;
+
+            default:
+                mfem::mfem_error("Unknown material in SiteDensity.");
+                return 0.0;
+        }
+    }
+
 }

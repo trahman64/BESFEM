@@ -4,8 +4,8 @@
 #include "../include/SimTypes.hpp"
 #include "mfem.hpp"
 
-ElectrodePotential::ElectrodePotential(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::Electrode electrode, sim::MaterialType material)
-    : PotentialBase(geo,para), geometry(geo), domain_parameters(para), boundary_conditions(bc), utils(geo,para), 
+ElectrodePotential::ElectrodePotential(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::Electrode electrode, sim::MaterialType material, const SimulationConfig &cfg)
+    : PotentialBase(geo,para), geometry(geo), domain_parameters(para), boundary_conditions(bc), cfg(cfg), utils(geo,para, cfg), 
     fem(geo.parfespace), electrode(electrode), material(material), kap(fespace.get()), RpP(fespace.get()), pP0(fespace.get())
 
     

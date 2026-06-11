@@ -14,8 +14,8 @@
 
 // using sim::CellMode;
 
-ElectrolytePotential::ElectrolytePotential(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::CellMode mode)
-    : PotentialBase(geo,para), geometry(geo), domain_parameters(para), boundary_conditions(bc), utils(geo,para), fespace(geo.parfespace), fem(geo.parfespace), dbc_bdr(bc.dbc_bdr), gtPse(para.gtPse),
+ElectrolytePotential::ElectrolytePotential(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::CellMode mode, const SimulationConfig &cfg)
+    : PotentialBase(geo,para), geometry(geo), domain_parameters(para), boundary_conditions(bc), cfg(cfg), utils(geo,para, cfg), fespace(geo.parfespace), fem(geo.parfespace), dbc_bdr(bc.dbc_bdr), gtPse(para.gtPse),
     kpl(fespace.get()), RpE(fespace.get()), Dmp(fespace.get()), pE0(fespace.get()), ess_tdof_potE(bc.ess_tdof_list), phE_bc(fespace.get()), CeVn(fespace.get()), mode_(mode)
     
     {

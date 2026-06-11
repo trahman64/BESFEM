@@ -47,7 +47,7 @@ public:
      * @param mat  Material type for this concentration handler.
      * @param bc   Boundary conditions.
      */
-    ConcentrationBase(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat);
+    ConcentrationBase(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat, const SimulationConfig &cfg);
 
     /// Virtual destructor.
     virtual ~ConcentrationBase() = default;
@@ -133,6 +133,7 @@ public:
 
     Initialize_Geometry &geometry;
     Domain_Parameters   &domain_parameters;
+    const SimulationConfig& cfg;
     // BoundaryConditions  &boundary_conditions;
     std::shared_ptr<mfem::ParFiniteElementSpace> fespace;
     FEMOperators fem;

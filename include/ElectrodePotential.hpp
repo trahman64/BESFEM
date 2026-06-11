@@ -12,7 +12,7 @@ class BoundaryConditions;
 class ElectrodePotential : public PotentialBase
 {
 public:
-    ElectrodePotential(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::Electrode electrode, sim::MaterialType material);
+    ElectrodePotential(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::Electrode electrode, sim::MaterialType material, const SimulationConfig &cfg);
 
     void SetupField(mfem::ParGridFunction &ph, double initial_value, mfem::ParGridFunction &psx);
     void UpdatePotential(mfem::ParGridFunction &Rx, mfem::ParGridFunction &phx, mfem::ParGridFunction &psx, double &gerror);
@@ -28,6 +28,8 @@ private:
     Initialize_Geometry  &geometry;            ///< Geometry and mesh infrastructure
     Domain_Parameters    &domain_parameters;   ///< Material/phase-field parameters
     BoundaryConditions   &boundary_conditions; ///< Electrode boundary configuration
+
+    const SimulationConfig& cfg;
 
     FEMOperators fem; ///< FEM operator assembly utilities
     Utils utils;      ///< Utility helpers (clamping, reductions, etc.)

@@ -10,11 +10,13 @@ class Domain_Parameters;
 class ElectrodeCahnHilliard : public ConcentrationBase
 {
 public:
-    ElectrodeCahnHilliard(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat);
+    ElectrodeCahnHilliard(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat, const SimulationConfig &cfg);
 
     void SetupField(mfem::ParGridFunction &Cn, double initial_value, mfem::ParGridFunction &psx, double gtPsx);
     void UpdateConcentration(mfem::ParGridFunction &Rx, mfem::ParGridFunction &Cn, mfem::ParGridFunction &psx,
                              double gtPsx, mfem::ParGridFunction &weight_elec, const std::vector<ConcentrationBase::PairCoupling> &pair_terms); 
+
+    const SimulationConfig& cfg;
 
 private:
     mfem::ParGridFunction Mub; 

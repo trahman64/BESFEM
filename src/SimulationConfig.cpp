@@ -229,6 +229,21 @@ static void ApplyConfigFile(SimulationConfig& cfg)
 
     if (HasKey(data, "init_BvE"))
         cfg.init_BvE = std::stod(GetValue(data, "init_BvE"));
+
+    if (HasKey(data, "dh"))
+    cfg.dh = std::stod(GetValue(data, "dh"));
+
+    if (HasKey(data, "gc"))
+        cfg.gc = std::stod(GetValue(data, "gc"));
+
+    if (HasKey(data, "dt"))
+        cfg.dt = std::stod(GetValue(data, "dt"));
+
+    if (HasKey(data, "Cr"))
+        cfg.Cr = std::stod(GetValue(data, "Cr"));
+
+    if (HasKey(data, "Vsr0"))
+        cfg.Vsr0 = std::stod(GetValue(data, "Vsr0"));
 }
 
 SimulationConfig ParseSimulationArgs(int argc, char *argv[])
@@ -370,6 +385,8 @@ void ValidateConfig(const SimulationConfig &cfg, int argc, char *argv[])
         mfem::mfem_error(
             "anode_materials and init_anode_particles must have the same length.");
     }
+
+
 }
 
 void PrintAvailableSimulationOptions()

@@ -10,7 +10,7 @@ class Domain_Parameters;
 class ElectrolyteDiffusion : public ConcentrationBase
 { 
 public:
-    ElectrolyteDiffusion(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::CellMode mode, sim::MaterialType mat);
+    ElectrolyteDiffusion(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::CellMode mode, sim::MaterialType mat, const SimulationConfig &cfg);
 
     void SetupField(mfem::ParGridFunction &Cn, double initial_value, mfem::ParGridFunction &psx, double gtPsx);
     void UpdateConcentration(mfem::ParGridFunction &Rx, mfem::ParGridFunction &Cn, mfem::ParGridFunction &psx,
@@ -20,6 +20,7 @@ public:
 
     BoundaryConditions  &boundary_conditions;
     sim::CellMode mode_;
+    const SimulationConfig& cfg;
 
     mfem::HypreParVector CeVn; 
     mfem::ParLinearForm Fet;                 

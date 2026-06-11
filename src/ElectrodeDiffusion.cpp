@@ -1,11 +1,12 @@
 #include "../include/ElectrodeDiffusion.hpp"
 #include "../include/Constants.hpp"
 #include "../include/MaterialProperties.hpp"
+#include "../include/SimulationConfig.hpp"
 #include "../include/SimTypes.hpp"
 #include "mfem.hpp"
 
-ElectrodeDiffusion::ElectrodeDiffusion(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat)
-    : ConcentrationBase(geo, para, mat),  combine_particle_groups(geo.combine_particle_groups), Dp(fespace.get()), Mp_solver(MPI_COMM_WORLD), cDp(&Dp), Fct(fespace.get()), PsVc(fespace.get()), CpV0(fespace.get()), RHCp(fespace.get()), 
+ElectrodeDiffusion::ElectrodeDiffusion(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat, const SimulationConfig &cfg)
+    : ConcentrationBase(geo, para, mat, cfg),  cfg(cfg), combine_particle_groups(geo.combine_particle_groups), Dp(fespace.get()), Mp_solver(MPI_COMM_WORLD), cDp(&Dp), Fct(fespace.get()), PsVc(fespace.get()), CpV0(fespace.get()), RHCp(fespace.get()), 
     CpVn(fespace.get()), Rxn(fespace.get()), cAp(&Rxn)
 {}
 
@@ -48,7 +49,8 @@ void ElectrodeDiffusion::UpdateConcentration(mfem::ParGridFunction &Rx, mfem::Pa
     //     // std::cout << "Treating all particles as a single group: normalizing reaction by rho_C." << std::endl;
     // }
 
-    utils.InitializeReaction(Rx, Rxn, (1.0/Constants::rho_C));
+    const double rho = MaterialProperties::SiteDensity(material);
+    utils.InitializeReaction(Rx, Rxn, (1.0/rho));
 
     if (!combine_particle_groups){
         // std::cout << "Different particle groups, need to compute pair fluxes." << std::endl;
@@ -83,9 +85,9 @@ void ElectrodeDiffusion::UpdateConcentration(mfem::ParGridFunction &Rx, mfem::Pa
 
     fem.Update(Kc2);
     fem.FormLinearSystem(Kc2, boundary_dofs, Cn, Fct, Kmatp, X1v, Fcb);
-    Fcb *= Constants::dt;
+    Fcb *= cfg.dt;
 
-    Tmatp.reset(Add(1.0, Mmatp, -1.0* Constants::dt, Kmatp));
+    Tmatp.reset(Add(1.0, Mmatp, -1.0* cfg.dt, Kmatp));
 
     Cn.GetTrueDofs(CpV0);
     Tmatp->Mult(CpV0, RHCp);

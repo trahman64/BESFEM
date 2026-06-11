@@ -1,10 +1,11 @@
 #include "../include/ElectrodeCahnHilliard.hpp"
 #include "../include/Constants.hpp"
 #include "../include/MaterialProperties.hpp"
+#include "../include/SimulationConfig.hpp"
 #include "mfem.hpp"
 
-ElectrodeCahnHilliard::ElectrodeCahnHilliard(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat)
-     : ConcentrationBase(geo, para, mat), pmesh(geo.parallelMesh.get()), combine_particle_groups(geo.combine_particle_groups),
+ElectrodeCahnHilliard::ElectrodeCahnHilliard(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat, const SimulationConfig &cfg)
+     : ConcentrationBase(geo, para, mat, cfg), cfg(cfg), pmesh(geo.parallelMesh.get()), combine_particle_groups(geo.combine_particle_groups),
       Mub(fespace.get()), Mob(fespace.get()), RxA(fespace.get()), gtPsi(para.gtPsi), gtPsA(para.gtPsA),
       Lp1(fespace.get()), Lp2(fespace.get()), MuV(fespace.get()),
       PsVc(fespace.get()), CpV0(fespace.get()), RHCp(fespace.get()), CpVn(fespace.get()),
@@ -29,7 +30,7 @@ void ElectrodeCahnHilliard::SetupField(mfem::ParGridFunction &Cn, double initial
 
     fem.InitializeStiffnessMatrix(cDp, Grad_MForm); 
 
-    mfem::ConstantCoefficient varE(Constants::gc/pow(Constants::dh, pmesh->Dimension())); 
+    mfem::ConstantCoefficient varE(cfg.gc/pow(cfg.dh, pmesh->Dimension())); 
     fem.InitializeStiffnessMatrix(varE, Grad_EForm); 
 
     fem.InitializeForceTerm(cAp, B_init);
@@ -54,7 +55,8 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     
     // std::cout << "Min Weight: " << weight_elec.Min() << ", Max Weight: " << weight_elec.Max() << std::endl;
 
-    utils.InitializeReaction(Rx, RxA, (1.0/Constants::rho_C)); 
+    const double rho = MaterialProperties::SiteDensity(material);
+    utils.InitializeReaction(Rx, RxA, (1.0/rho)); 
 
     if (!combine_particle_groups){
         
@@ -97,10 +99,10 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
 
     Grad_MM.Mult(MuV, Lp2); 
     Lp2.Neg(); 
-    Lp2 *= Constants::dt; 
+    Lp2 *= cfg.dt; 
 
     // Add the reaction term to the right-hand side vector
-    Fcb *= Constants::dt;
+    Fcb *= cfg.dt;
     Lp2 += Fcb; 
 
     // Update the right-hand side vector for the Cahn-Hilliard equation

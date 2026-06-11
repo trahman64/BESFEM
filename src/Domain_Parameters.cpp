@@ -1,6 +1,7 @@
 #include "../include/Constants.hpp"
 #include "../include/Initialize_Geometry.hpp"
 #include "../include/Domain_Parameters.hpp"
+#include "../include/MaterialProperties.hpp"
 #include "../include/readtiff.h"
 #include "mfem.hpp"
 #include <tiffio.h>
@@ -32,8 +33,8 @@ static inline void GlobalMinMax(const mfem::ParGridFunction& gf,
 
 double gTrgI = 0.0;
 
-Domain_Parameters::Domain_Parameters(Initialize_Geometry &geo)
-    : geometry(geo), nV(geo.nV), nE(geo.nE), nC(geo.nC), 
+Domain_Parameters::Domain_Parameters(Initialize_Geometry &geo, const SimulationConfig &cfg)
+    : geometry(geo), cfg(cfg), nV(geo.nV), nE(geo.nE), nC(geo.nC), 
     dsF(geo.dsF   ? geo.dsF.get()   : nullptr),
     dsF_A(geo.dsF_A ? geo.dsF_A.get() : nullptr),
     dsF_C(geo.dsF_C ? geo.dsF_C.get() : nullptr),
@@ -198,8 +199,8 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
 
         if (strcmp(mesh_type, "ml") == 0) {
             for (int vi = 0; vi < nV; vi++) {
-                (*psi)(vi) = 0.5 * (1.0 + tanh((*g)(vi) / (Constants::zeta * Constants::dh))); // matlab
-                (*AvP)(vi) = -(pow(tanh((*g)(vi) / (Constants::zeta * Constants::dh)), 2) - 1.0) / (2 * Constants::zeta * Constants::dh); // matlab
+                (*psi)(vi) = 0.5 * (1.0 + tanh((*g)(vi) / (Constants::zeta * cfg.dh))); // matlab
+                (*AvP)(vi) = -(pow(tanh((*g)(vi) / (Constants::zeta * cfg.dh)), 2) - 1.0) / (2 * Constants::zeta * cfg.dh); // matlab
 
                 (*pse)(vi) = 1.0 - (*psi)(vi);
 
@@ -545,16 +546,16 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
 
         for (int vi = 0; vi < nV; vi++) {
             if (strcmp(mesh_type, "ml") == 0) {
-                (*psA)(vi) = 0.5 * (1.0 + tanh((*dsF_A)(vi) / (Constants::zeta * Constants::dh))); // matlab
-                (*AvA)(vi) = -(pow(tanh((*dsF_A)(vi) / (Constants::zeta * Constants::dh)), 2) - 1.0) / (Constants::zeta * Constants::dh); // matlab
-                (*psC)(vi) = 0.5 * (1.0 + tanh((*dsF_C)(vi) / (Constants::zeta * Constants::dh))); // matlab
-                (*AvC)(vi) = -(pow(tanh((*dsF_C)(vi) / (Constants::zeta * Constants::dh)), 2) - 1.0) / (Constants::zeta * Constants::dh); // matlab
+                (*psA)(vi) = 0.5 * (1.0 + tanh((*dsF_A)(vi) / (Constants::zeta * cfg.dh))); // matlab
+                (*AvA)(vi) = -(pow(tanh((*dsF_A)(vi) / (Constants::zeta * cfg.dh)), 2) - 1.0) / (Constants::zeta * cfg.dh); // matlab
+                (*psC)(vi) = 0.5 * (1.0 + tanh((*dsF_C)(vi) / (Constants::zeta * cfg.dh))); // matlab
+                (*AvC)(vi) = -(pow(tanh((*dsF_C)(vi) / (Constants::zeta * cfg.dh)), 2) - 1.0) / (Constants::zeta * cfg.dh); // matlab
 
             } else if (strcmp(mesh_type, "v") == 0) {
                 (*psA)(vi) = 0.5 * (1.0 + tanh((*dsF_A)(vi))); // voxel
-                (*AvA)(vi) = -(pow(tanh((*dsF_A)(vi)), 2) - 1.0) / (2 * Constants::zeta * Constants::dh); // voxel
+                (*AvA)(vi) = -(pow(tanh((*dsF_A)(vi)), 2) - 1.0) / (2 * Constants::zeta * cfg.dh); // voxel
                 (*psC)(vi) = 0.5 * (1.0 + tanh((*dsF_C)(vi))); // voxel
-                (*AvC)(vi) = -(pow(tanh((*dsF_C)(vi)), 2) - 1.0) / (2 * Constants::zeta * Constants::dh); // voxel
+                (*AvC)(vi) = -(pow(tanh((*dsF_C)(vi)), 2) - 1.0) / (2 * Constants::zeta * cfg.dh); // voxel
 
             }
 
@@ -611,9 +612,9 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
         AvB = std::make_unique<mfem::ParGridFunction>(*AvA);
         
         for (int vi = 0; vi < nV; vi++) {
-            if ((*AvA)(vi) * Constants::dh < Constants::thres) { (*AvA)(vi) = 0.0; }
-            if ((*AvC)(vi) * Constants::dh < Constants::thres) { (*AvC)(vi) = 0.0; }
-            if ((*AvB)(vi) * Constants::dh < 1.0e-5) { (*AvB)(vi) = 0.0; }
+            if ((*AvA)(vi) * cfg.dh < Constants::thres) { (*AvA)(vi) = 0.0; }
+            if ((*AvC)(vi) * cfg.dh < Constants::thres) { (*AvC)(vi) = 0.0; }
+            if ((*AvB)(vi) * cfg.dh < 1.0e-5) { (*AvB)(vi) = 0.0; }
         }
 
     }
@@ -667,14 +668,24 @@ void Domain_Parameters::CalculatePhasePotentialsAndTargetCurrent() {
         // Calculate totals for Psi and Pse fields
         CalculateTotalPhaseField(*psi, tPsi, gtPsi);
         CalculateTotalPhaseField(*pse, tPse, gtPse);
-        CalculateTargetCurrent(tPsi, gTrgI);
+        // CalculateTargetCurrent(tPsi, gTrgI, cfg.cathode_materials[0]);
 
-        for (int k = 0; k < (int)ps.size(); ++k)
+        const std::vector<sim::MaterialType>& active_materials =
+        (cfg.half_electrode == sim::Electrode::CATHODE)
+            ? cfg.cathode_materials
+            : cfg.anode_materials;
+
+        
+        gTrgI = 0.0;
+
+        for (int k = 0; k < ps.size(); ++k)
         {
             CalculateTotalPhaseField(*ps[k], tPs[k], gtPs[k]);
-            CalculateTargetCurrent(tPs[k], gTrgPs[k]);
+            CalculateTargetCurrent(tPs[k], gTrgPs[k], active_materials[k]);
+
+            gTrgI += gTrgPs[k];
         }
-        
+                
     }
 
     // Full Cell : use psA, psC
@@ -683,15 +694,19 @@ void Domain_Parameters::CalculatePhasePotentialsAndTargetCurrent() {
         CalculateTotalPhaseField(*psA, tPsA, gtPsA);
         CalculateTotalPhaseField(*psC, tPsC, gtPsC);
         CalculateTotalPhaseField(*pse, tPse, gtPse);
-        CalculateTargetCurrent(tPsC, gTrgI);
+        CalculateTargetCurrent(tPsC, gTrgI, cfg.cathode_materials[0]);
     }
 
 }
 
-void Domain_Parameters::CalculateTargetCurrent(double total_psi, double &global_total) {
+void Domain_Parameters::CalculateTargetCurrent(double total_psi, double &global_total, sim::MaterialType material) {
+
+    double rho = MaterialProperties::SiteDensity(material);
+
+    std::cout << "value of rho: " << rho << std::endl;
 
     // Compute target current based on total Psi, rho, Cr, and constants
-    trgI = total_psi * Constants::rho_C * (0.95 - 0.3) / (3600.0 / Constants::Cr); // bounds of cathode 
+    trgI = total_psi * rho * (0.95 - 0.3) / (3600.0 / cfg.Cr); // bounds of cathode 
 
     // Perform global MPI reduction to get the total target current
     MPI_Allreduce(&trgI, &global_total, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);

@@ -38,9 +38,9 @@ namespace Constants {
     // -------------------------------------------------------------------------
 
     extern const int    order; ///< Polynomial order for FE basis.
-    extern const double dh;    ///< Grid spacing (distance-field scale factor).
+    // extern const double dh;    ///< Grid spacing (distance-field scale factor).
     extern const double zeta;  ///< Interface thickness parameter for SBM.
-    extern const double ze;    ///< Extrapolation parameter for ψ smoothing.
+    // extern const double ze;    ///< Extrapolation parameter for ψ smoothing.
 
     // -------------------------------------------------------------------------
     // Numerical tolerances and thresholds
@@ -53,8 +53,8 @@ namespace Constants {
     // Time-stepping
     // -------------------------------------------------------------------------
 
-    extern const double dt; ///< Default time step size.
-    extern const double tm; ///< Maximum simulation time.
+    // extern const double dt; ///< Default time step size.
+    // extern const double tm; ///< Maximum simulation time.
 
     // -------------------------------------------------------------------------
     // Electrochemical constants
@@ -65,17 +65,17 @@ namespace Constants {
     extern const double Frd;     ///< Faraday constant scaling factor.
     extern const double Cst1;    ///< Constant used in electrolyte potential transport term.
     extern const double alp;     ///< Charge-transfer coefficient (α).
-    extern const double rho_A;   ///< Density/normalization for anode active material.
-    extern const double rho_C;   ///< Density/normalization for cathode active material.
-    extern const double Cr;      ///< C-rate or reaction scaling constant.
-    extern const double gc;      ///< Conductivity or coupling constant (context-dependent).
+    // extern const double rho_A;   ///< Density/normalization for anode active material.
+    // extern const double rho_C;   ///< Density/normalization for cathode active material.
+    // extern const double Cr;      ///< C-rate or reaction scaling constant.
+    // extern const double gc;      ///< Conductivity or coupling constant (context-dependent).
 
     // -------------------------------------------------------------------------
     // Voltage / potential limits
     // -------------------------------------------------------------------------
 
-    extern const double Vsr0; ///< Initial cell voltage offset.
-    extern const double VCut; ///< Cutoff voltage for stopping criteria.
+    // extern const double Vsr0; ///< Initial cell voltage offset.
+    // extern const double VCut; ///< Cutoff voltage for stopping criteria.
 
     // -------------------------------------------------------------------------
     // Initial conditions

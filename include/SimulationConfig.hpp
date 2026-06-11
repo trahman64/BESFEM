@@ -35,6 +35,13 @@ struct SimulationConfig
     double init_BvA = -0.01;
     double init_BvC = 3.30;
     double init_BvE = -0.10;
+
+    double dh = 5.0e-06;
+    double gc = 3.3800e-10 * 3.0;
+    double dt = 0.001;
+    double Cr = 1.0;
+    double Vsr0 = 2.0;
+    double VCut = 0.0;
 };
 
 SimulationConfig ParseSimulationArgs(int argc, char *argv[]);

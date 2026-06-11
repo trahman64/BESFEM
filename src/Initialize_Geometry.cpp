@@ -16,7 +16,8 @@ using sim::Electrode;
 
 
 // Constructor
-Initialize_Geometry::Initialize_Geometry() 
+Initialize_Geometry::Initialize_Geometry(const SimulationConfig& cfg)
+    : cfg(cfg)
 {}
 
 // Destructor
@@ -368,9 +369,9 @@ void Initialize_Geometry::AdjustDistanceFile(const char* distanceFile, const cha
                 if (mfem::Mpi::WorldRank() == 0) { std::cout << "[AdjustDistanceFile] Wrote original data to backup: " << backup << "\n"; }
 
                 // scale and overwrite original file
-                if (mfem::Mpi::WorldRank() == 0) { std::cout << "[AdjustDistanceFile] Scaling values by dh=" << std::setprecision(10) << Constants::dh << " and overwriting "
+                if (mfem::Mpi::WorldRank() == 0) { std::cout << "[AdjustDistanceFile] Scaling values by dh=" << std::setprecision(10) << cfg.dh << " and overwriting "
                           << distanceFile << " ...\n"; }
-                for (double &x : values) x *= Constants::dh;
+                for (double &x : values) x *= cfg.dh;
 
                 std::ofstream out(distanceFile, std::ios::trunc);
                 if (!out) {
@@ -760,7 +761,7 @@ std::unique_ptr<mfem::Mesh> Initialize_Geometry::CreateGlobalMeshFromTiffData(co
     // double sy = ny;  // make dy = 1 // size in y direction
     // double sz = nz;  // make dz = 1 // size in z direction
 
-    double scale = Constants::dh;
+    double scale = cfg.dh;
 
     double sx = nx * scale;  // make dx = 1 // size in x direction
     double sy = ny * scale;  // make dy = 1 // size in y direction
