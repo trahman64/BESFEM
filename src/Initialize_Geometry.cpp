@@ -185,9 +185,6 @@ void Initialize_Geometry::InitializeMesh(const char* meshFile, const char* dista
 
         MaskFilter    = std::make_unique<mfem::ParGridFunction>(parfespace.get());   // total solid
         MaskFilterPse = std::make_unique<mfem::ParGridFunction>(parfespace.get());   // electrolyte
-        // MaskFilter1   = std::make_unique<mfem::ParGridFunction>(parfespace.get());   // label 1
-        // MaskFilter2   = std::make_unique<mfem::ParGridFunction>(parfespace.get());   // label 2
-        // MaskFilter3   = std::make_unique<mfem::ParGridFunction>(parfespace.get());   // label 3
 
         // Keep your old total-solid and electrolyte filters
         ComputePDEFilter(*distMask, *MaskFilter,    /*mode=*/0);
@@ -228,48 +225,18 @@ void Initialize_Geometry::InitializeMesh(const char* meshFile, const char* dista
             // MaskFilters[k]->SaveAsOne(name.str().c_str());
         }
 
-        // // New label-specific filters
-        // ComputePDEFilterLabel(*distMask, *MaskFilter1, 1, false);
-        // ComputePDEFilterLabel(*distMask, *MaskFilter2, 2, false);
-        // ComputePDEFilterLabel(*distMask, *MaskFilter3, 3, false);
-
         if (mfem::Mpi::WorldRank() == 0) {
             std::cout << "ComputePDEFilter done.\n";
         }
 
         MaskFilter->SaveAsOne("MaskFilter.gf");
         MaskFilterPse->SaveAsOne("MaskFilter_pse.gf");
-        // MaskFilter1->SaveAsOne("MaskFilter1.gf");
-        // MaskFilter2->SaveAsOne("MaskFilter2.gf");
-        // MaskFilter3->SaveAsOne("MaskFilter3.gf");
 
         if (mfem::Mpi::WorldRank() == 0) {
             std::cout << "ComputePDEFilter done.\n";
         }
 
     }
-
-    // // distance for tiff files
-    // std::string meshFileStr(meshFile);
-    // if (meshFileStr.substr(meshFileStr.find_last_of(".") + 1) == "tif")
-    // {
-    //     distMask      = std::make_unique<mfem::ParGridFunction>(parfespace.get());
-    //     distMaskSigned= std::make_unique<mfem::ParGridFunction>(parfespace.get());
-    //     MaskFilter   = std::make_unique<mfem::ParGridFunction>(parfespace.get());
-    //     MaskFilterPse = std::make_unique<mfem::ParGridFunction>(parfespace.get());
-
-    //     const int solver_type = 0;
-    //     const double t_param = 1.0;
-
-    //     ComputePDEFilter(*distMask, *MaskFilter, /*mode=*/0); 
-    //     ComputePDEFilter(*distMask, *MaskFilterPse, /*mode=*/1);
-
-    //     if (mfem::Mpi::WorldRank() == 0) { std::cout << "ComputePDEFilter done.\n"; }
-
-    //     MaskFilter->SaveAsOne("MaskFilter.gf");
-    //     MaskFilterPse->SaveAsOne("MaskFilter_pse.gf");
-
-    // }
 
     // Print out information relative to the mesh
     PrintMeshInfo();
@@ -350,9 +317,6 @@ void Initialize_Geometry::AdjustDistanceFile(const char* distanceFile, const cha
         } else {
             auto [min_it, max_it] = std::minmax_element(values.begin(), values.end());
             double max_abs = std::max(std::abs(*min_it), std::abs(*max_it));
-
-            // std::cout << "[AdjustDistanceFile] Before: min=" << *min_it
-            //           << " max=" << *max_it << " max|v|=" << max_abs << "\n";
 
             if (strcmp(mesh_type, "ml") == 0 && max_abs > 1.0) {
                 // write backup with original data
@@ -443,11 +407,6 @@ void Initialize_Geometry::InitializeParallelMesh(MPI_Comm comm) {
     parallelMesh = std::make_shared<mfem::ParMesh>(comm, *globalMesh);
     parallelMesh->SaveAsOne("pmesh");
 
-
-
-    // std::cout << "Rank " << myid << " owns "
-    //           << parallelMesh->GetNE() << " elements, "
-    //           << parallelMesh->GetNV() << " vertices.\n";
 }
 
 // Function to set up the finite element space on global mesh
@@ -501,27 +460,6 @@ void Initialize_Geometry::AssignGlobalValues(const char* meshFile, const char* d
                 }
             }
         }
-
-        // if (mfem::Mpi::WorldRank() == 0)
-        // {
-        //     double min_vox = std::numeric_limits<double>::infinity();
-        //     double max_vox = -std::numeric_limits<double>::infinity();
-        //     std::set<int> labels;
-
-        //     for (int i = 0; i < gVox->Size(); i++)
-        //     {
-        //         double v = (*gVox)(i);
-        //         min_vox = std::min(min_vox, v);
-        //         max_vox = std::max(max_vox, v);
-        //         labels.insert((int)std::round(v));
-        //     }
-
-        //     std::cout << "[AssignGlobalValues] gVox min = " << min_vox
-        //             << ", max = " << max_vox << "\n";
-        //     std::cout << "[AssignGlobalValues] gVox labels: ";
-        //     for (int x : labels) std::cout << x << " ";
-        //     std::cout << std::endl;
-        // }
 
     if (mfem::Mpi::WorldRank() == 0) { // only print on rank 0
     cout << "Reading .dsF file for global distance function for tif case" << endl;
@@ -626,48 +564,6 @@ void Initialize_Geometry::MapGlobalToLocal(const char* meshFile) {
             }
         }
 
-        // {
-        //     double local_min =  std::numeric_limits<double>::infinity();
-        //     double local_max = -std::numeric_limits<double>::infinity();
-
-        //     int local_has_0 = 0, local_has_1 = 0, local_has_2 = 0, local_has_3 = 0;
-
-        //     for (int i = 0; i < Vox->Size(); i++)
-        //     {
-        //         const double v = (*Vox)(i);
-        //         local_min = std::min(local_min, v);
-        //         local_max = std::max(local_max, v);
-
-        //         const int label = (int)std::round(v);
-        //         if (label == 0) local_has_0 = 1;
-        //         if (label == 1) local_has_1 = 1;
-        //         if (label == 2) local_has_2 = 1;
-        //         if (label == 3) local_has_3 = 1;
-        //     }
-
-        //     double global_min = 0.0, global_max = 0.0;
-        //     MPI_Allreduce(&local_min, &global_min, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-        //     MPI_Allreduce(&local_max, &global_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-
-        //     int global_has_0 = 0, global_has_1 = 0, global_has_2 = 0, global_has_3 = 0;
-        //     MPI_Allreduce(&local_has_0, &global_has_0, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-        //     MPI_Allreduce(&local_has_1, &global_has_1, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-        //     MPI_Allreduce(&local_has_2, &global_has_2, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-        //     MPI_Allreduce(&local_has_3, &global_has_3, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-
-        //     if (mfem::Mpi::WorldRank() == 0)
-        //     {
-        //         std::cout << "[MapGlobalToLocal] Vox min = " << global_min
-        //                 << ", max = " << global_max << "\n";
-        //         std::cout << "[MapGlobalToLocal] Vox has labels:"
-        //                 << (global_has_0 ? " 0" : "")
-        //                 << (global_has_1 ? " 1" : "")
-        //                 << (global_has_2 ? " 2" : "")
-        //                 << (global_has_3 ? " 3" : "")
-        //                 << std::endl;
-        //     }
-        // }
-
     } else if (meshFileStr.substr(meshFileStr.find_last_of(".") + 1) == "mesh") {
         // Handle .mesh file
         if (mfem::Mpi::WorldRank() == 0) // only print on rank 0
@@ -724,28 +620,6 @@ std::vector<std::vector<std::vector<int>>> Initialize_Geometry::ReadTiffFile(con
 	std::vector<std::vector<std::vector<int>>> tiffData;
 	tiffData = reader.getImageData();
 
-    // if (mfem::Mpi::WorldRank() == 0)
-    // {
-    //     int min_label = std::numeric_limits<int>::max();
-    //     int max_label = std::numeric_limits<int>::lowest();
-    //     std::set<int> labels;
-
-    //     for (const auto &slice : tiffData)
-    //     for (const auto &row : slice)
-    //     for (int v : row)
-    //     {
-    //         min_label = std::min(min_label, v);
-    //         max_label = std::max(max_label, v);
-    //         labels.insert(v);
-    //     }
-
-    //     std::cout << "[ReadTiffFile] label min = " << min_label
-    //             << ", max = " << max_label << "\n";
-    //     std::cout << "[ReadTiffFile] labels found: ";
-    //     for (int x : labels) std::cout << x << " ";
-    //     std::cout << std::endl;
-    // }
-
     SaveTiffDataToPGM(tiffData, "tiff_debug.pgm");
 
     return tiffData;
@@ -756,10 +630,6 @@ std::unique_ptr<mfem::Mesh> Initialize_Geometry::CreateGlobalMeshFromTiffData(co
     int nz = tiffData.size(); // depth dimension
     int ny = tiffData[0].size(); // row dimension
     int nx = tiffData[0][0].size(); // column dimension
-    
-    // double sx = nx;  // make dx = 1 // size in x direction
-    // double sy = ny;  // make dy = 1 // size in y direction
-    // double sz = nz;  // make dz = 1 // size in z direction
 
     double scale = cfg.dh;
 
@@ -784,10 +654,6 @@ std::unique_ptr<mfem::Mesh> Initialize_Geometry::CreateGlobalMeshFromTiffData(co
     }
 
     return mesh;
-
-    // std::cout << "[CreateGlobalMeshFromTiffData] nx=" << nx
-    //       << " ny=" << ny << " nz=" << nz << "\n"
-    //       << " sx=" << sx << " sy=" << sy << " sz=" << sz << std::endl;
 
 }
 
@@ -890,24 +756,9 @@ void Initialize_Geometry::ComputePDEFilter(mfem::ParGridFunction &dist, mfem::Pa
     MFEM_VERIFY(dist.ParFESpace() == parfespace.get(), "dist must be on parfespace.");
     MFEM_VERIFY(filt_gf.ParFESpace() == parfespace.get(), "filt_gf must be on parfespace.");
     MFEM_VERIFY(parfespace_dg, "parfespace_dg is not initialized.");
-    // MFEM_VERIFY(parallelMesh->Dimension() == 2, "This 2D connectivity helper assumes a 2D TIFF slice.");
 
     double dx;
     dx = parallelMesh->GetElementSize(0); // assuming uniform mesh
-
-    // new psi method?? PDEFilter - Poisson smoothing field
-
-    // // // like doughnut and cheese (1 inside, -1 outside)
-    // mfem::ParGridFunction ls_coeff(parfespace.get());
-    // for (int i = 0; i < ls_coeff.Size(); i++)
-    // {
-    //     const double m = (*Vox)(i);            
-    // //     // ls_coeff(i) = (m > 0.5) ? 0.0 : +1.0; // define what is inside vs outside (other tif with black outline)
-    //     // ls_coeff(i) = (m > 0.5) ? +1.0 : 0.0; // define what is inside vs outside (microstructure tif) HEAT
-    //     ls_coeff(i) = (m > 0.5) ? +1.0 : -1.0; // define what is inside vs outside (microstructure tif) P LAP
-        
-
-    // }
 
     MFEM_VERIFY(parallelMesh->Dimension() == 2 || parallelMesh->Dimension() == 3,
             "ComputePDEFilter: mesh must be 2D or 3D.");

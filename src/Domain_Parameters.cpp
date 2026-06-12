@@ -430,66 +430,6 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
             }
         }
 
-
-        // // =====================================================
-        // //  Calculating AvP for TIF Voxel
-        // // =====================================================
-
-        // if (strcmp(mesh_type, "v") == 0)
-        // {
-        //     const int dim = pmesh->Dimension(); 
-        //     mfem::ParGridFunction dpsi(fespace.get());
-
-        //     (*AvP) = 0.0;
-        //     for (int d = 0; d < dim; d++)
-        //     {
-        //         dpsi = 0.0;
-        //         psi->GetDerivative(1, d, dpsi); 
-
-        //         // compound squares: AvP += (dpsi)^2
-        //         for (int vi = 0; vi < nV; vi++)
-        //         {
-        //             const double v = dpsi(vi);
-        //             (*AvP)(vi) += v * v;
-        //         }
-        //     }
-
-        //     // sqrt to get magnitude
-        //     for (int vi = 0; vi < nV; vi++)
-        //     {
-        //         (*AvP)(vi) = std::sqrt((*AvP)(vi));
-        //     }
-
-            
-        //     // AvE
-        //     mfem::ParGridFunction dpse(fespace.get());
-
-        //     (*AvE) = 0.0;
-        //     for (int d = 0; d < dim; d++)
-        //     {
-        //         dpse = 0.0;
-        //         pse->GetDerivative(1, d, dpse); 
-
-        //         // compound squares: AvE += (dpse)^2
-        //         for (int vi = 0; vi < nV; vi++)
-        //         {
-        //             const double v = dpse(vi);
-        //             (*AvE)(vi) += v * v;
-        //         }
-        //     }
-
-        //     // sqrt to get magnitude
-        //     for (int vi = 0; vi < nV; vi++)
-        //     {
-        //         (*AvE)(vi) = std::sqrt((*AvE)(vi));
-        //     }
-            
-        // }
-
-        // =====================================================
-        //  End of Calculating AvP
-        // =====================================================
-
         // ---- GLOBAL checks for psi -------------------------------------------
         double psi_min = 0.0, psi_max = 0.0;
         GlobalMinMax(*psi, psi_min, psi_max);
@@ -511,35 +451,6 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
             std::cerr << "[Psi Check] ERROR: psi_max not near 1." << std::endl;
             std::exit(EXIT_FAILURE);
         }
-
-        // // =====================================================
-        // //  Calculating AvB
-        // // =====================================================
-        
-        // AvB = std::make_unique<mfem::ParGridFunction>(*AvP);
-
-        // if (strcmp(mesh_type, "v") == 0) {
-
-        //     *AvB *= *AvE;
-
-        //     for (int vi = 0; vi < nV; vi++)
-        //     {
-        //         (*AvB)(vi) = std::sqrt((*AvB)(vi));
-        //     }
-
-        //     for (int vi = 0; vi < psi->Size(); vi++)
-        //     {
-        //         const double psi_v = (*psi)(vi);
-        //         const double pse_v = (*pse)(vi);
-
-        //         const bool in_overlap =
-        //             (psi_v > 0.05 && psi_v < 0.95) &&
-        //             (pse_v > 0.05 && pse_v < 0.95);
-
-        //         if (!in_overlap) { (*AvB)(vi) = 0.0; }
-        //     }
-
-        // }
 
     } else {
         // ------- FULL CELL -------

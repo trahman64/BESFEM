@@ -154,6 +154,11 @@ static void InitializeAnodeParticles(SimulationState& state, Initialize_Geometry
                 case sim::MaterialType::Graphite:
                     std::cout << "Graphite";
                     break;
+                
+                default:
+                {
+                    mfem::mfem_error("Unsupported anode material chosen. Anode materials supported at this time: graphite.");
+                }
             }
 
             std::cout << std::endl;
@@ -169,7 +174,7 @@ static void InitializeAnodeParticles(SimulationState& state, Initialize_Geometry
 
             default:
             {
-                mfem::mfem_error("Unsupported cathode material physics.");
+                mfem::mfem_error("Unsupported anode material physics.");
             }
         }
 
@@ -237,6 +242,11 @@ static void InitializeCathodeParticles(SimulationState& state, Initialize_Geomet
                 case sim::MaterialType::LFP:
                     std::cout << "LFP";
                     break;
+                
+                default:
+                {
+                    mfem::mfem_error("Unsupported cathode material chosen. Cathode materials supported at this time: NMC, LFP.");
+                }
             }
 
             std::cout << std::endl;
@@ -288,8 +298,6 @@ void InitializeFields(SimulationState& state, Initialize_Geometry& geometry, Dom
     state.CnP_together = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
     state.CnE_gf_psi   = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
 
-    // state.electrolyte_concentration = std::make_unique<CnE>(geometry, domain_parameters, bc, cfg.mode, sim::MaterialType::Graphite);
-    // state.CnE_gf = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
     state.electrolyte_concentration = std::make_unique<ElectrolyteDiffusion>(geometry, domain_parameters, bc, cfg.mode, sim::MaterialType::Electrolyte, cfg);
     state.CnE_gf = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
     state.electrolyte_concentration->SetupField(*state.CnE_gf, cfg.init_CnE, *domain_parameters.pse, domain_parameters.gtPse);
@@ -309,10 +317,6 @@ void InitializeFields(SimulationState& state, Initialize_Geometry& geometry, Dom
             const int np = static_cast<int>(domain_parameters.ps.size());
 
             state.CnA_gf_psi = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
-
-            // state.anode_concentration = std::make_unique<CnA>(geometry, domain_parameters, sim::MaterialType::Graphite);
-            // state.CnA_gf = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
-            // state.anode_concentration->SetupField(*state.CnA_gf, Constants::init_CnA, *domain_parameters.psi, domain_parameters.gtPsi);
 
             state.anode_potential = std::make_unique<ElectrodePotential>(geometry, domain_parameters, bc, sim::Electrode::ANODE, sim::MaterialType::Graphite, cfg);
             state.phA_gf = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
@@ -336,10 +340,6 @@ void InitializeFields(SimulationState& state, Initialize_Geometry& geometry, Dom
 
             state.CnC_gf_psi = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
 
-            // state.cathode_concentration = std::make_unique<CnC>(geometry, domain_parameters);
-            // state.CnC_gf = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
-            // state.cathode_concentration->SetupField(*state.CnC_gf, Constants::init_CnC, *domain_parameters.psi, domain_parameters.gtPsi);
-
             state.cathode_potential = std::make_unique<ElectrodePotential>(geometry, domain_parameters, bc, sim::Electrode::CATHODE, sim::MaterialType::NMC, cfg);
             state.phC_gf = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
             state.cathode_potential->SetupField(*state.phC_gf, cfg.init_BvC, *domain_parameters.psi);
@@ -361,17 +361,9 @@ void InitializeFields(SimulationState& state, Initialize_Geometry& geometry, Dom
         state.CnA_gf_psi = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
         state.CnC_gf_psi = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
 
-        // state.anode_concentration = std::make_unique<CnA>(geometry, domain_parameters, sim::MaterialType::Graphite);
-        // state.CnA_gf = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
-        // state.anode_concentration->SetupField(*state.CnA_gf, Constants::init_CnA, *domain_parameters.psA, domain_parameters.gtPsA);
-
         state.anode_potential = std::make_unique<ElectrodePotential>(geometry, domain_parameters, bc, sim::Electrode::ANODE, sim::MaterialType::Graphite, cfg);
         state.phA_gf = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
         state.anode_potential->SetupField(*state.phA_gf, cfg.init_BvA, *domain_parameters.psA);
-
-        // state.cathode_concentration = std::make_unique<CnC>(geometry, domain_parameters);
-        // state.CnC_gf = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());
-        // state.cathode_concentration->SetupField(*state.CnC_gf, Constants::init_CnC, *domain_parameters.psC, domain_parameters.gtPsC);
 
         state.cathode_potential = std::make_unique<ElectrodePotential>(geometry, domain_parameters, bc, sim::Electrode::CATHODE, sim::MaterialType::NMC, cfg);
         state.phC_gf = std::make_unique<mfem::ParGridFunction>(geometry.parfespace.get());

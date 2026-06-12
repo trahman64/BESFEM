@@ -29,8 +29,6 @@ ElectrolytePotential::ElectrolytePotential(Initialize_Geometry &geo, Domain_Para
     RpE = mfem::ParGridFunction(fespace.get()); // Initialize reaction rate field
     Dmp = mfem::ParGridFunction(fespace.get()); // Initialize diffusivity field
 
-    // Bl2 = std::make_unique<mfem::ParLinearForm>(fespace.get());
-
     kpl = mfem::ParGridFunction(fespace.get()); // Initialize conductivity field
     cKe = mfem::GridFunctionCoefficient(&kpl); // Coefficient for conductivity field
     cRe = mfem::GridFunctionCoefficient(&RpE);
@@ -227,55 +225,3 @@ void ElectrolytePotential::ElectrolyteConductivity(mfem::ParGridFunction &Cn, mf
         kpl(vi) = psx(vi) * tc2 * Constants::D0 * dffe * Cn(vi);
     }
 }
-
-
-
-// void ElectrolytePotential::AssembleSystem(mfem::ParGridFunction &Cn, mfem::ParGridFunction &psx, mfem::ParGridFunction &potential, mfem::HypreParVector &CeVn)
-// {
-//     myid = mfem::Mpi::WorldRank();
-
-
-//     // ElectrolyteConductivity(Cn, psx); // Update conductivity and diffusivity
-
-//     for (int vi = 0; vi < nV; vi++){
-//         dffe = exp(-7.02 - 830 * Cn(vi) + 50000 * Cn(vi) * Cn(vi)); // Compute diffusivity factor
-//         Dmp(vi) = psx(vi) * tc1 * Constants::D0 * dffe;
-//         kpl(vi) = psx(vi) * tc2 * Constants::D0 * dffe * Cn(vi);
-//     }
-
-//     // fem.Update(Kl1); // Update the diffusivity matrix
-//     cDm.SetGridFunction(&Dmp);
-//     Kl1->Update();
-//     Kl1->Assemble();
-//     fem.FormLinearSystem(Kl1, boundary_dofs, potential, B1t, Kdm, X1v, B1v); // Assemble the diffusivity matrix system
-
-//     // std::cout << "boundary_dofs size: " << boundary_dofs.Size() << " on rank " << myid << std::endl;
-
-//     Cn.GetTrueDofs(CeVn); // Get the true degrees of freedom for concentration
-//     Kdm.Mult(CeVn, LpCe); 
-
-
-//     // fem.Update(Kl2); // Update the conductivity matrix
-//     cKe.SetGridFunction(&kpl);
-//     Kl2->Update();
-//     Kl2->Assemble();
-
-//     // if (mfem::Mpi::WorldRank() == geometry.rkpp) {
-//     //     // std::cout << "pinning on rank: " << mfem::Mpi::WorldRank() << std::endl;
-//     //     potential(ess_tdof_potE[0]) = BvE;
-//     // }
-
-//     // mfem::ConstantCoefficient dbc_potE_Coef(BvE); // Coefficient for Dirichlet boundary conditions HALF
-//     // potential.ProjectBdrCoefficient(dbc_potE_Coef, dbc_bdr); // Apply Dirichlet boundary conditions HALF
-//     // fem.FormLinearSystem(Kl2, ess_tdof_list_potE, potential, B1t, Kml, X1v, B1v); // Assemble the conductivity matrix system HALF
-
-//     fem.FormLinearSystem(Kl2, ess_tdof_potE, potential, Flt, Kml, X1v, Flb); // Assemble the conductivity matrix system FULL
-
-
-//     Mpe->SetOperator(Kml); // Set the operator for the preconditioner
-//     cgPE_solver.SetPreconditioner(*Mpe);
-//     cgPE_solver.SetOperator(Kml); // Set the operator for the solver
-
-// }
-
-

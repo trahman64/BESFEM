@@ -40,20 +40,10 @@ void ElectrodeDiffusion::UpdateConcentration(mfem::ParGridFunction &Rx, mfem::Pa
                         double gtPsx, mfem::ParGridFunction &weight_elec, const std::vector<ConcentrationBase::PairCoupling> &pair_terms)
 
 {
-
-    // if (!combine_particle_groups){
-    //     utils.InitializeReaction(Rx, Rxn, (1.0/Constants::rho_C)); 
-    //     // std::cout << "Not combining particle groups: using raw reaction field." << std::endl;
-    // } else {
-    //     utils.InitializeReaction(Rx, Rxn, (1.0/Constants::rho_C)); // TODO: fix rho for material
-    //     // std::cout << "Treating all particles as a single group: normalizing reaction by rho_C." << std::endl;
-    // }
-
     const double rho = MaterialProperties::SiteDensity(material);
     utils.InitializeReaction(Rx, Rxn, (1.0/rho));
 
     if (!combine_particle_groups){
-        // std::cout << "Different particle groups, need to compute pair fluxes." << std::endl;
         Rxn *= weight_elec;
         for (const auto &pair : pair_terms)
         {
@@ -61,14 +51,6 @@ void ElectrodeDiffusion::UpdateConcentration(mfem::ParGridFunction &Rx, mfem::Pa
             Rxn += *pair.sum_part;
         }
     }
-
-    // Rxn *= weight_elec;
-
-    // for (const auto &pair : pair_terms)
-    // {
-    //     utils.ComputePairFlux(*pair.sum_part, *pair.weight, *pair.grad_psi, *pair.mu_self, *pair.mu_nbr);
-    //     Rxn += *pair.sum_part;
-    // }
 
     cAp.SetGridFunction(&Rxn);
 

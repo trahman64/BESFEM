@@ -3,7 +3,7 @@
 # ============================================================
 
 mode = half
-electrode = cathode
+electrode = anode
 
 # ============================================================
 # GEOMETRY
@@ -13,7 +13,6 @@ mesh_file = ../inputs/colored_labels_labels.tif
 mesh_type = v
 
 cathode_distance = ../inputs/dummy.gf
-anode_distance = ../inputs/dummy.gf
 
 combine_particles = false
 
@@ -40,14 +39,14 @@ VCut = 0.0
 # ============================================================
 
 cathode_materials = LFP,LFP,LFP
-anode_materials = Graphite,Graphite,Graphite
+anode_materials = graphite, graphite, NMC
 
 # ============================================================
 # INITIAL PARTICLE STOICHIOMETRIES
 # ============================================================
 
 init_cathode_particles = 0.06,0.06,0.06
-init_anode_particles = 0.02,0.02,0.02
+init_anode_particles = 0.3, 0.3, 0.3
 
 # ============================================================
 # INITIAL ELECTROLYTE

@@ -44,17 +44,8 @@ void ElectrodeCahnHilliard::SetupField(mfem::ParGridFunction &Cn, double initial
 
 void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem::ParGridFunction &Cn, mfem::ParGridFunction &psx,
                             double gtPsx, mfem::ParGridFunction &weight_elec, const std::vector<ConcentrationBase::PairCoupling> &pair_terms)
-{   
+{  
     
-    
-    // if (!combine_particle_groups){
-    //     utils.InitializeReaction(Rx, RxA, (1.0)); 
-    // } else {
-    //     utils.InitializeReaction(Rx, RxA, (1.0/Constants::rho_A)); 
-    // }
-    
-    // std::cout << "Min Weight: " << weight_elec.Min() << ", Max Weight: " << weight_elec.Max() << std::endl;
-
     const double rho = MaterialProperties::SiteDensity(material);
     utils.InitializeReaction(Rx, RxA, (1.0/rho)); 
 

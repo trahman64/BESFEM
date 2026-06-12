@@ -118,8 +118,7 @@ static sim::MaterialType ParseMaterial(const std::string& name)
     if (name == "LFP" || name == "lfp")
         return sim::MaterialType::LFP;
 
-    mfem::mfem_error(("Invalid material: " + name +
-                      ". Use Graphite, NMC, or LFP.").c_str());
+    mfem::mfem_error(("Invalid material: " + name + ". Use Graphite, NMC, or LFP.").c_str());
 
     return sim::MaterialType::Electrolyte;
 }
@@ -362,17 +361,41 @@ void ValidateConfig(const SimulationConfig &cfg, int argc, char *argv[])
     if (cfg.num_timesteps <= 0)
         mfem::mfem_error("num_steps must be positive.");
 
-    if (cfg.cathode_materials.empty())
-        mfem::mfem_error("cathode_materials cannot be empty.");
+    if (cfg.mode == sim::CellMode::FULL)
+    {
+        if (cfg.cathode_materials.empty())
+            mfem::mfem_error("cathode_materials cannot be empty, please list these in your config file.");
 
-    if (cfg.anode_materials.empty())
-        mfem::mfem_error("anode_materials cannot be empty.");
+        if (cfg.anode_materials.empty())
+            mfem::mfem_error("anode_materials cannot be empty, please list these in your config file.");
 
-    if (cfg.init_cathode_particles.empty())
-        mfem::mfem_error("init_cathode_particles cannot be empty.");
+        if (cfg.init_cathode_particles.empty())
+            mfem::mfem_error("init_cathode_particles cannot be empty, please list these in your config file.");
 
-    if (cfg.init_anode_particles.empty())
-        mfem::mfem_error("init_anode_particles cannot be empty.");
+        if (cfg.init_anode_particles.empty())
+            mfem::mfem_error("init_anode_particles cannot be empty, please list these in your config file.");
+    }
+    else 
+    {
+        const bool cathode = cfg.half_electrode == sim::Electrode::CATHODE;
+
+        if (cathode)
+        {
+            if (cfg.cathode_materials.empty())
+                mfem::mfem_error("cathode_materials cannot be empty, please list these in your config file.");
+
+            if (cfg.init_cathode_particles.empty())
+                mfem::mfem_error("init_cathode_particles cannot be empty, please list these in your config file.");
+        }
+        if (!cathode)
+        {
+            if (cfg.anode_materials.empty())
+                mfem::mfem_error("anode_materials cannot be empty, please list these in your config file.");
+            
+            if (cfg.init_anode_particles.empty())
+                mfem::mfem_error("init_anode_particles cannot be empty, please list these in your config file.");
+        }
+    }
 
     if (cfg.cathode_materials.size() != cfg.init_cathode_particles.size())
     {
@@ -397,16 +420,15 @@ void PrintAvailableSimulationOptions()
     std::cout << "    -cfg ../inputs/run_config.txt\n\n";
 
     std::cout << "  Cell modes:\n";
-    std::cout << "    half\n";
-    std::cout << "    full\n\n";
+    std::cout << "    half\n\n";
 
     std::cout << "  Half-cell electrodes:\n";
     std::cout << "    anode\n";
     std::cout << "    cathode\n\n";
 
     std::cout << "  Materials:\n";
-    std::cout << "    Cathode: NMC, LFP\n";
-    std::cout << "    Anode:   Graphite\n\n";
+    std::cout << "    cathode_materials: NMC, LFP\n";
+    std::cout << "    anode_materials:   Graphite\n\n";
 
     std::cout << "  Mixed cathode example:\n";
     std::cout << "    cathode_materials = LFP,LFP,NMC\n\n";
@@ -430,6 +452,13 @@ void PrintAvailableSimulationOptions()
     std::cout << "    init_BvA = -0.01\n";
     std::cout << "    init_BvC = 3.30\n";
     std::cout << "    init_BvE = -0.10\n\n";
+
+    std::cout << " Simulation Parameters:\n";
+    std::cout << "    timestep size dt = 0.001\n";
+    std::cout << "    element size dh = 2.0e-6\n";
+    std::cout << "    Charge Rate Cr = 1.0\n";
+    std::cout << "    Voltage Scanning Rate Vsr0 = 0.009\n";
+    std::cout << "    Cahn Hilliard Gradient Coef gc = 1.014e-9\n\n";
 
     std::cout << "  Example command:\n";
     std::cout << "    mpirun -np 4 ./battery_simulation -cfg ../inputs/run_config.txt\n\n";
