@@ -113,8 +113,8 @@ namespace MaterialProperties
             loaded = true;
         }
 
-        // double val = ((-1 * GetTableValues(c, Ticks, chmPot)) + 3.4) * -Constants::Frd;
-        double val = GetTableValues(c, Ticks, chmPot);
+        double val = ((-1 * GetTableValues(c, Ticks, chmPot)) + 3.4) * -Constants::Frd;
+        // double val = GetTableValues(c, Ticks, chmPot);
         // std::cout << "LFP_mu at c = " << c << " is " << val << std::endl;
         return val;
         

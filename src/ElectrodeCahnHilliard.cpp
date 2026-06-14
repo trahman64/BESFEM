@@ -72,6 +72,14 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
 
         double mu = MaterialProperties::ChemicalPotential(material, val);
 
+        if (std::abs(mu) > 1.0e4)
+        {
+            mu = ((mu / (-1*Constants::Frd)) - 3.4) * -1;
+        }
+
+        Mub(i) = mu;
+
+
         Mub(i) = mu;
         Mob(i) = psx(i) * MaterialProperties::Mobility(material, val);
     }
