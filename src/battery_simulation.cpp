@@ -436,7 +436,7 @@ int main(int argc, char *argv[]) {
                     }
 
                     Utils::SaveSimulationSnapshotMulti(t, outdir, geometry, domain_parameters,
-                        cathode_cn_fields, state.cathode_out, 5000);
+                        cathode_cn_fields, state.cathode_out, 500);
                 }
             }
 

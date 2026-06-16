@@ -184,10 +184,13 @@ void Utils::SaveSimulationSnapshotMulti(int t, const std::string &outdir, Initia
         step << "_" << std::setw(5) << std::setfill('0') << t;
         const std::string suff = step.str();
 
-        // geometry.parallelMesh->SaveAsOne((outdir + "/pmesh" + suff).c_str());
-        // domain_parameters.psi->SaveAsOne((outdir + "/psi" + suff).c_str());
-        // domain_parameters.pse->SaveAsOne((outdir + "/pse" + suff).c_str());
-
+        if (t == 0)
+        {
+            geometry.parallelMesh->SaveAsOne((outdir + "/pmesh").c_str());
+            domain_parameters.psi->SaveAsOne((outdir + "/psi").c_str());
+            domain_parameters.pse->SaveAsOne((outdir + "/pse").c_str());
+        }
+        
         // Save each particle concentration and masked version
         for (int k = 0; k < np; ++k)
         {
