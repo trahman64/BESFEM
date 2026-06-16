@@ -2,24 +2,20 @@
 
 JOSS reviews are checklist-driven. That is, there is a checklist for each JOSS reviewer to work through when completing their review. A JOSS review is generally considered incomplete until the reviewer has checked off all of their checkboxes.
 
-## Conflict of interest
-
-- [ ] I confirm that I have read the [JOSS conflict of interest policy](reviewer_guidelines.md#joss-conflict-of-interest-policy) and that: I have no COIs with reviewing this work or that any perceived COIs have been waived by JOSS for the purpose of this review.
-
 ## Code of Conduct
 
 - [ ] I confirm that I read and will adhere to the [JOSS code of conduct](https://joss.theoj.org/about#code_of_conduct).
 
 ## General checks
 
-- [ ] **Repository:** Is the source code for this software available at the <a target="_blank" href="https://github.com/DistrictDataLabs/yellowbrick">repository url</a>?
-- [ ] **License:** Does the repository contain a plain-text LICENSE file with the contents of an [OSI approved](https://opensource.org/licenses/alphabetical) software license?
-- [ ] **Contribution and authorship:** Has the submitting author made major contributions to the software? Does the full list of paper authors seem appropriate and complete?
-- [ ] **Scope and significance:** Does this submission demonstrate clear research impact or credible scholarly significance as described in the [JOSS guidelines](https://joss.readthedocs.io/en/latest/submitting.html)?
+- [x] **Repository:** Is the source code for this software available at the <a target="_blank" href="[https://github.com/HCY-Group/BESFEM](https://github.com/HCY-Group/BESFEM)">repository url</a>?
+- [x] **License:** Does the repository contain a plain-text LICENSE file with the contents of an [OSI approved](https://opensource.org/licenses/alphabetical) software license?
+- [x] **Contribution and authorship:** Has the submitting author made major contributions to the software? Does the full list of paper authors seem appropriate and complete?
+- [x] **Scope and significance:** Does this submission demonstrate clear research impact or credible scholarly significance as described in the [JOSS guidelines](https://joss.readthedocs.io/en/latest/submitting.html)?
 
 ## Development history and open-source practice
 
-- [ ] **Development timeline:** Does the project show evidence of sustained development over time (preferably months or years) rather than rapid, recent code generation?
+- [x] **Development timeline:** Does the project show evidence of sustained development over time (preferably months or years) rather than rapid, recent code generation?
 - [ ] **Open development:** Was the software developed openly from early stages? For projects with recent public repositories, is there at least six months of public development history with evidence of releases, public issues/pull requests, and ideally external engagement?
 - [ ] **Collaborative effort:** Does the project show evidence of community engagement such as contributions from multiple developers, issues/discussions from external users, or community influence on the development described in the paper?
 - [ ] **Good practices:** Does the project follow good open-source practices (license, documentation, tests and/or verification processes, releases, and clear contribution/support pathways)?
