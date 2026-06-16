@@ -14,7 +14,7 @@ mesh_type = v
 
 cathode_distance = ../inputs/dummy.gf
 
-combine_particles = false
+combine_particles = true
 
 # ============================================================
 # NUMERICAL PARAMETERS
@@ -31,7 +31,7 @@ gc = 3.38e-10
 # ============================================================
 
 Cr = 1.0
-Vsr0 = 2.0
+Vsr0 = 0.009466
 VCut = 0.0
 
 # ============================================================
@@ -45,7 +45,7 @@ anode_materials = graphite, graphite, graphite
 # INITIAL PARTICLE STOICHIOMETRIES
 # ============================================================
 
-init_cathode_particles = 0.20,0.40,0.40
+init_cathode_particles = 0.40,0.40,0.40
 init_anode_particles = 0.3, 0.3, 0.3
 
 # ============================================================

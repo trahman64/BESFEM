@@ -215,8 +215,6 @@ int main(int argc, char *argv[]) {
 
                     if (t % 100 == 0 && mfem::Mpi::WorldRank() == 0)
                     {
-                        std::ofstream outfile("anode_currents_mp.txt", std::ios::app);
-
                         std::cout << "timestep: " << t << ", VCell = " << VCell << ", TotalCurrent = " << total_current << ", TotalTarget = " << total_target;
 
                         for (int j = 0; j < np; ++j)
@@ -229,8 +227,6 @@ int main(int argc, char *argv[]) {
 
                     if (t % 100 == 0 && mfem::Mpi::WorldRank() == 0)
                     {
-                        std::ofstream outfile("anode_concentrations.txt", std::ios::app);
-
                         double XfrC_avg = 0.0;
                         double total_weight = 0.0;
 
@@ -274,8 +270,6 @@ int main(int argc, char *argv[]) {
 
                     UpdateCathodePairChemicalPotentials(state, geometry, domain_parameters);
 
-                    // std::cout << "Max Rxn_gf before update: " << state.Rxn_gf->Max() << std::endl;
-
                     *state.Rxn_gf = 0.0;
                     for (int j = 0; j < np; ++j)
                     {
@@ -284,8 +278,6 @@ int main(int argc, char *argv[]) {
                         
                         std::vector<ConcentrationBase::PairCoupling> pair_terms;
                         Pairs(state, geometry, domain_parameters, j, pair_terms, np, t);
-
-                        // std::cout << "Max Rxn_gf after adding particle " << j << " contribution: " << state.Rxn_gf->Max() << std::endl;
                         
                         state.cathode_particles[j].concentration->UpdateConcentration(*state.cathode_particles[j].Rx_src, *state.cathode_particles[j].Cn_gf,
                             *domain_parameters.ps[j], domain_parameters.gtPs[j], *domain_parameters.WeightEs[j], pair_terms);
@@ -346,8 +338,6 @@ int main(int argc, char *argv[]) {
 
                         }
 
-                        state.Rxn_gf->SaveAsOne("Rxn_gf_final.gf");
-
                         if (iter == max_iter && mfem::Mpi::WorldRank() == 0) {
                             std::cout << "Warning: Maximum iterations reached at timestep " << t << " with Global Error P = " << globalerror_P << ", Global Error E = " << globalerror_E << std::endl;
                         }
@@ -376,8 +366,6 @@ int main(int argc, char *argv[]) {
 
                     if (t % 100 == 0 && mfem::Mpi::WorldRank() == 0)
                     {
-                        std::ofstream outfile("cathode_currents_mp.txt", std::ios::app);
-
                         std::cout << "timestep: " << t << ", VCell = " << VCell << ", TotalCurrent = " << total_current << ", TotalTarget = " << total_target;
 
                         for (int j = 0; j < np; ++j)
@@ -390,8 +378,6 @@ int main(int argc, char *argv[]) {
 
                     if (t % 100 == 0 && mfem::Mpi::WorldRank() == 0)
                     {
-                        std::ofstream outfile("cathode_concentrations.txt", std::ios::app);
-
                         double XfrC_avg = 0.0;
                         double total_weight = 0.0;
 

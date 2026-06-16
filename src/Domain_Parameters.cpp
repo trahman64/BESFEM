@@ -614,8 +614,6 @@ void Domain_Parameters::CalculateTargetCurrent(double total_psi, double &global_
 
     double rho = MaterialProperties::SiteDensity(material);
 
-    std::cout << "value of rho: " << rho << std::endl;
-
     // Compute target current based on total Psi, rho, Cr, and constants
     trgI = total_psi * rho * (0.95 - 0.3) / (3600.0 / cfg.Cr); // bounds of cathode 
 
