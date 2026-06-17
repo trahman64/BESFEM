@@ -69,10 +69,85 @@ int main(int argc, char *argv[]) {
             geometry.InitializeMesh(cfg.mesh_file, cfg.dsF_file_A, cfg.dsF_file_C, cfg.mesh_type, MPI_COMM_WORLD, cfg.order);
         }
 
+
         // Initialize and Calculate Domain Parameters
         Domain_Parameters domain_parameters(geometry, cfg);
         domain_parameters.SetupDomainParameters(cfg.mesh_type);
 
+
+
+	// TRYING PDEFILTER WITH AMR
+	/*
+	//run filter to smooth domain parameter
+	double dx = geometry.parallelMesh->GetElementSize(0);
+	double filter_weight = 3 * dx;
+	mfem::common::PDEFilter filter(*geometry.parallelMesh, filter_weight);
+	mfem::ParGridFunction filt_dsF(&*geometry.parfespace);
+	filter.Filter(*geometry.dsF, filt_dsF);
+	*/
+	//calculate gradient of smoothed parameter to use for refinement
+	mfem::ParGridFunction test_gf(*domain_parameters.psi);
+	int dim = geometry.parallelMesh->Dimension();	
+	mfem::ParGridFunction dphase(&*geometry.parfespace);
+	mfem::ParGridFunction GradMag(&*geometry.parfespace);
+	GradMag = 0.0;
+	for (int d = 0; d < dim; ++d)
+	{
+		dphase = 0.0;
+		test_gf.GetDerivative(1,d,dphase);
+		dphase *= dphase;  //square dphase
+		GradMag += dphase;
+	}
+	
+	//output results to test
+	geometry.parallelMesh->SaveAsOne("test_pmesh.mesh");
+	GradMag.SaveAsOne("test_GradMag.gf");
+	//domain_parameters.psi->SaveAsOne("test_psi.gf");
+	test_gf.SaveAsOne("test_psi.gf");
+	
+	//refine grid
+	mfem::Array<int> refinement_list;
+	for (int i = 0; i < geometry.parallelMesh->GetNE(); i++)
+	{
+		mfem::Array<double> nvals;
+		GradMag.GetNodalValues(i,nvals);
+		//nvals.Print();
+		double ave_val = 0.0;
+		for (int j = 0; j < nvals.Size(); j++)
+		{
+			ave_val += nvals[j];
+		}
+		ave_val /= 4;
+		
+		if (ave_val > 1.0)
+		{
+			refinement_list.Append(i);
+		}
+	}
+	geometry.parallelMesh->GeneralRefinement(refinement_list);
+	
+	// update fespace and gridfunction
+	geometry.parfespace->Update();
+	const mfem::Operator *T = geometry.parfespace->GetUpdateOperator();
+	mfem::ParGridFunction GradMag_fine(&*geometry.parfespace);
+	mfem::ParGridFunction test_gf_fine(&*geometry.parfespace);
+	T->Mult(GradMag, GradMag_fine);
+	T->Mult(test_gf, test_gf_fine);
+	
+	//output results to test
+	geometry.parallelMesh->SaveAsOne("test_pmesh_fine.mesh");
+	GradMag_fine.SaveAsOne("test_GradMag_fine.gf");
+	//domain_parameters.psi->SaveAsOne("test_psi.gf");
+	test_gf_fine.SaveAsOne("test_psi_fine.gf");
+
+
+
+
+
+
+
+
+/*
         // Initialize Boundary Conditions 
         BoundaryConditions bc(geometry, domain_parameters);
         if (cfg.mode == sim::CellMode::HALF) {
@@ -449,7 +524,7 @@ int main(int argc, char *argv[]) {
         
 
 
-        }
+        } */
     }
     
     if (mfem::Mpi::WorldRank() == 0) { std::cout << "Simulation complete.\n"; }
