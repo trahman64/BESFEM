@@ -127,6 +127,7 @@ int main(int argc, char *argv[]) {
 	geometry.parallelMesh->GeneralRefinement(refinement_list);
 	
 	// update fespace and gridfunction
+	// (these line of code were constructed with the aid of Google Gemini AI)
 	geometry.parfespace->Update();
 	const mfem::Operator *T = geometry.parfespace->GetUpdateOperator();
 	mfem::ParGridFunction GradMag_fine(&*geometry.parfespace);
