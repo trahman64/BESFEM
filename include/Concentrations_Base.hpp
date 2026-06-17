@@ -11,88 +11,124 @@
 
 /**
  * @class ConcentrationBase
- * @brief Abstract base class for all concentration solvers in BESFEM.
+ * @brief Abstract base class for BESFEM concentration solvers.
  *
- * Provides the common interface and shared data structures used by all
- * concentration-update modules:
- * - **CnA**  (Cahn–Hilliard solid anode)
- * - **CnC**  (diffusion-based cathode)
- * - **CnE**  (electrolyte diffusion + reaction coupling)
+ * ConcentrationBase defines the shared interface and storage used by all
+ * concentration-update modules, including solid-particle concentration and
+ * electrolyte concentration solvers.
  *
  * Derived classes must implement:
- * - SetupField()  → initialize concentration & assemble matrices  
- * - UpdateConcentration() → advance concentration per timestep  
+ * - SetupField()
+ * - UpdateConcentration()
  *
- * ## Responsibilities of ConcentrationBase
- * - Store mesh, geometry, element volumes, and FE-space references  
- * - Track global lithiation/salt fractions (Xfr, CeC, gCeC, CeAvg)  
- * - Provide workspace buffers for per-element averaging, masks, and scratch vectors  
- * - Serve as a shared foundation for MFEM/Hypre-based concentration solvers  
+ * This class stores common mesh data, finite element spaces, element volumes,
+ * diagnostic quantities, and temporary MFEM workspaces used during
+ * concentration updates.
  */
 class ConcentrationBase {
 protected:
-
+    /// Material type associated with this concentration solver.
     sim::MaterialType material;
 
 public:
-
     /**
-     * @brief Construct the base concentration handler.
+     * @brief Construct the base concentration solver.
      *
-     * Stores references to geometry and domain parameters, allocates shared
-     * buffers (element averages, vertex buffer), and initializes FE data.
+     * Stores references to geometry, domain parameters, and configuration data.
+     * Also initializes shared mesh and finite-element-space data used by derived
+     * concentration solvers.
      *
-     * @param geo  Geometry handler (mesh, FE space).
-     * @param para Domain parameters (material constants, element volumes, etc.).
-     * @param mat  Material type for this concentration handler.
-     * @param bc   Boundary conditions.
+     * @param geo Geometry handler containing mesh and FE-space information.
+     * @param para Domain parameters containing fields, volumes, and totals.
+     * @param mat Material type associated with this solver.
+     * @param cfg Simulation configuration settings.
      */
-    ConcentrationBase(Initialize_Geometry &geo, Domain_Parameters &para, sim::MaterialType mat, const SimulationConfig &cfg);
+    ConcentrationBase(Initialize_Geometry &geo,
+                      Domain_Parameters &para,
+                      sim::MaterialType mat,
+                      const SimulationConfig &cfg);
 
-    /// Virtual destructor.
+    /// Virtual destructor for safe cleanup through base-class pointers.
     virtual ~ConcentrationBase() = default;
 
     /**
-     * @brief Initialize the concentration field and assemble operator components.
+     * @brief Initialize a concentration field and assemble model-specific data.
      *
-     * Derived classes must implement model-specific assembly:
-     * - mass/stiffness matrices
-     * - reaction/mobility/diffusivity fields
-     * - initial condition masking
+     * Derived classes use this function to initialize the concentration field,
+     * apply phase-field masks, and assemble any operators or coefficients needed
+     * for the concentration update.
      *
-     * @param Cn            Concentration field to initialize.
-     * @param initial_value Scalar initial value for `Cn`.
-     * @param psx           Phase-field ψ used for region masking.
-     * @param gtPsx         Global normalization of ψ (used for boundary conditions).
+     * @param Cn Concentration field to initialize.
+     * @param initial_value Scalar initial concentration value.
+     * @param psx Phase-field mask associated with this concentration field.
+     * @param gtPsx Global normalization/integral of `psx`.
      */
-    virtual void SetupField(mfem::ParGridFunction &Cn, double initial_value, mfem::ParGridFunction &psx, double gtPsx) = 0;
-
-    struct PairCoupling
-    {
-        mfem::ParGridFunction *sum_part = nullptr;   // workspace/output
-        mfem::ParGridFunction *weight   = nullptr;   // pair weight
-        mfem::ParGridFunction *grad_psi = nullptr;   // pair interface field
-        mfem::ParGridFunction *mu_self  = nullptr;   // this particle's mu on this pair
-        mfem::ParGridFunction *mu_nbr   = nullptr;   // neighbor particle's mu on this pair
-    };
-
-    virtual void UpdateConcentration(mfem::ParGridFunction &Rx, mfem::ParGridFunction &Cn,
-                                     mfem::ParGridFunction &psx, double gtPsx, mfem::ParGridFunction &weight_elec,
-                                     const std::vector<PairCoupling> &pair_terms) = 0;
-
-    
-    virtual void SaltConservation(mfem::ParGridFunction &Cn,
-        mfem::ParGridFunction &psx)
-    {}
-
+    virtual void SetupField(mfem::ParGridFunction &Cn,
+                            double initial_value,
+                            mfem::ParGridFunction &psx,
+                            double gtPsx) = 0;
 
     /**
-     * @brief Return the current degree of lithiation or salt fraction.
+     * @struct PairCoupling
+     * @brief Workspace fields used for pairwise particle coupling.
      *
-     * The value depends on the solver:
-     * - CnA → anode lithium fraction  
-     * - CnC → cathode lithium fraction  
-     * - CnE → electrolyte salt inventory  
+     * PairCoupling stores temporary fields needed when concentration updates
+     * depend on interactions between neighboring particles, such as interfacial
+     * coupling or chemical-potential exchange terms.
+     */
+    struct PairCoupling
+    {
+        mfem::ParGridFunction *sum_part = nullptr; ///< Accumulated pair contribution.
+        mfem::ParGridFunction *weight   = nullptr; ///< Pair coupling weight field.
+        mfem::ParGridFunction *grad_psi = nullptr; ///< Interface/gradient field between particles.
+        mfem::ParGridFunction *mu_self  = nullptr; ///< Chemical potential of the current particle.
+        mfem::ParGridFunction *mu_nbr   = nullptr; ///< Chemical potential of the neighboring particle.
+    };
+
+    /**
+     * @brief Advance the concentration field by one timestep.
+     *
+     * Derived classes implement the model-specific concentration update,
+     * including reaction terms, diffusion or Cahn--Hilliard terms, masking, and
+     * optional pairwise particle coupling.
+     *
+     * @param Rx Reaction/source term field.
+     * @param Cn Concentration field to update.
+     * @param psx Phase-field mask for the active region.
+     * @param gtPsx Global normalization/integral of `psx`.
+     * @param weight_elec Electrolyte/solid interface weighting field.
+     * @param pair_terms Optional pairwise coupling workspaces.
+     */
+    virtual void UpdateConcentration(
+        mfem::ParGridFunction &Rx,
+        mfem::ParGridFunction &Cn,
+        mfem::ParGridFunction &psx,
+        double gtPsx,
+        mfem::ParGridFunction &weight_elec,
+        const std::vector<PairCoupling> &pair_terms) = 0;
+
+    /**
+     * @brief Apply salt or concentration conservation correction.
+     *
+     * The default implementation does nothing. Derived classes may override
+     * this function when a conservation correction is needed after the
+     * concentration update.
+     *
+     * @param Cn Concentration field to correct.
+     * @param psx Phase-field mask defining the active region.
+     */
+    virtual void SaltConservation(mfem::ParGridFunction &Cn,
+                                  mfem::ParGridFunction &psx)
+    {}
+
+    /**
+     * @brief Return the current global lithiation or concentration fraction.
+     *
+     * The interpretation depends on the derived solver. For solid electrodes,
+     * this is typically the average lithiation. For electrolyte solvers, it may
+     * represent the normalized salt inventory.
+     *
+     * @return Global lithiation or concentration fraction.
      */
     double GetLithiation() const { return Xfr; }
 
@@ -131,12 +167,22 @@ public:
     mfem::Array<int> boundary_dofs; ///< Boundary true DOFs.
     mfem::HypreParVector X1v;       ///< Scratch vector for assembly/solves.
 
+    /// Reference to geometry data, including mesh and FE-space information.
     Initialize_Geometry &geometry;
-    Domain_Parameters   &domain_parameters;
-    const SimulationConfig& cfg;
-    // BoundaryConditions  &boundary_conditions;
+
+    /// Reference to global simulation fields and domain parameters.
+    Domain_Parameters &domain_parameters;
+
+    /// Reference to user-defined simulation settings.
+    const SimulationConfig &cfg;
+
+    /// Shared parallel finite element space.
     std::shared_ptr<mfem::ParFiniteElementSpace> fespace;
+
+    /// Shared finite element helper operators.
     FEMOperators fem;
+
+    /// Utility helper object for common postprocessing and calculations.
     Utils utils;
 
     mfem::ParMesh *pmesh = nullptr; ///< Parallel mesh (distributed).
