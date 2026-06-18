@@ -9,6 +9,11 @@
 #include "SimulationConfig.hpp"
 #include <set>
 
+/**
+ * @file Initialize_Geometry.hpp
+ * @brief Defines mesh, geometry, voxel, distance-field, and FE-space setup for BESFEM.
+ */
+
 using namespace std;
 
 /**
@@ -38,7 +43,17 @@ protected:
     std::vector<std::vector<std::vector<int>>> data; ///< Raw voxel data container.
 
 public:
+
+    /**
+     * @brief Construct the geometry handler.
+     *
+     * Stores the simulation configuration and prepares geometry-related storage.
+     *
+     * @param cfg Reference to the simulation configuration.
+     */
     Initialize_Geometry(const SimulationConfig& cfg);
+
+    /// Destructor.
     virtual ~Initialize_Geometry();
 
     bool combine_particle_groups = false; ///< Whether to combine particle groups for performance.
@@ -215,6 +230,19 @@ public:
         int mode                           // 0 = psi (keep 1s to right), 1 = pse (keep 0s to any boundary)
     );
 
+    /**
+     * @brief Compute a filtered distance field for a specific voxel label.
+     *
+     * Builds a label-specific mask from the TIFF data, applies the PDE filter,
+     * and computes a corresponding distance field. This is used for individual
+     * particle or material-region masks in segmented microstructures.
+     *
+     * @param dist Output unsigned distance field.
+     * @param filt_gf Output filtered level-set field.
+     * @param target_label Voxel label to isolate.
+     * @param keep_boundary_connected Whether to keep only the boundary-connected region.
+     * @param seed_side_or_face Optional boundary side/face used as the seed region.
+     */
     void ComputePDEFilterLabel(mfem::ParGridFunction &dist,
                            mfem::ParGridFunction &filt_gf,
                            int target_label,
@@ -222,7 +250,11 @@ public:
                            int seed_side_or_face = -1
     );
 
-    
+    /**
+     * @brief Return the unique particle/material labels found in the TIFF data.
+     *
+     * @return Vector of integer labels present in the voxelized geometry.
+     */
     std::vector<int> GetParticleLabelsFromTiff() const;
 
     // -------------------------------------------------------------------------
@@ -255,44 +287,16 @@ public:
     // Boundary condition marker arrays
     mfem::Array<int> nbc_w_bdr, nbc_s_bdr, nbc_e_bdr, nbc_n_bdr;
     mfem::Array<int> nbc_bdr, dbc_bdr;
-    mfem::Array<int> dbc_w_bdr, dbc_e_bdr;
-
+    mfem::Array<int> dbc_w_bdr, dbc_e_bdr; 
     mfem::Array<int> ess_tdof_list_w, ess_tdof_list_e;
 
     mfem::Array<int> gVTX; ///< Global vertex IDs of current element.
     mfem::Array<int> VTX;  ///< Local vertex IDs of current element.
 
-    // Mesh + FE space pointers
     std::unique_ptr<mfem::Mesh> globalMesh; ///< Serial/global mesh.
-    std::shared_ptr<mfem::ParMesh> parallelMesh;
-
-    std::shared_ptr<mfem::FiniteElementSpace> feSpace;
-    std::shared_ptr<mfem::FiniteElementSpace> globalfespace;
-
-    std::shared_ptr<mfem::ParFiniteElementSpace> parfespace;
-    std::shared_ptr<mfem::ParFiniteElementSpace> parfespace_dg;
-    std::shared_ptr<mfem::ParFiniteElementSpace> pardimfespace_dg;
-
     mfem::Array<HYPRE_BigInt> E_L2G; ///< Local-to-global element mapping.
 
     double Onm = 0.0; ///< Number of grid function entries.
-
-    // Distance fields
-    std::unique_ptr<mfem::GridFunction> gDsF;
-    std::unique_ptr<mfem::ParGridFunction> dsF;
-
-    std::unique_ptr<mfem::GridFunction> gDsF_A, gDsF_C;
-    std::unique_ptr<mfem::ParGridFunction> dsF_A, dsF_C;
-
-    std::unique_ptr<mfem::GridFunction> gVox;
-    std::unique_ptr<mfem::ParGridFunction> Vox;
-
-    // TIFF voxel storage
-    std::vector<std::vector<std::vector<int>>> tiffData;
-
-    // FE collections
-    std::unique_ptr<mfem::H1_FECollection> gfec, pfec;
-    std::unique_ptr<mfem::DG_FECollection> pfec_dg;
 
     // Pinned DOF information
     mfem::Array<int> ess_tdof_potE;
@@ -308,17 +312,36 @@ public:
     int myid = 0; ///< MPI rank.
     int rkpp = -1; ///< Rank that owns the pinned DOF.
 
-    std::unique_ptr<mfem::ParGridFunction> distMask;       // unsigned distance
-    std::unique_ptr<mfem::ParGridFunction> distMaskSigned; // signed distance (optional)
-    std::unique_ptr<mfem::ParGridFunction> MaskFilter;    // filtered level set
-    std::unique_ptr<mfem::ParGridFunction> MaskFilterPse;    // filtered level set (debug/useful)
+    std::shared_ptr<mfem::ParMesh> parallelMesh; ///< Distributed parallel mesh.
 
-    // std::unique_ptr<mfem::ParGridFunction> MaskFilter1;
-    // std::unique_ptr<mfem::ParGridFunction> MaskFilter2;
-    // std::unique_ptr<mfem::ParGridFunction> MaskFilter3;
+    std::shared_ptr<mfem::FiniteElementSpace> feSpace; ///< Serial H1 finite element space.
+    std::shared_ptr<mfem::FiniteElementSpace> globalfespace; ///< Global serial finite element space.
 
-    std::vector<int> particle_labels; 
-    std::vector<std::unique_ptr<mfem::ParGridFunction>> MaskFilters;
+    std::shared_ptr<mfem::ParFiniteElementSpace> parfespace; ///< Parallel H1 finite element space.
+    std::shared_ptr<mfem::ParFiniteElementSpace> parfespace_dg; ///< Parallel DG finite element space.
+    std::shared_ptr<mfem::ParFiniteElementSpace> pardimfespace_dg; ///< Vector-valued parallel DG finite element space.
+
+    std::unique_ptr<mfem::GridFunction> gDsF; ///< Global serial distance field.
+    std::unique_ptr<mfem::ParGridFunction> dsF; ///< Parallel distance field.
+
+    std::unique_ptr<mfem::GridFunction> gDsF_A, gDsF_C; ///< Global anode/cathode distance fields.
+    std::unique_ptr<mfem::ParGridFunction> dsF_A, dsF_C; ///< Parallel anode/cathode distance fields.
+
+    std::unique_ptr<mfem::GridFunction> gVox; ///< Global voxel-label field.
+    std::unique_ptr<mfem::ParGridFunction> Vox; ///< Parallel voxel-label field.
+
+    std::vector<std::vector<std::vector<int>>> tiffData; ///< Raw TIFF voxel labels.
+
+    std::unique_ptr<mfem::H1_FECollection> gfec, pfec; ///< Serial/parallel H1 finite element collections.
+    std::unique_ptr<mfem::DG_FECollection> pfec_dg; ///< Parallel DG finite element collection.
+
+    std::unique_ptr<mfem::ParGridFunction> distMask; ///< Unsigned distance-to-mask field.
+    std::unique_ptr<mfem::ParGridFunction> distMaskSigned; ///< Optional signed distance-to-mask field.
+    std::unique_ptr<mfem::ParGridFunction> MaskFilter; ///< Filtered solid-mask level-set field.
+    std::unique_ptr<mfem::ParGridFunction> MaskFilterPse; ///< Filtered electrolyte-mask level-set field.
+
+    std::vector<int> particle_labels; ///< Unique particle/material labels from the TIFF geometry.
+    std::vector<std::unique_ptr<mfem::ParGridFunction>> MaskFilters; ///< Per-label filtered mask fields.
 
 };
 
