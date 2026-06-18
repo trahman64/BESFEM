@@ -449,15 +449,39 @@ void Initialize_Geometry::AssignGlobalValues(const char* meshFile, const char* d
         
     gVox = std::make_unique<mfem::GridFunction>(globalfespace.get());
 
+        // int nz = tiffData.size();
+        // int ny = tiffData[0].size();
+        // int nx = tiffData[0][0].size();
+        // for (int k = 0; k < nz; k++) {
+        //     for (int j = 0; j < ny; j++) {
+        //         for (int i = 0; i < nx; i++) {
+        //             int idx = i + nx * j + nx * ny * k;
+        //             (*this->gVox)[idx] = tiffData[k][j][i];
+        //         }
+        //     }
+        // }
+
         int nz = tiffData.size();
         int ny = tiffData[0].size();
         int nx = tiffData[0][0].size();
-        for (int k = 0; k < nz; k++) {
-            for (int j = 0; j < ny; j++) {
-                for (int i = 0; i < nx; i++) {
-                    int idx = i + nx * j + nx * ny * k;
-                    (*this->gVox)[idx] = tiffData[k][j][i];
-                }
+
+        int ex = (nx - 1) / 2;
+        int ey = (ny - 1) / 2;
+
+        int vx = ex + 1;   // number of x nodes = 51
+        int vy = ey + 1;   // number of y nodes = 51
+
+        *this->gVox = 0.0;
+
+        for (int j = 0; j < vy; j++) {
+            for (int i = 0; i < vx; i++) {
+
+                int ii = std::min(2 * i, nx - 1);
+                int jj = std::min(2 * j, ny - 1);
+
+                int idx = i + vx * j;
+
+                (*this->gVox)[idx] = tiffData[0][jj][ii];
             }
         }
 
@@ -631,12 +655,21 @@ std::unique_ptr<mfem::Mesh> Initialize_Geometry::CreateGlobalMeshFromTiffData(co
     int ny = tiffData[0].size(); // row dimension
     int nx = tiffData[0][0].size(); // column dimension
 
+    std::cout << "nz: " << nz << " nx: " << nx << " ny: " << ny << std::endl;
+
     double scale = cfg.dh;
 
     double sx = nx * scale;  // make dx = 1 // size in x direction
     double sy = ny * scale;  // make dy = 1 // size in y direction
     double sz = nz * scale;  // make dz = 1 // size in z direction
 
+    std::cout << "sz: " << sz << " sx: " << sx << " sy: " << sy << std::endl;
+
+    int ex = (nx - 1) / 2;
+    int ey = (ny - 1) / 2;
+    int ez = (nz == 1) ? 1 : (nz - 1) / 2;
+
+    std::cout << "ez: " << ez << " ex: " << ex << " ey: " << ey << std::endl;
 
     bool generate_edges = false; 
     bool sfc_ordering = false; 
@@ -645,13 +678,23 @@ std::unique_ptr<mfem::Mesh> Initialize_Geometry::CreateGlobalMeshFromTiffData(co
 
     if (nz == 1) {
         mesh = std::make_unique<mfem::Mesh>(
-            mfem::Mesh::MakeCartesian2D(nx - 1, ny - 1, mfem::Element::QUADRILATERAL, generate_edges, sx, sy, sfc_ordering)
+            mfem::Mesh::MakeCartesian2D(ex, ey, mfem::Element::QUADRILATERAL, generate_edges, sx, sy, sfc_ordering)
         );
     } else {
         mesh = std::make_unique<mfem::Mesh>(
-            mfem::Mesh::MakeCartesian3D(nx - 1, ny - 1, nz - 1, mfem::Element::HEXAHEDRON, sx, sy, sz, sfc_ordering)
+            mfem::Mesh::MakeCartesian3D(ex, ey, ez, mfem::Element::HEXAHEDRON, sx, sy, sz, sfc_ordering)
         );
     }
+
+    // if (nz == 1) {
+    //     mesh = std::make_unique<mfem::Mesh>(
+    //         mfem::Mesh::MakeCartesian2D(nx - 1, ny - 1, mfem::Element::QUADRILATERAL, generate_edges, sx, sy, sfc_ordering)
+    //     );
+    // } else {
+    //     mesh = std::make_unique<mfem::Mesh>(
+    //         mfem::Mesh::MakeCartesian3D(nx - 1, ny - 1, nz - 1, mfem::Element::HEXAHEDRON, sx, sy, sz, sfc_ordering)
+    //     );
+    // }
 
     return mesh;
 
