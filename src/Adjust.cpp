@@ -9,7 +9,7 @@ Adjust::Adjust(Initialize_Geometry &geo, Domain_Parameters &para, const Simulati
 {}
 
 
-// Full Cell
+// Apply constant-current voltage correction for full-cell simulations.
 void Adjust::AdjustConstantCurrent(double current_A, double current_C, ElectrodePotential &anode_potential, ElectrodePotential &cathode_potential,
     mfem::ParGridFunction &phA_gf, mfem::ParGridFunction &phC_gf, double &VCell)
 {
