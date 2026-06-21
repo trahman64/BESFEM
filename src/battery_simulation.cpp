@@ -283,6 +283,8 @@ int main(int argc, char *argv[]) {
                             *domain_parameters.ps[j], domain_parameters.gtPs[j], *domain_parameters.WeightEs[j], pair_terms);
                     }
 
+                    state.Rxn_gf->SaveAsOne("Rxn_after_concentration.gf");
+
                     state.electrolyte_concentration->UpdateConcentration(*state.Rxn_gf, *state.CnE_gf,
                         *domain_parameters.pse, domain_parameters.gtPse, *domain_parameters.pse, {});
                         
@@ -345,6 +347,11 @@ int main(int argc, char *argv[]) {
                     for (int j = 0; j < np; ++j){
                         state.cathode_particles[j].reaction->TotalReactionCurrent(*state.cathode_particles[j].Rxn_gf, global_currents[j]);
                     }
+
+                    // // debugging
+                    // for (int j = 0; j < np; ++j){
+                    //     *state.cathode_particles[j].Rxn_gf = 0.0;
+                    // }
 
                     double total_current = 0.0;
                     double total_target = 0.0;

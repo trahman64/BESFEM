@@ -285,29 +285,30 @@ public:
     int ei  = 0; ///< Local element index.
 
     // Boundary condition marker arrays
-    mfem::Array<int> nbc_w_bdr, nbc_s_bdr, nbc_e_bdr, nbc_n_bdr;
-    mfem::Array<int> nbc_bdr, dbc_bdr;
-    mfem::Array<int> dbc_w_bdr, dbc_e_bdr; 
-    mfem::Array<int> ess_tdof_list_w, ess_tdof_list_e;
+    mfem::Array<int> nbc_w_bdr, nbc_s_bdr, nbc_e_bdr, nbc_n_bdr; ///< Neumann boundary markers for west, south, east, and north boundaries.
+    mfem::Array<int> nbc_bdr, dbc_bdr;                           ///< Global Neumann and Dirichlet boundary markers.
+    mfem::Array<int> dbc_w_bdr, dbc_e_bdr;                      ///< Dirichlet markers for west and east boundaries.
+
+    mfem::Array<int> ess_tdof_list_w, ess_tdof_list_e;          ///< Essential true DOFs on west and east boundaries.
 
     mfem::Array<int> gVTX; ///< Global vertex IDs of current element.
     mfem::Array<int> VTX;  ///< Local vertex IDs of current element.
 
-    std::unique_ptr<mfem::Mesh> globalMesh; ///< Serial/global mesh.
-    mfem::Array<HYPRE_BigInt> E_L2G; ///< Local-to-global element mapping.
+    std::unique_ptr<mfem::Mesh> globalMesh; ///< Global serial mesh.
+    mfem::Array<HYPRE_BigInt> E_L2G;         ///< Local-to-global element mapping.
 
     double Onm = 0.0; ///< Number of grid function entries.
 
     // Pinned DOF information
-    mfem::Array<int> ess_tdof_potE;
-    bool anchor_set = false;
-    HYPRE_BigInt global_anchor_potE = -1;
-    int anchor_owner_potE = -1;
-    bool pin = false;
+    mfem::Array<int> ess_tdof_potE;          ///< Essential true DOFs used to anchor the electrolyte potential.
+    bool anchor_set = false;                 ///< Whether the global anchor has been selected.
+    HYPRE_BigInt global_anchor_potE = -1;    ///< Global ID of the pinned electrolyte potential DOF.
+    int anchor_owner_potE = -1;              ///< MPI rank that owns the pinned DOF.
+    bool pin = false;                        ///< Whether this MPI rank owns the pinned DOF.
 
-    mfem::Array<int> ess_tdof_listPinned;
-    mfem::Array<int> boundary_dofs;
-    mfem::Array<int> ess_tdof_marker;
+    mfem::Array<int> ess_tdof_listPinned;    ///< Essential true DOF list for the pinned node.
+    mfem::Array<int> boundary_dofs;          ///< Boundary true DOFs.
+    mfem::Array<int> ess_tdof_marker;        ///< Marker array identifying essential DOFs.
 
     int myid = 0; ///< MPI rank.
     int rkpp = -1; ///< Rank that owns the pinned DOF.

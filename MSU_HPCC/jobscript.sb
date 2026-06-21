@@ -17,7 +17,7 @@
 # Wall time
 # Format: "minutes", "hours:minutes:seconds", 
 # "days-hours", or "days-hours:minutes"
-#SBATCH --time=08:00:00
+#SBATCH --time=24:00:00
 
 # Mail type
 # e.g., which events trigger email notifications
