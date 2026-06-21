@@ -1,76 +1,120 @@
-# BESFEM: Battery Electrode Simulation using MFEM (Multi-Particle)
+# BESFEM: Battery Electrode Simulation using MFEM
 
-BESFEM is a high-performance, MPI-enabled electrochemical simulation framework for lithium-ion battery electrodes.  
-It supports **half-cell** and **full-cell** simulations, **Cahn–Hilliard** and **diffusion-based** transport models, and the **Smoothed Boundary Method (SBM)** for diffuse interfaces.  
-The code is written in C++ and built on top of the **MFEM** finite-element library.
+BESFEM (**B**attery **E**lectrode **S**imulation using **MFEM**) is a high-performance finite element framework for simulating lithium-ion battery electrodes. Built on top of **MFEM**, **MPI**, and **HYPRE**, BESFEM enables parallel electrochemical simulations of realistic battery microstructures using the **Smoothed Boundary Method (SBM)**.
 
-This branch supports the development of utilizing BESFEM for multi-particle applications. This is useful to understand the impacts of an electrode with blended chemistry. For example: a silicon-carbon anode. 
-
+The framework supports both **half-cell** and **full-cell** simulations, multiple active material chemistries, and particle-resolved modeling using either diffusion or Cahn–Hilliard-based transport models.
 
 ---
 
-## Project Structure
+# Project Structure
 
-```
+```text
 BESFEM/
 │
-├── include/             # Header files for physics modules
-├── src/                 # Source files for all simulations
+├── include/             # Header files
+├── src/                 # Source files
 ├── inputs/
-│   ├── mesh/            # Mesh files
-│   ├── distance/        # SBM distance fields
-│   ├── materials/       # Material Property Data
-│   ├── Constants.cpp    # Constants
-│   └── run_config.txt   # Simulation config file
+│   ├── mesh/            # Mesh and TIFF geometries
+│   ├── distance/        # SBM distance functions
+│   ├── materials/       # Material property tables
+│   └── run_config.txt   # Simulation configuration
 │
-├── outputs/
-│   └── Results/         # Auto-generated simulation outputs
-│
+├── outputs/             # Simulation outputs
+├── plotting/            # Visualization notebooks
 ├── tests/               # Unit tests
-├── plotting/            # Plotting files
-└── bin/                 # Compiled executables
-
+├── docs/                # Generated Doxygen documentation
+└── bin/                 # Compiled executable
 ```
 
 ---
 
-## Building BESFEM
+# Building BESFEM
 
-Ensure MFEM, HYPRE, and MPI (OpenMPI or MPICH) are installed and available.
+Ensure that MFEM, MPI, and HYPRE are installed and available.
 
 ```bash
-# clone the repository
+# Clone the repository
 git clone https://github.com/HCY-Group/BESFEM.git
 
-# enter into besfem folder
-cd BESFEM 
+# Enter the project
+cd BESFEM
 
-# On the HPCC 
+# Load required modules (HPCC example)
 module load MFEM
 
-# compile all of the code - you may need to update  the makefile MFEM/HYPRE include + library paths as needed
-make 
+# Compile
+make
 
-# enter folder with executable file
+# Executable
 cd bin
 ```
 
+> Depending on your system, you may need to update the makefile with the appropriate MFEM and HYPRE include/library paths.
+
 ---
 
-## Running BESFEM
+# Running BESFEM
 
-### Configuration File
-
-BESFEM simulations are configured through a user-editable text file:
+All simulations are configured through
 
 ```text
 inputs/run_config.txt
 ```
 
-All simulation settings, including geometry, materials, initial lithiation, boundary conditions, and runtime options, are specified in this file.
+Run using the default configuration:
 
+```bash
+mpirun -np 8 ./battery_simulation
+```
 
-### Example Configuration
+Specify a configuration file:
+
+```bash
+mpirun -np 8 ./battery_simulation -cfg ../inputs/run_config.txt
+```
+
+Save terminal output:
+
+```bash
+mpirun -np 8 ./battery_simulation -cfg ../inputs/run_config.txt > output.txt
+```
+
+Extract timestep information:
+
+```bash
+grep timestep output.txt > timestep.txt
+```
+
+---
+
+# Simulation Workflow
+
+```text
+Geometry (Mesh / TIFF)
+          │
+          ▼
+Define Domain Parameters (SBM)
+          │
+          ▼
+Assign Materials
+          │
+          ▼
+Initialize Concentrations & Potentials
+          │
+          ▼
+Solve Coupled Electrochemical Equations
+          │
+          ▼
+Write Output Files
+```
+
+---
+
+# Configuration
+
+All simulation settings are specified in `inputs/run_config.txt`.
+
+A typical configuration is shown below.
 
 ```ini
 mode = half
@@ -83,413 +127,312 @@ cathode_distance = ../inputs/dummy.gf
 anode_distance = ../inputs/dummy.gf
 
 num_steps = 1000
+
 combine_particles = false
 
-cathode_materials = NMC,NMC,NMC
+cathode_materials = LFP,LFP,NMC
 anode_materials = Graphite,Graphite,Graphite
 
 init_cathode_particles = 0.30,0.30,0.30
-init_anode_particles = 0.20,0.15,0.10
+init_anode_particles = 0.20,0.20,0.20
 
 init_CnE = 0.001
-init_BvA = -0.01
-init_BvC = 3.96
-init_BvE = -0.10
-```
 
----
-
-### Configuration Options
-
-#### Simulation Mode
-
-| Parameter   | Options                                          |
-| ----------- | ------------------------------------------------ |
-| `mode`      | `half`, `full`                                   |
-| `electrode` | `anode`, `cathode` (used only in half-cell mode) |
-
-Example:
-
-```ini
-mode = half
-electrode = cathode
-```
-
----
-
-#### Mesh Settings
-
-| Parameter   | Description                                 |
-| ----------- | ------------------------------------------- |
-| `mesh_file` | Mesh or TIFF file                           |
-| `mesh_type` | `ml` (MATLAB mesh) or `v` (voxel/TIFF mesh) |
-
-Example:
-
-```ini
-mesh_file = ../inputs/colored_labels_labels.tif
-mesh_type = v
-```
-
----
-
-#### Distance Functions
-
-| Parameter          | Description            |
-| ------------------ | ---------------------- |
-| `cathode_distance` | Cathode distance field |
-| `anode_distance`   | Anode distance field   |
-
-For half-cell cathode simulations:
-
-```ini
-cathode_distance = ../inputs/dummy.gf
-anode_distancce = ../inputs/distance/dsF_3x90_r.txt
-```
-
----
-
-#### Time Stepping
-
-```ini
-num_steps = 1000
-```
-
----
-
-#### Particle Grouping
-
-If all particles should behave as a single particle:
-
-```ini
-combine_particles = true
-```
-
-Otherwise:
-
-```ini
-combine_particles = false
-```
-
----
-
-#### Material Assignment
-
-Materials are assigned per particle group.
-
-Example:
-
-```ini
-cathode_materials = LFP,LFP,NMC
-```
-
-This corresponds to:
-
-| Particle | Material |
-| -------- | -------- |
-| 0        | LFP      |
-| 1        | LFP      |
-| 2        | NMC      |
-
-Supported cathode materials:
-
-* `LFP`
-* `NMC`
-
-Supported anode materials:
-
-* `Graphite`
-
-Example:
-
-```ini
-anode_materials = Graphite,Graphite,Graphite
-```
-
----
-
-#### Initial Particle Lithiation
-
-Initial lithiation is specified per particle.
-
-Example:
-
-```ini
-init_cathode_particles = 0.15,0.20,0.10
-```
-
-corresponds to:
-
-| Particle | Initial Lithiation |
-| -------- | ------------------ |
-| 0        | 0.15               |
-| 1        | 0.20               |
-| 2        | 0.10               |
-
----
-
-#### Electrolyte Initial Condition
-
-```ini
-init_CnE = 0.001
-```
-
----
-
-#### Boundary Conditions
-
-Initial potentials are specified using:
-
-```ini
-init_BvA = -0.01
-init_BvC = 3.96
-init_BvE = -0.10
-```
-
-where:
-
-* `init_BvA` = anode potential
-* `init_BvC` = cathode potential
-* `init_BvE` = electrolyte potential
-
----
-
-### Running a Simulation
-
-#### Default Configuration
-
-If using the default configuration file:
-
-```bash
-mpirun -np 8 ./battery_simulation
-```
-
----
-
-#### Specifying a Configuration File
-
-```bash
-mpirun -np 8 ./battery_simulation \
-    -cfg ../inputs/run_config.txt
-```
-
----
-
-#### Specifying an Output File
-
-To save the outputs of the simulation, redirect to a separate file: 
-
-```bash
-mpirun -np 8 ./battery_simulation \
-    -cfg ../inputs/run_config.txt > output_file.txt
-```
-
-To filter to just the timestepping data, use `grep` :
-```bash
-cat output_file.txt | grep -e timestep > timestep.txt
-```
-
----
-
-#### Example: Mixed LFP/NMC Cathode
-
-```ini
-mode = half
-electrode = cathode
-
-mesh_file = ../inputs/colored_labels_labels.tif
-mesh_type = v
-
-cathode_distance = ../inputs/dummy.gf
-
-num_steps = 3200
-combine_particles = false
-
-cathode_materials = LFP,LFP,NMC
-anode_materials = Graphite,Graphite,Graphite
-
-init_cathode_particles = 0.15,0.20,0.10
-init_anode_particles = 0.02, 0.02, 0.02
-
-init_CnE = 0.001
-init_BvA = -0.1
+init_BvA = -0.10
 init_BvC = 3.40
 init_BvE = -0.10
 ```
 
-Run:
+---
 
-```bash
-mpirun -np 8 ./battery_simulation \
-    -cfg ../inputs/run_config.txt
-```
+### Simulation
 
+* `mode`
 
+  * `half`
+  * `full`
 
+* `electrode`
 
-
+  * `anode`
+  * `cathode`
 
 ---
 
-## Generating Doxygen Documentation
+### Geometry
+
+* `mesh_file`
+
+  * Mesh or TIFF geometry.
+
+* `mesh_type`
+
+  * `v` = voxel/TIFF geometry
+  * `ml` = MATLAB mesh
+
+* `cathode_distance`
+
+* `anode_distance`
+
+---
+
+### Runtime
+
+* `num_steps`
+
+  * Total number of timesteps.
+
+* `combine_particles`
+
+  * `true` — treat all particles as a single particle.
+  * `false` — solve each particle independently.
+
+---
+
+### Materials
+
+Materials are assigned in the same order as the particle groups.
+
+Example
+
+```ini
+cathode_materials = LFP,LFP,NMC
+```
+
+assigns
+
+* Particle 0 → LFP
+* Particle 1 → LFP
+* Particle 2 → NMC
+
+Currently supported materials include
+
+**Cathodes**
+
+* LFP
+* NMC
+
+**Anodes**
+
+* Graphite
+
+---
+
+### Initial Conditions
+
+Particle lithiation is specified per particle.
+
+Example
+
+```ini
+init_cathode_particles = 0.15,0.20,0.10
+```
+
+Electrolyte concentration
+
+```ini
+init_CnE = 0.001
+```
+
+Initial electrode and electrolyte potentials
+
+```ini
+init_BvA = -0.10
+init_BvC = 3.40
+init_BvE = -0.10
+```
+
+---
+
+# Output
+
+Simulation results are written to the `outputs/` directory and include quantities such as
+
+* Particle concentration
+* Electrolyte concentration
+* Electrode potentials
+* Electrolyte potential
+* SBM phase fields
+* Mesh files
+* Simulation logs
+
+These outputs may be visualized using **PyGLVis** or other MFEM-compatible visualization tools.
+
+---
+
+# Generating Documentation
+
+Generate the Doxygen documentation:
 
 ```bash
 module load Doxygen
 module load Graphviz
+
 doxygen Doxyfile
-cd html
 ```
-Preview doxygen locally:
+
+Open the generated documentation
+
+```bash
+cd docs/html
+```
+
+Preview locally
+
 ```bash
 python3 -m http.server 8001 --bind 127.0.0.1
 ```
 
+Then open
+
+```
+http://127.0.0.1:8001
+```
+
 ---
 
-## Plotting Using PyGLVis
+# Visualization
+
+Install PyGLVis
 
 ```bash
 pip install glvis
 ```
 
-To plot, please reference the `pyglivs.ipynb` file within the `plotting` folder. 
-You will need to adjust the input files of `mesh` and the `GridFunction x` that you are plotting. 
+Example visualization notebooks are located in
+
+```text
+plotting/
+```
+
+Update the mesh and GridFunction filenames within the notebook to visualize different simulation outputs.
 
 ---
 
-## Core BESFEM Equations
+# Governing Equations
 
-**Cathode concentration**
+## Cathode Concentration
+
 ```math
 \frac{\partial C_c}{\partial t}
 =
 \frac{1}{\psi_c}
-\nabla \cdot \left( \psi_c D_c \nabla C_c \right)
+\nabla\cdot
+\left(
+\psi_c D_c \nabla C_c
+\right)
 -
-\frac{|\nabla \psi_c|}{\psi_c} r_c
+\frac{|\nabla\psi_c|}{\psi_c}r_c
 ```
 
-**Cathode potential**
+---
+
+## Cathode Potential
+
 ```math
-\nabla \cdot \left( \psi_c \kappa_c \nabla \phi_c \right)
+\nabla\cdot
+\left(
+\psi_c\kappa_c\nabla\phi_c
+\right)
 -
-|\nabla \psi_c| z_- F r_c
+|\nabla\psi_c|z_-Fr_c
 =
 0
 ```
 
-**Cathode reaction rate**
-```math
-r_c
-=
-k_c^f C_+
-\exp\left(
-\frac{-\alpha z_+ F [\phi]_e^c}{RT}
-\right)
--
-k_c^b C_c
-\exp\left(
-\frac{(1-\alpha) z_+ F [\phi]_e^c}{RT}
-\right)
-```
+---
 
-**Electrolyte concentration**
+## Electrolyte Concentration
+
 ```math
 \frac{\partial C_e}{\partial t}
 =
 \frac{1}{\psi_e}
-\nabla \cdot \left( \psi_e D_e \nabla C_e \right)
+\nabla\cdot
+\left(
+\psi_eD_e\nabla C_e
+\right)
 +
-\frac{|\nabla \psi_c|}{\psi_e}\frac{r_c t_-}{\nu_+}
+\frac{|\nabla\psi_c|}{\psi_e}
+\frac{r_ct_-}{\nu_+}
 +
-\frac{|\nabla \psi_a|}{\psi_e}\frac{r_a t_-}{\nu_+}
+\frac{|\nabla\psi_a|}{\psi_e}
+\frac{r_at_-}{\nu_+}
 ```
 
-**Electrolyte potential**
+---
+
+## Electrolyte Potential
+
 ```math
-\nabla \cdot
+\nabla\cdot
 \left[
-\psi_e (z_+ m_+ - z_- m_-) F C_e \nabla \phi_e
+\psi_e
+(z_+m_+-z_-m_-)
+FC_e
+\nabla\phi_e
 \right]
 +
-|\nabla \psi_c| \frac{r_c}{\nu_+}
+|\nabla\psi_c|
+\frac{r_c}{\nu_+}
 +
-|\nabla \psi_a| \frac{r_a}{\nu_+}
+|\nabla\psi_a|
+\frac{r_a}{\nu_+}
 =
-\nabla \cdot
+\nabla\cdot
 \left[
-\psi_e (D_- - D_+) \nabla C_e
+\psi_e
+(D_- - D_+)
+\nabla C_e
 \right]
 ```
 
-**Anode reaction rate**
-```math
-r_a
-=
-k_a^f C_+
-\exp\left(
-\frac{-\alpha z_+ F [\phi]_e^a}{RT}
-\right)
--
-k_a^b C_a
-\exp\left(
-\frac{(1-\alpha) z_+ F [\phi]_e^a}{RT}
-\right)
-```
+---
 
-**Anode concentration**
+## Anode Concentration
+
 ```math
 \frac{\partial C_a}{\partial t}
 =
 \frac{1}{\psi_a}
-\nabla \cdot
+\nabla\cdot
 \left[
-\psi_a M_a
+\psi_a
+M_a
 \nabla
 \left(
 \frac{\partial f_G}{\partial C_a}
 -
-\varepsilon \nabla^2 C_a
+\varepsilon\nabla^2C_a
 \right)
 \right]
 -
-\frac{|\nabla \psi_a|}{\psi_a} r_a
+\frac{|\nabla\psi_a|}{\psi_a}r_a
 ```
 
-**Anode potential**
+---
+
+## Anode Potential
+
 ```math
-\nabla \cdot \left( \psi_a \kappa_a \nabla \phi_a \right)
+\nabla\cdot
+\left(
+\psi_a\kappa_a\nabla\phi_a
+\right)
 -
-|\nabla \psi_a| z_- F r_a
+|\nabla\psi_a|z_-Fr_a
 =
 0
 ```
 
-**Mass Matrix:** used for any term with a time derivative.
-```bash
-AddDomainIntegrator(new mfem::MassIntegrator());
-```
+---
 
-**Stiffness Matrix:** used for PDE terms involving ∇.
-```bash
-AddDomainIntegrator(new mfem::DiffusionIntegrator());
-```
+# Citation
 
-**Linear System Assembly:** Produces `A * X = B`
-```bash
-FormLinearSystem(ess_tdof_list, x, b, A, X, B);
-```
+If you use BESFEM in your research, please cite the appropriate publication describing the framework.
 
+---
 
-<!-- 
-# Running BESFEM
+# License
 
-## Configuration File
-
-BESFEM simulations are configured through a user-editable text file:
-
-```text
-inputs/run_config.txt
-```
-
-All simulation settings, including geometry, materials, initial lithiation, boundary conditions, and runtime options, are specified in this file. -->
+This project is released under the license included with the repository.
