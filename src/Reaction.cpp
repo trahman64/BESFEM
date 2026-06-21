@@ -1,8 +1,3 @@
-/**
- * @file Reaction.cpp
- * @brief Implementation of the Reaction class for electrochemical reaction modeling in batteries.
- */
-
 #include "../include/Reaction.hpp"
 #include "../include/Constants.hpp"
 #include "mfem.hpp"

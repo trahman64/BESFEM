@@ -1,18 +1,10 @@
-/**
- * @file ElectrolytePotential.cpp
- * @brief Implementation of the potential class for electrolyte potential simulations.
- */
-
 #include "../include/ElectrolytePotential.hpp"
 #include "../include/Constants.hpp"
 #include "mfem.hpp"
-// #include "../include/CnE.hpp"
 #include <optional>
 #include "../include/SimTypes.hpp"
 #include <mpi.h>
 
-
-// using sim::CellMode;
 
 ElectrolytePotential::ElectrolytePotential(Initialize_Geometry &geo, Domain_Parameters &para, BoundaryConditions &bc, sim::CellMode mode, const SimulationConfig &cfg)
     : PotentialBase(geo,para), geometry(geo), domain_parameters(para), boundary_conditions(bc), cfg(cfg), utils(geo,para, cfg), fespace(geo.parfespace), fem(geo.parfespace), dbc_bdr(bc.dbc_bdr), gtPse(para.gtPse),
