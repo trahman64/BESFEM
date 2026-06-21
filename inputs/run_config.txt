@@ -14,7 +14,7 @@ mesh_type = v
 
 cathode_distance = ../inputs/dummy.gf
 
-combine_particles = true
+combine_particles = false
 
 # ============================================================
 # NUMERICAL PARAMETERS

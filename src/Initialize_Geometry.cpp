@@ -655,7 +655,7 @@ std::unique_ptr<mfem::Mesh> Initialize_Geometry::CreateGlobalMeshFromTiffData(co
     int ny = tiffData[0].size(); // row dimension
     int nx = tiffData[0][0].size(); // column dimension
 
-    std::cout << "nz: " << nz << " nx: " << nx << " ny: " << ny << std::endl;
+    // std::cout << "nz: " << nz << " nx: " << nx << " ny: " << ny << std::endl;
 
     double scale = cfg.dh;
 
@@ -663,13 +663,13 @@ std::unique_ptr<mfem::Mesh> Initialize_Geometry::CreateGlobalMeshFromTiffData(co
     double sy = ny * scale;  // make dy = 1 // size in y direction
     double sz = nz * scale;  // make dz = 1 // size in z direction
 
-    std::cout << "sz: " << sz << " sx: " << sx << " sy: " << sy << std::endl;
+    // std::cout << "sz: " << sz << " sx: " << sx << " sy: " << sy << std::endl;
 
     int ex = (nx - 1) / 2;
     int ey = (ny - 1) / 2;
     int ez = (nz == 1) ? 1 : (nz - 1) / 2;
 
-    std::cout << "ez: " << ez << " ex: " << ex << " ey: " << ey << std::endl;
+    // std::cout << "ez: " << ez << " ex: " << ex << " ey: " << ey << std::endl;
 
     bool generate_edges = false; 
     bool sfc_ordering = false; 
@@ -756,8 +756,15 @@ void Initialize_Geometry::SaveTiffDataToPGM(
     }
 
     const auto &img = data[0];
-    const int height = (int)img.size();
-    const int width  = (int)img[0].size();
+    const int height = static_cast<int>(img.size());
+    const int width  = static_cast<int>(img[0].size());
+
+    int max_label = 0;
+    for (const auto &row : img) {
+        for (int label : row) {
+            max_label = std::max(max_label, label);
+        }
+    }
 
     std::ofstream out(filename, std::ios::binary);
     if (!out.is_open()) {
@@ -769,14 +776,14 @@ void Initialize_Geometry::SaveTiffDataToPGM(
 
     for (int j = 0; j < height; ++j) {
         for (int i = 0; i < width; ++i) {
-            unsigned char val = 0;
             const int label = img[j][i];
 
-            if      (label == 0) val = 0;
-            else if (label == 1) val = 85;
-            else if (label == 2) val = 170;
-            else if (label == 3) val = 255;
-            else                 val = 0;
+            unsigned char val = 0;
+            if (max_label > 0) {
+                val = static_cast<unsigned char>(
+                    std::round(255.0 * label / max_label)
+                );
+            }
 
             out.write(reinterpret_cast<char*>(&val), 1);
         }
@@ -785,7 +792,8 @@ void Initialize_Geometry::SaveTiffDataToPGM(
     out.close();
 
     if (mfem::Mpi::WorldRank() == 0) {
-        std::cout << "Saved label PGM to " << filename << "\n";
+        std::cout << "Saved PGM to " << filename
+                  << " using labels 0-" << max_label << "\n";
     }
 }
 
