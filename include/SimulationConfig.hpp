@@ -66,11 +66,11 @@ struct SimulationConfig
 
     double init_CnA = 0.95; ///< Initial anode lithium concentration.
     double init_CnC = 0.30; ///< Initial cathode lithium concentration.
-    double init_CnE = 0.001; ///< Initial electrolyte concentration.
+    double init_CnE = -9999; ///< Initial electrolyte concentration.
 
-    double init_BvA = -0.01; ///< Initial anode boundary potential (V).
-    double init_BvC = 3.30; ///< Initial cathode boundary potential (V).
-    double init_BvE = -0.10; ///< Initial electrolyte potential (V).
+    double init_BvA = -9999; ///< Initial anode boundary potential (V).
+    double init_BvC = -9999; ///< Initial cathode boundary potential (V).
+    double init_BvE = -9999; ///< Initial electrolyte potential (V).
 
     // -------------------------------------------------------------------------
     // Numerical and operating parameters
