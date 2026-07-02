@@ -306,6 +306,9 @@ SimulationConfig ParseSimulationArgs(int argc, char *argv[])
     const char* half_elec =
         (cfg.half_electrode == sim::Electrode::CATHODE) ? "cathode" : "anode";
 
+    const char* stop_mode =
+        (cfg.stop_mode == sim::StopMode::STEPS) ? "steps" : "voltage";
+
     mfem::OptionsParser args(argc, argv);
 
     args.AddOption(&cfg.config_file,
@@ -322,11 +325,10 @@ SimulationConfig ParseSimulationArgs(int argc, char *argv[])
     args.AddOption(&cfg.dsF_file_A, "-dA", "--anode-distance", "Anode distance file.");
     args.AddOption(&cfg.order, "-o", "--order", "Finite element polynomial degree.");
     args.AddOption(&cfg.mesh_type, "-t", "--type", "Mesh type: ml | v.");
-    args.AddOption(&cfg.num_timesteps, "-n", "--num-steps", "Number of timesteps.");
     args.AddOption(&mode, "-mode", "--mode", "Cell mode: half | full.");
     args.AddOption(&half_elec, "-elec", "--electrode", "HALF mode only: anode | cathode.");
     args.AddOption(&cfg.combine_particle_groups, "-combine", "--combine-particles", "-separate", "--separate-particles", "Combine all particle groups into one.");
-
+    args.AddOption(&stop_mode, "-stop", "--stop-mode", "Stopping mode: steps | voltage.");
 
     args.ParseCheck();
 
@@ -343,6 +345,13 @@ SimulationConfig ParseSimulationArgs(int argc, char *argv[])
         cfg.half_electrode = sim::Electrode::CATHODE;
     else
         mfem::mfem_error("Invalid -elec. Use: anode | cathode.");
+
+    if (std::strcmp(stop_mode, "steps") == 0)
+        cfg.stop_mode = sim::StopMode::STEPS;
+    else if (std::strcmp(stop_mode, "voltage") == 0)
+        cfg.stop_mode = sim::StopMode::VOLTAGE;
+    else
+        mfem::mfem_error("Invalid stop mode. Use: steps | voltage.");
 
     return cfg;
 }
