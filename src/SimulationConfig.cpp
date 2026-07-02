@@ -147,6 +147,20 @@ static std::vector<double> ParseDoubleList(const std::string& text)
     return values;
 }
 
+static sim::StopMode ParseStopMode(const std::string& value)
+{
+    if (value == "steps")
+        return sim::StopMode::STEPS;
+
+    if (value == "voltage")
+        return sim::StopMode::VOLTAGE;
+
+    mfem::mfem_error(("Invalid stop_mode: " + value +
+                      ". Use steps or voltage.").c_str());
+
+    return sim::StopMode::STEPS;
+}
+
 static void ApplyConfigFile(SimulationConfig& cfg)
 {
     auto data = ReadConfigFile(cfg.config_file);
@@ -243,6 +257,14 @@ static void ApplyConfigFile(SimulationConfig& cfg)
 
     if (HasKey(data, "Vsr0"))
         cfg.Vsr0 = std::stod(GetValue(data, "Vsr0"));
+
+    if (HasKey(data, "stop_mode"))
+        cfg.stop_mode = ParseStopMode(GetValue(data, "stop_mode"));
+
+    if (HasKey(data, "VCut"))
+        cfg.VCut = std::stod(GetValue(data, "VCut"));
+
+        
 }
 
 SimulationConfig ParseSimulationArgs(int argc, char *argv[])
@@ -358,8 +380,22 @@ void ValidateConfig(const SimulationConfig &cfg, int argc, char *argv[])
         mfem::mfem_error("mesh_type must be ml or v.");
     }
 
-    if (cfg.num_timesteps <= 0)
-        mfem::mfem_error("num_steps must be positive.");
+    if (cfg.stop_mode == sim::StopMode::STEPS)
+    {
+        if (cfg.num_timesteps <= 0)
+        {
+            mfem::mfem_error(
+                "stop_mode=steps requires num_steps > 0.");
+        }
+    }
+    else if (cfg.stop_mode == sim::StopMode::VOLTAGE)
+    {
+        if (cfg.VCut <= 0.0)
+        {
+            mfem::mfem_error(
+                "stop_mode=voltage requires VCut > 0.");
+        }
+    }
 
     if (cfg.mode == sim::CellMode::FULL)
     {
@@ -459,6 +495,11 @@ void PrintAvailableSimulationOptions()
     std::cout << "    Charge Rate Cr = 1.0\n";
     std::cout << "    Voltage Scanning Rate Vsr0 = 0.009\n";
     std::cout << "    Cahn Hilliard Gradient Coef gc = 1.014e-9\n\n";
+
+    std::cout << "  Stopping criteria:\n";
+    std::cout << "    stop_mode = steps\n";
+    std::cout << "    stop_mode = voltage\n";
+    std::cout << "    VCut = 3.2\n\n";
 
     std::cout << "  Example command:\n";
     std::cout << "    mpirun -np 4 ./battery_simulation -cfg ../inputs/run_config.txt\n\n";

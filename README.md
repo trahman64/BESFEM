@@ -126,6 +126,7 @@ mesh_type = v
 cathode_distance = ../inputs/dummy.gf
 anode_distance = ../inputs/dummy.gf
 
+stop_mode = steps
 num_steps = 1000
 
 combine_particles = false
@@ -174,18 +175,24 @@ init_BvE = -0.10
 
 * `anode_distance`
 
+* `combine_particles`
+
+  * `true` — treat all particles as a single particle.
+  * `false` — solve each particle independently.
+
 ---
 
-### Runtime
+### Stopping Criteria
+
+* `stop_mode`
+  * Choose how the simulation will stop - either by steps or voltage.
 
 * `num_steps`
 
   * Total number of timesteps.
 
-* `combine_particles`
-
-  * `true` — treat all particles as a single particle.
-  * `false` — solve each particle independently.
+* `VCut`
+  * Cut Off Voltage.
 
 ---
 
