@@ -25,10 +25,10 @@ TIFFReader::TIFFReader(const char* filePath, const Constraints& constraints) {
     TIFFGetField(tiff, TIFFTAG_PHOTOMETRIC, &photo);
     TIFFGetField(tiff, TIFFTAG_PLANARCONFIG, &planar);
 
-    // std::cout << "spp=" << spp
-    //         << " bps=" << bps
-    //         << " photometric=" << photo
-    //         << " planar=" << planar << "\n";
+    std::cout << "spp=" << spp
+            << " bps=" << bps
+            << " photometric=" << photo
+            << " planar=" << planar << "\n";
 
 }
 
@@ -114,6 +114,8 @@ void TIFFReader::readinfo()
     const int min_value = *observed_values.begin();
     const int max_value = *observed_values.rbegin();
 
+    std::cout << "[TIFFReader] Min Value: " << min_value << ", Max Value: " << max_value << std::endl;
+
     const bool is_binary_01 =
         observed_values.size() <= 2 &&
         min_value == 0 &&
@@ -122,12 +124,18 @@ void TIFFReader::readinfo()
     const bool is_binary_255 =
         observed_values.size() <= 2 &&
         min_value == 0 &&
-        max_value == 255;
+        max_value < 255;
+
+    const bool is_grayscale =
+        observed_values.size() > 20 &&
+        min_value == 0 &&
+        max_value <= 255;
 
     const bool is_label_tiff =
+        !is_binary_01 &&
         !is_binary_255 &&
-        max_value > 1 &&
-        max_value < 255;
+        !is_grayscale &&
+        max_value > 1;
 
     if (is_label_tiff) {
         if (mfem::Mpi::WorldRank() == 0) {

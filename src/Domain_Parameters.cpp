@@ -1,7 +1,6 @@
 #include "../include/Constants.hpp"
 #include "../include/Initialize_Geometry.hpp"
 #include "../include/Domain_Parameters.hpp"
-#include "../include/MaterialProperties.hpp"
 #include "../include/readtiff.h"
 #include "mfem.hpp"
 #include <tiffio.h>
@@ -64,11 +63,8 @@ void Domain_Parameters::SetupDomainParameters(const char* mesh_type){
         std::ostringstream name_AvE;
 
         name << "ps_label_" << particle_labels[k];
-        // ps[k]->SaveAsOne(name.str().c_str());
         name_AvP << "AvP_" << particle_labels[k];
-        // AvPs[k]->SaveAsOne(name_AvP.str().c_str());
         name_AvE << "AvE_" << particle_labels[k];
-        // AvEs[k]->SaveAsOne(name_AvE.str().c_str());
     }
 
 
@@ -78,7 +74,6 @@ void Domain_Parameters::SetupDomainParameters(const char* mesh_type){
         {
             std::ostringstream name;
             name << "AvP_" << particle_labels[j] << "_" << particle_labels[k];
-            // AvP_Pairs[j][k]->SaveAsOne(name.str().c_str());
         }
     }
 
@@ -197,23 +192,23 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
 
         nV = pmesh->GetNV();
 
-        if (strcmp(mesh_type, "ml") == 0) {
-            for (int vi = 0; vi < nV; vi++) {
-                (*psi)(vi) = 0.5 * (1.0 + tanh((*g)(vi) / (Constants::zeta * cfg.dh))); // matlab
-                (*AvP)(vi) = -(pow(tanh((*g)(vi) / (Constants::zeta * cfg.dh)), 2) - 1.0) / (2 * Constants::zeta * cfg.dh); // matlab
+        // if (strcmp(mesh_type, "ml") == 0) {
+        //     for (int vi = 0; vi < nV; vi++) {
+        //         (*psi)(vi) = 0.5 * (1.0 + tanh((*g)(vi) / (Constants::zeta * cfg.dh))); // matlab
+        //         (*AvP)(vi) = -(pow(tanh((*g)(vi) / (Constants::zeta * cfg.dh)), 2) - 1.0) / (2 * Constants::zeta * cfg.dh); // matlab
 
-                (*pse)(vi) = 1.0 - (*psi)(vi);
+        //         (*pse)(vi) = 1.0 - (*psi)(vi);
 
-                if ((*psi)(vi) < 0) { (*psi)(vi) = 0; }
-                if ((*psi)(vi) > 1) { (*psi)(vi) = 1; }
+        //         if ((*psi)(vi) < 0) { (*psi)(vi) = 0; }
+        //         if ((*psi)(vi) > 1) { (*psi)(vi) = 1; }
 
-                if ((*pse)(vi) < 0) { (*pse)(vi) = 0; }
-                if ((*pse)(vi) > 1) { (*pse)(vi) = 1; }
+        //         if ((*pse)(vi) < 0) { (*pse)(vi) = 0; }
+        //         if ((*pse)(vi) > 1) { (*pse)(vi) = 1; }
 
-                (*psi)(vi) += 1.0e-6; // Avoid zero values
-                (*pse)(vi) += 1.0e-6; // Avoid zero values
-            }
-        }
+        //         (*psi)(vi) += 1.0e-6; // Avoid zero values
+        //         (*pse)(vi) += 1.0e-6; // Avoid zero values
+        //     }
+        // }
 
         if (strcmp(mesh_type, "v") == 0) {
 
@@ -612,7 +607,7 @@ void Domain_Parameters::CalculatePhasePotentialsAndTargetCurrent() {
 
 void Domain_Parameters::CalculateTargetCurrent(double total_psi, double &global_total, sim::MaterialType material) {
 
-    double rho = MaterialProperties::SiteDensity(material);
+    double rho = 0.0501;
 
     // Compute target current based on total Psi, rho, Cr, and constants
     trgI = total_psi * rho * (0.95 - 0.3) / (3600.0 / cfg.Cr); // bounds of cathode 

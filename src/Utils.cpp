@@ -1,7 +1,6 @@
 #include "../include/Utils.hpp"
 #include "../include/Constants.hpp"
 #include "../include/SimulationConfig.hpp"
-#include "../include/MaterialProperties.hpp"
 
 #include <numeric>
 
@@ -83,21 +82,21 @@ void Utils::CalculateGlobalError(mfem::ParGridFunction &px0, mfem::ParGridFuncti
     globalerror /= gtPsx;
 }
 
-void Utils::ComputePairFlux(mfem::ParGridFunction &sum_part, mfem::ParGridFunction &weight, mfem::ParGridFunction &grad_psi, mfem::ParGridFunction &mu_1, mfem::ParGridFunction &mu_2)
-{
-    for (int vi = 0; vi < nV_; vi++){
+// void Utils::ComputePairFlux(mfem::ParGridFunction &sum_part, mfem::ParGridFunction &weight, mfem::ParGridFunction &grad_psi, mfem::ParGridFunction &mu_1, mfem::ParGridFunction &mu_2)
+// {
+//     for (int vi = 0; vi < nV_; vi++){
 
-        double grad_psi_val = grad_psi(vi);
-        double weight_val = weight(vi);
-        double mu1_val = mu_1(vi);
-        double mu2_val = mu_2(vi);
+//         double grad_psi_val = grad_psi(vi);
+//         double weight_val = weight(vi);
+//         double mu1_val = mu_1(vi);
+//         double mu2_val = mu_2(vi);
 
-        const double rho = MaterialProperties::SiteDensity(cfg.cathode_materials[0]);
+//         const double rho = MaterialProperties::SiteDensity(cfg.cathode_materials[0]);
 
-        sum_part(vi) = weight_val * grad_psi_val * rho * (1.0/Constants::RT) * Constants::Perm * (mu2_val - mu1_val);
-    }
+//         sum_part(vi) = weight_val * grad_psi_val * rho * (1.0/Constants::RT) * Constants::Perm * (mu2_val - mu1_val);
+//     }
 
-}
+// }
 
 // Full Cell
 void Utils::SaveSimulationSnapshot(int t, const std::string &outdir, Initialize_Geometry &geometry, Domain_Parameters &domain_parameters, mfem::ParGridFunction &phA,

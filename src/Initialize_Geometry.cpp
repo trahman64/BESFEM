@@ -636,13 +636,26 @@ std::vector<std::vector<std::vector<int>>> Initialize_Geometry::ReadTiffFile(con
 	args.Depth_end = 1;	//only read in one slice for 2D data
 	// get a smaller subset so it runs faster
 	args.Row_begin    = 0;
-	args.Row_end      = 100;
-	args.Column_begin = 0;
-	args.Column_end   = 100;
+	args.Row_end      = -1;
+	args.Column_begin = 160;
+	args.Column_end   = 660;
 	TIFFReader reader(meshFile,args);
 	reader.readinfo();
 	std::vector<std::vector<std::vector<int>>> tiffData;
 	tiffData = reader.getImageData();
+
+    // if (combine_particle_groups) {
+    //     if (mfem::Mpi::WorldRank() == 0) {
+    //         std::cout << "[Initialize_Geometry] combine_particle_groups=true: thresholding TIFF voxel values to binary 0/1 mask.\n";
+    //     }
+    //     for (auto &slice : tiffData) {
+    //         for (auto &row : slice) {
+    //             for (int &v : row) {
+    //                 v = (v > 0) ? 1 : 0;
+    //             }
+    //         }
+    //     }
+    // }
 
     SaveTiffDataToPGM(tiffData, "tiff_debug.pgm");
 

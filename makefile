@@ -15,23 +15,6 @@ CXXFLAGS = -g -O3 -std=c++17 -w
 INCLUDE_FLAGS := $(MFEM_INCFLAGS)
 LIB_FLAGS     := $(MFEM_LIBS)
 
-# INCLUDE_FLAGS = -I$(MFEM_DIR) -I$(MFEM_BUILD_DIR) \
-#                 -I../../../../hypre/src/hypre/include
-# LIB_FLAGS = -L$(MFEM_BUILD_DIR) -lmfem \
-#             -L../../../../hypre/src/hypre/lib -lHYPRE \
-#             -L../../../../metis-4.0 -lmetis -lrt
-
-# Source files for the simulation
-# SRC_FILES = simulation.cpp Constants.cpp \
-#             Concentrations_Base.cpp CnP.cpp CnE.cpp \
-#             Potentials_Base.cpp PotP.cpp PotE.cpp \
-#             Reaction.cpp Current.cpp Initialize_Geometry.cpp \
-#             Domain_Parameters.cpp readtiff.cpp
-
-# SRC_FILES = simulation.cpp ../code/Constants.cpp ../code/Initialize_Geometry.cpp readtiff.cpp Domain_Parameters.cpp \
-#             Concentrations_Base.cpp CnP.cpp CnE.cpp CnCH.cpp ../code/SolverSteps.cpp  \
-#             Potentials_Base.cpp PotP.cpp PotE.cpp Reaction.cpp Current.cpp
-
 # Source files
 SRC_FILES = \
     src/SimulationConfig.cpp \
@@ -40,35 +23,14 @@ SRC_FILES = \
     src/Initialize_Geometry.cpp \
     src/readtiff.cpp \
     src/Domain_Parameters.cpp \
-    src/BoundaryConditions.cpp \
-    src/Concentrations_Base.cpp \
-    src/ElectrolyteDiffusion.cpp \
-    src/ElectrodeCahnHilliard.cpp \
-    src/ElectrodeDiffusion.cpp \
-    src/Reaction.cpp \
-    src/FEMOperators.cpp \
-    src/Potentials_Base.cpp \
-    src/Adjust.cpp \
     src/Utils.cpp \
-    src/dist_solver.cpp \
-    src/SimulationState.cpp \
-    src/MaterialProperties.cpp \
-    src/ElectrodePotential.cpp \
-    src/ElectrolytePotential.cpp
-
-# SRC_FILES = example.cpp
-            
+    src/dist_solver.cpp
 
 # Output executable
-# EXEC = simulation
-# EXEC = serial_simulation
 EXEC_DIR = bin
 EXEC_NAME = battery_simulation
-# EXEC_NAME = example
-# EXEC_NAME = full_cell
 EXEC = $(EXEC_DIR)/$(EXEC_NAME)
 
-# ====================================
 
 # ================== Test sources ==================
 TEST_DIR    := tests

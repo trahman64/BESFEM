@@ -9,12 +9,12 @@ electrode = cathode
 # GEOMETRY
 # ============================================================
 
-mesh_file = ../inputs/colored_labels_labels.tif
+mesh_file = ../inputs/michigan.tif
 mesh_type = v
 
 cathode_distance = ../inputs/dummy.gf
 
-combine_particles = false
+combine_particles = true
 
 # ============================================================
 # NUMERICAL PARAMETERS
@@ -28,8 +28,8 @@ gc = 3.38e-10
 # STOPPING CRITERIA
 # ============================================================
 
-stop_mode = voltage        # options: steps, voltage
-VCut = 3.454
+stop_mode = steps        # options: steps, voltage
+num_steps = 1001
 
 # ============================================================
 # CURRENT CONTROL
