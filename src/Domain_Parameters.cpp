@@ -421,6 +421,12 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
                 ComputeWeight(*WeightEs[k], *AvEs[k]);
             }
 
+            WeightEs[0]->SaveAsOne("debug_WeightE_0.gf");
+            AvEs[0]->SaveAsOne("debug_AvE_0.gf");
+            AvPs[0]->SaveAsOne("debug_AvP_0.gf");
+            ps[0]->SaveAsOne("debug_ps_0.gf");
+            pse->SaveAsOne("debug_pse.gf");
+
             for (int j = 0; j < (int)ps.size(); ++j)
             {
                 for (int k = j + 1; k < (int)ps.size(); ++k)

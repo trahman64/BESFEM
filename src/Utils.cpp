@@ -203,11 +203,11 @@ void Utils::SaveSimulationSnapshotMulti(int t, const std::string &outdir, Initia
             raw_name << outdir << "/CnC_" << (k + 1) << suff;
             masked_name << outdir << "/C" << (k + 1) << "_out" << suff;
 
-            particle_cn[k]->SaveAsOne(raw_name.str().c_str());
+            // particle_cn[k]->SaveAsOne(raw_name.str().c_str());
 
             *particle_out[k] = *particle_cn[k];
             *particle_out[k] *= *domain_parameters.ps[k];
-            particle_out[k]->SaveAsOne(masked_name.str().c_str());
+            // particle_out[k]->SaveAsOne(masked_name.str().c_str());
         }
 
         // Build union mask and denominator

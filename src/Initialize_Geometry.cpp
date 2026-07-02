@@ -465,22 +465,22 @@ void Initialize_Geometry::AssignGlobalValues(const char* meshFile, const char* d
         int ny = tiffData[0].size();
         int nx = tiffData[0][0].size();
 
-        int ex = (nx - 1) / 2;
-        int ey = (ny - 1) / 2;
+        const int coarsen = 1.0;
 
-        int vx = ex + 1;   // number of x nodes = 51
-        int vy = ey + 1;   // number of y nodes = 51
+        int ex = (nx - 1) / coarsen;
+        int ey = (ny - 1) / coarsen;
+
+        int vx = ex + 1;
+        int vy = ey + 1;
 
         *this->gVox = 0.0;
 
         for (int j = 0; j < vy; j++) {
             for (int i = 0; i < vx; i++) {
-
-                int ii = std::min(2 * i, nx - 1);
-                int jj = std::min(2 * j, ny - 1);
+                int ii = std::min(coarsen * i, nx - 1);
+                int jj = std::min(coarsen * j, ny - 1);
 
                 int idx = i + vx * j;
-
                 (*this->gVox)[idx] = tiffData[0][jj][ii];
             }
         }
@@ -635,10 +635,10 @@ std::vector<std::vector<std::vector<int>>> Initialize_Geometry::ReadTiffFile(con
 	args.Depth_begin = 0;	//only read in one slice for 2D data
 	args.Depth_end = 1;	//only read in one slice for 2D data
 	// get a smaller subset so it runs faster
-	args.Row_begin    = 0;
+	args.Row_begin    = 30;
 	args.Row_end      = 100;
 	args.Column_begin = 0;
-	args.Column_end   = 100;
+	args.Column_end   = 80;
 	TIFFReader reader(meshFile,args);
 	reader.readinfo();
 	std::vector<std::vector<std::vector<int>>> tiffData;
@@ -665,9 +665,11 @@ std::unique_ptr<mfem::Mesh> Initialize_Geometry::CreateGlobalMeshFromTiffData(co
 
     // std::cout << "sz: " << sz << " sx: " << sx << " sy: " << sy << std::endl;
 
-    int ex = (nx - 1) / 2;
-    int ey = (ny - 1) / 2;
-    int ez = (nz == 1) ? 1 : (nz - 1) / 2;
+    const int coarsen = 1.0;
+
+    int ex = (nx - 1) / coarsen;
+    int ey = (ny - 1) / coarsen;
+    int ez = (nz == 1) ? 1 : (nz - 1) / coarsen;
 
     // std::cout << "ez: " << ez << " ex: " << ex << " ey: " << ey << std::endl;
 
@@ -942,7 +944,7 @@ void Initialize_Geometry::ComputePDEFilter(mfem::ParGridFunction &dist, mfem::Pa
 
 
     // ------------------ PDEFilter ------------------
-    const double filter_weight = 3 * dx;
+    const double filter_weight = 3.0 * dx;
     mfem::common::PDEFilter filter(*parallelMesh, filter_weight);
     filter.Filter(ls_coeff_dg, filt_dg);
 
@@ -952,6 +954,9 @@ void Initialize_Geometry::ComputePDEFilter(mfem::ParGridFunction &dist, mfem::Pa
     }
 
     mfem::GridFunctionCoefficient ls_filt_coeff(&filt_dg);
+
+    ls_coeff_dg.SaveAsOne("ls_coeff_dg.gf");
+    filt_dg.SaveAsOne("filt_dg.gf");
 
     filt_gf.ProjectGridFunction(filt_dg);
 }
@@ -1084,7 +1089,7 @@ void Initialize_Geometry::ComputePDEFilterLabel(mfem::ParGridFunction &dist,
     ls_coeff_dg.ProjectCoefficient(fg_coeff);
 
     // ------------------ PDEFilter ------------------
-    const double filter_weight = 3 * dx;
+    const double filter_weight = 3.0 * dx;
     mfem::common::PDEFilter filter(*parallelMesh, filter_weight);
     filter.Filter(ls_coeff_dg, filt_dg);
 

@@ -159,6 +159,7 @@ void ElectrolytePotential::UpdatePotential(mfem::ParGridFunction &Rx1, mfem::Par
     RpE = Rx2;
     RpE += Rx1;
     RpE.Neg(); // check and see if this should be negative
+    // RpE *= -Constants::Frd;
     
     Bl2 = std::make_unique<mfem::ParLinearForm>(fespace.get());
     Bl2->AddDomainIntegrator(new mfem::DomainLFIntegrator(cRe));
@@ -188,6 +189,7 @@ void ElectrolytePotential::UpdatePotential(mfem::ParGridFunction &Rx, mfem::ParG
 {
     RpE = Rx;
     RpE.Neg();
+    // RpE *= -Constants::Frd;
 
     Bl2->Assemble();
     Flt = *Bl2;

@@ -77,11 +77,13 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
             mu = ((mu / (-1*Constants::Frd)) - 3.4) * -1;
         }
 
-        Mub(i) = mu;
+        // Mub(i) = mu;
 
 
         Mub(i) = mu;
         Mob(i) = psx(i) * MaterialProperties::Mobility(material, val);
+        // Mob(i) = psx(i) * 0.0;
+
     }
 
     Cn.GetTrueDofs(CpV0);
