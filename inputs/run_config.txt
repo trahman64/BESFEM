@@ -9,7 +9,7 @@ electrode = cathode
 # GEOMETRY
 # ============================================================
 
-mesh_file = ../inputs/michigan.tif
+mesh_file = ../inputs/circle.tif
 mesh_type = v
 
 cathode_distance = ../inputs/dummy.gf
