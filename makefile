@@ -1,8 +1,8 @@
 # General MFEM configuration
-#MFEM_DIR ?= ../../..
-#MFEM_BUILD_DIR ?= ../../..
-#CONFIG_MK = $(MFEM_BUILD_DIR)/config/config.mk
-CONFIG_MK = $(MFEM_BUILD_DIR)/share/mfem/config.mk
+MFEM_DIR ?= $(HOME)/Research/MFEM/mfem-4.7
+MFEM_BUILD_DIR ?= $(HOME)/Research/MFEM/mfem-4.7
+CONFIG_MK = $(MFEM_BUILD_DIR)/config/config.mk
+#CONFIG_MK = $(MFEM_BUILD_DIR)/share/mfem/config.mk
 
 # Include MFEM's configuration
 -include $(CONFIG_MK)
@@ -94,7 +94,8 @@ all: $(EXEC)
 # Compile the simulation target
 $(EXEC): $(SRC_FILES)
 	@mkdir -p $(EXEC_DIR)
-	$(CXX) $(CXXFLAGS) $(INCLUDE_FLAGS) $^ -o $@ $(LIB_FLAGS) $(LDFLAGS)
+	$(MFEM_CXX) $(MFEM_FLAGS) -std=c++17 -w $(INCLUDE_FLAGS) $^ -o $@ $(LIB_FLAGS) $(LDFLAGS)
+	#$(CXX) $(CXXFLAGS) $(INCLUDE_FLAGS) $^ -o $@ $(LIB_FLAGS) $(LDFLAGS)
 
 
 # Pattern rule for test objects
