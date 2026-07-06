@@ -21,6 +21,9 @@ int main(int argc, char *argv[]) {
     mfem::Mpi::Init(argc, argv);
     mfem::Hypre::Init();
 
+    mfem::Device device("cuda");
+    device.Print();
+
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
