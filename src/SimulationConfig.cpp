@@ -264,6 +264,9 @@ static void ApplyConfigFile(SimulationConfig& cfg)
     if (HasKey(data, "VCut"))
         cfg.VCut = std::stod(GetValue(data, "VCut"));
 
+    if (HasKey(data, "amr_levels"))
+        cfg.amr_levels = std::stoi(GetValue(data, "amr_levels"));
+
         
 }
 

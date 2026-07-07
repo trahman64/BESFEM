@@ -256,6 +256,123 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
         }
 
         // -------------------------------------------------
+        // AMR SECTION
+        // -------------------------------------------------
+        if (cfg.amr_levels > 0)
+        {
+            for (int lev = 0; lev < cfg.amr_levels; ++lev)
+            {
+                const int dim = pmesh->Dimension();
+
+                mfem::ParGridFunction dphase(fespace.get());
+                mfem::ParGridFunction grad_mag(fespace.get());
+
+                grad_mag = 0.0;
+
+                for (int d = 0; d < dim; ++d)
+                {
+                    dphase = 0.0;
+                    psi->GetDerivative(1, d, dphase);
+                    dphase *= dphase;
+                    grad_mag += dphase;
+
+                }
+
+                mfem::Array<int> refinement_list;
+
+                // for (int ei = 0; ei < pmesh->GetNE(); ++ei)
+                // {
+                //     mfem::Array<double> nvals;
+                //     grad_mag.GetNodalValues(ei, nvals);
+
+                //     double ave_val = 0.0;
+                //     for (int j = 0; j < nvals.Size(); ++j)
+                //     {
+                //         ave_val += nvals[j];
+                //     }
+                //     ave_val /= 4;
+
+                //     if (ave_val > 10.0)
+                //     {
+                //         refinement_list.Append(ei);
+                //     }
+                // }
+
+                for (int ei = 0; ei < pmesh->GetNE(); ei++)
+                {
+                    mfem::Array<double> psi_vals;
+                    psi->GetNodalValues(ei, psi_vals);
+
+                    double psi_avg = 0.0;
+                    for (int j = 0; j < psi_vals.Size(); j++)
+                    {
+                        psi_avg += psi_vals[j];
+                    }
+                    psi_avg /= psi_vals.Size();
+
+                    if (psi_avg > 0.05 && psi_avg < 0.95)
+                    {
+                        refinement_list.Append(ei);
+                    }
+                }
+
+                if (mfem::Mpi::WorldRank() == 0)
+                {
+                    std::cout << "[AMR] level " << lev + 1
+                            << ": marked " << refinement_list.Size()
+                            << " / " << pmesh->GetNE()
+                            << " elements" << std::endl;
+                }
+
+                if (refinement_list.Size() == 0) { break; }
+
+                pmesh->GeneralRefinement(refinement_list);
+
+                // Update finite element space after mesh refinement
+                fespace->Update();
+
+                // Update all existing grid functions attached to this fespace
+                psi->Update();
+                pse->Update();
+                AvP->Update();
+                AvB->Update();
+                AvE->Update();
+
+                for (int k = 0; k < (int)ps.size(); ++k)
+                {
+                    ps[k]->Update();
+                    AvPs[k]->Update();
+                    AvEs[k]->Update();
+                    WeightEs[k]->Update();
+                }
+
+                for (int j = 0; j < (int)ps.size(); ++j)
+                {
+                    for (int k = 0; k < (int)ps.size(); ++k)
+                    {
+                        if (k != j)
+                        {
+                            AvP_Pairs[j][k]->Update();
+                            psi_Pairs[j][k]->Update();
+                            WeightPairs[j][k]->Update();
+                        }
+                    }
+                }
+
+                denom->Update();
+
+                // Refresh mesh counts after AMR
+                nV = pmesh->GetNV();
+                nE = pmesh->GetNE();
+                nC = pmesh->GetElement(0)->GetNVertices();
+
+                // Optional debug output
+                pmesh->SaveAsOne("test_pmesh_amr.mesh");
+                psi->SaveAsOne("test_psi_amr.gf");
+            }
+        }
+
+        // -------------------------------------------------
         // MULTI PARTICLE AvP
         // -------------------------------------------------
 
