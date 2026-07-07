@@ -326,24 +326,75 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
 
                 if (refinement_list.Size() == 0) { break; }
 
+                // pmesh->GeneralRefinement(refinement_list);
+
+                // // Update finite element space after mesh refinement
+                // fespace->Update();
+
+                // // Update all existing grid functions attached to this fespace
+                // psi->Update();
+                // pse->Update();
+                // AvP->Update();
+                // AvB->Update();
+                // AvE->Update();
+
+                // for (int k = 0; k < (int)ps.size(); ++k)
+                // {
+                //     ps[k]->Update();
+                //     AvPs[k]->Update();
+                //     AvEs[k]->Update();
+                //     WeightEs[k]->Update();
+                // }
+
+                // for (int j = 0; j < (int)ps.size(); ++j)
+                // {
+                //     for (int k = 0; k < (int)ps.size(); ++k)
+                //     {
+                //         if (k != j)
+                //         {
+                //             AvP_Pairs[j][k]->Update();
+                //             psi_Pairs[j][k]->Update();
+                //             WeightPairs[j][k]->Update();
+                //         }
+                //     }
+                // }
+
+                // denom->Update();
+
+                // // Refresh mesh counts after AMR
+                // nV = pmesh->GetNV();
+                // nE = pmesh->GetNE();
+                // nC = pmesh->GetElement(0)->GetNVertices();
+
+                // // Optional debug output
+                // pmesh->SaveAsOne("test_pmesh_amr.mesh");
+                // psi->SaveAsOne("test_psi_amr.gf");
+
                 pmesh->GeneralRefinement(refinement_list);
 
-                // Update finite element space after mesh refinement
-                fespace->Update();
+                geometry.parfespace->Update();
+                const mfem::Operator *T = geometry.parfespace->GetUpdateOperator();
 
-                // Update all existing grid functions attached to this fespace
-                psi->Update();
-                pse->Update();
-                AvP->Update();
-                AvB->Update();
-                AvE->Update();
+                auto UpdateGF = [&](std::unique_ptr<mfem::ParGridFunction> &gf)
+                {
+                    mfem::ParGridFunction old_gf(*gf);
+                    gf->Update();
+                    T->Mult(old_gf, *gf);
+                };
+
+                UpdateGF(psi);
+                UpdateGF(pse);
+                UpdateGF(AvP);
+                UpdateGF(AvB);
+                UpdateGF(AvE);
+                UpdateGF(denom);
 
                 for (int k = 0; k < (int)ps.size(); ++k)
                 {
-                    ps[k]->Update();
-                    AvPs[k]->Update();
-                    AvEs[k]->Update();
-                    WeightEs[k]->Update();
+                    UpdateGF(ps[k]);
+                    UpdateGF(AvPs[k]);
+                    UpdateGF(AvEs[k]);
+                    UpdateGF(WeightEs[k]);
                 }
 
                 for (int j = 0; j < (int)ps.size(); ++j)
@@ -352,23 +403,16 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
                     {
                         if (k != j)
                         {
-                            AvP_Pairs[j][k]->Update();
-                            psi_Pairs[j][k]->Update();
-                            WeightPairs[j][k]->Update();
+                            UpdateGF(AvP_Pairs[j][k]);
+                            UpdateGF(psi_Pairs[j][k]);
+                            UpdateGF(WeightPairs[j][k]);
                         }
                     }
                 }
 
-                denom->Update();
-
-                // Refresh mesh counts after AMR
                 nV = pmesh->GetNV();
                 nE = pmesh->GetNE();
                 nC = pmesh->GetElement(0)->GetNVertices();
-
-                // Optional debug output
-                pmesh->SaveAsOne("test_pmesh_amr.mesh");
-                psi->SaveAsOne("test_psi_amr.gf");
             }
         }
 
