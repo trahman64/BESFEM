@@ -344,7 +344,7 @@ int main(int argc, char *argv[]) {
 
                         }
 
-                        state.Rxn_gf->SaveAsOne("rxn_degbug");
+                        // state.Rxn_gf->SaveAsOne("rxn_degbug");
                     }
 
 

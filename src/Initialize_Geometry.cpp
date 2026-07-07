@@ -636,9 +636,9 @@ std::vector<std::vector<std::vector<int>>> Initialize_Geometry::ReadTiffFile(con
 	args.Depth_end = 1;	//only read in one slice for 2D data
 	// get a smaller subset so it runs faster
 	args.Row_begin    = 30;
-	args.Row_end      = 100;
-	args.Column_begin = 0;
-	args.Column_end   = 80;
+	args.Row_end      = 80;
+	args.Column_begin = 10;
+	args.Column_end   = 70;
 	TIFFReader reader(meshFile,args);
 	reader.readinfo();
 	std::vector<std::vector<std::vector<int>>> tiffData;

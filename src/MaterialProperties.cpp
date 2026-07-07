@@ -139,7 +139,7 @@ namespace MaterialProperties
     {
         c = std::min(1.0 - 1.0e-8, std::max(1.0e-8, c));
 
-        const double Mmin = 8.5e-13;
+        const double Mmin = 5.0e-12;
         const double B    = 5.0e-14;
 
         const double A1 = 4.5e-12;

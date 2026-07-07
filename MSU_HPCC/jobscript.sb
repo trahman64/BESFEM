@@ -1,6 +1,6 @@
 #!/bin/bash --login
 # Job name: 
-#SBATCH --job-name=slurm_besfem-config-tiff-72hr-8e-07-1.38e-14
+#SBATCH --job-name=slurm_besfem-config-tiff-4hr-8e-07-1.0e-12-mob-small-geo-dt
 
 # Number of nodes
 #SBATCH --nodes=2
