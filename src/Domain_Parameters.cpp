@@ -27,8 +27,15 @@ static inline void GlobalMinMax(const mfem::ParGridFunction& gf,
         if (v < lmin) lmin = v;
         if (v > lmax) lmax = v;
     }
+
+
     MPI_Allreduce(&lmin, &gmin, 1, MPI_DOUBLE, MPI_MIN, comm);
     MPI_Allreduce(&lmax, &gmax, 1, MPI_DOUBLE, MPI_MAX, comm);
+    
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    std::cout << "rank: " << rank << ", lmin: " << lmin << ", Min: " << gf.Min() 
+		<<  ", lmax: " << lmax << ", Max: " << gf.Max() << std::endl;
 }
 
 double gTrgI = 0.0;
@@ -218,8 +225,18 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
         if (strcmp(mesh_type, "v") == 0) {
 
             MFEM_VERIFY(geometry.Vox, "geometry.Vox is not initialized.");
+		/*
+		// make sure that host (cpu) memory is synched with device (gpu) memory
+		std::cout << "pse use device" << pse->UseDevice() << std::endl;
+		auto hmfpse = geometry.MaskFilterPse->HostRead();
+		auto dmfpse = geometry.MaskFilterPse->Read();
+		std::cout << "host:   " << hmfpse[0] << endl;
+		std::cout << "device: " << dmfpse[0] << endl;
+		*/
 
             *pse = *geometry.MaskFilterPse;
+		std::cout << "pse: " << pse->Min() << " " << pse->Max() << std::endl;
+            //*pse = *hmfpse;
 
             *psi = 0.0;
 
@@ -228,12 +245,16 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
 
             for (int k = 0; k < (int)ps.size(); ++k)
             {
+		//auto hmf = geometry.MaskFilters[k]->HostRead();
                 *ps[k] = *geometry.MaskFilters[k];
+		std::cout << "ps: " << ps[k]->Min() << " " << ps[k]->Max() << std::endl;
+                //*ps[k] = *hmf;
                 *psi += *ps[k];
             }
 
             for (int i = 0; i < psi->Size(); i++)
             {
+		std::cout << i << ", " << (*psi)(i) << ", " << (*pse)(i) << ", " << psi->Min() << "," << psi->Max() << std::endl;
                 if ((*psi)(i) < 0.0) { (*psi)(i) = 0.0; }
                 if ((*psi)(i) > 1.0) { (*psi)(i) = 1.0; }
 
@@ -243,6 +264,11 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
                 (*psi)(i) += 1.0e-6;
                 (*pse)(i) += 1.0e-6;
             }
+    
+    			//int rank;
+    			//MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+		    //std::cout << "rank: " << rank << ", Min: " << psi->Min() <<  ", Max: " << psi->Max() << std::endl;
+		    //std::cout << "rank: " << rank << ", Min: " << pse->Min() <<  ", Max: " << pse->Max() << std::endl;
 
             for (int k = 0; k < (int)ps.size(); ++k)
             {
@@ -251,7 +277,9 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
                     if ((*ps[k])(i) < 0.0) { (*ps[k])(i) = 0.0; }
                     if ((*ps[k])(i) > 1.0) { (*ps[k])(i) = 1.0; }
                     (*ps[k])(i) += 1.0e-6;
+			//std::cout << i << std::endl;
                 }
+    			//std::cout << "rank: " << rank << ", Min: " << ps[k]->Min() <<  ", Max: " << ps[k]->Max() << std::endl;
             }
         }
 

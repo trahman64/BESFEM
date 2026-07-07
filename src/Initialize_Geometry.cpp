@@ -187,8 +187,10 @@ void Initialize_Geometry::InitializeMesh(const char* meshFile, const char* dista
         MaskFilterPse = std::make_unique<mfem::ParGridFunction>(parfespace.get());   // electrolyte
 
         // Keep your old total-solid and electrolyte filters
+        std::cout << distMask->UseDevice() << " " << MaskFilter->UseDevice() << " " << MaskFilterPse->UseDevice() << endl;
         ComputePDEFilter(*distMask, *MaskFilter,    /*mode=*/0);
         ComputePDEFilter(*distMask, *MaskFilterPse, /*mode=*/1);
+        std::cout << distMask->UseDevice() << " " << MaskFilter->UseDevice() << " " << MaskFilterPse->UseDevice() << endl;
 
         // discover particle labels automatically from TIFF
         particle_labels = GetParticleLabelsFromTiff();
