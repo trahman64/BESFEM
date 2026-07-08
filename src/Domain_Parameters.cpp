@@ -16,10 +16,13 @@
 #include <vector>
 #include <sstream>
 
+#include "general/forall.hpp"
+
 static inline void GlobalMinMax(const mfem::ParGridFunction& gf,
                                 double& gmin, double& gmax,
                                 MPI_Comm comm = MPI_COMM_WORLD)
 {
+    /*
     double lmin =  std::numeric_limits<double>::infinity();
     double lmax = -std::numeric_limits<double>::infinity();
     for (int i = 0; i < gf.Size(); ++i) {
@@ -27,7 +30,10 @@ static inline void GlobalMinMax(const mfem::ParGridFunction& gf,
         if (v < lmin) lmin = v;
         if (v > lmax) lmax = v;
     }
-
+    */
+    
+    double lmin = gf.Min();
+    double lmax = gf.Max();
 
     MPI_Allreduce(&lmin, &gmin, 1, MPI_DOUBLE, MPI_MIN, comm);
     MPI_Allreduce(&lmax, &gmax, 1, MPI_DOUBLE, MPI_MAX, comm);
@@ -104,6 +110,9 @@ void Domain_Parameters::InitializeGridFunctions() {
     AvB = std::make_unique<mfem::ParGridFunction>(fespace.get());
     AvE = std::make_unique<mfem::ParGridFunction>(fespace.get());
 
+    std::cout << "psi use device" << psi->UseDevice() << endl;
+    std::cout << "pse use device" << pse->UseDevice() << endl;
+    
     ps.clear();
     ps.resize(particle_labels.size());
 
@@ -246,24 +255,39 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
             for (int k = 0; k < (int)ps.size(); ++k)
             {
 		//auto hmf = geometry.MaskFilters[k]->HostRead();
+		std::cout << "ps use device" << ps[k]->UseDevice() << std::endl;
+		std::cout << "maskfilters use device" << geometry.MaskFilters[k]->UseDevice() << std::endl;
                 *ps[k] = *geometry.MaskFilters[k];
 		std::cout << "ps: " << ps[k]->Min() << " " << ps[k]->Max() << std::endl;
                 //*ps[k] = *hmf;
                 *psi += *ps[k];
             }
 
-            for (int i = 0; i < psi->Size(); i++)
+            //for (int i = 0; i < psi->Size(); i++)
+            mfem::forall(psi->Size(), [=] MFEM_HOST_DEVICE (int i)
             {
-		std::cout << i << ", " << (*psi)(i) << ", " << (*pse)(i) << ", " << psi->Min() << "," << psi->Max() << std::endl;
-                if ((*psi)(i) < 0.0) { (*psi)(i) = 0.0; }
+                /*if ((*psi)(i) < 0.0) { (*psi)(i) = 0.0; }
                 if ((*psi)(i) > 1.0) { (*psi)(i) = 1.0; }
 
                 if ((*pse)(i) < 0.0) { (*pse)(i) = 0.0; }
-                if ((*pse)(i) > 1.0) { (*pse)(i) = 1.0; }
+                if ((*pse)(i) > 1.0) { (*pse)(i) = 1.0; }*/
 
-                (*psi)(i) += 1.0e-6;
-                (*pse)(i) += 1.0e-6;
+                (*psi)(i) = max( (*psi)(i),0.0 );
+                (*psi)(i) = min( (*psi)(i),1.0 );
+
+                (*pse)(i) = max( (*pse)(i),0.0 );
+                (*pse)(i) = min( (*pse)(i),1.0 );
+                
+                //(*psi)(i) += 1.0e-6;
+                //(*pse)(i) += 1.0e-6;
+             
+                //std::cout << i << " " << (*psi)(i) << " " << (*pse)(i) << endl;
             }
+            );
+            *psi += 1.0e-6;
+            *pse += 1.0e-6;
+	    std::cout << "psi min and max " << psi->Min() << ", " << psi->Max() << std::endl;
+	    std::cout << "pse min and max " << pse->Min() << ", " << pse->Max() << std::endl;
     
     			//int rank;
     			//MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -272,13 +296,19 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
 
             for (int k = 0; k < (int)ps.size(); ++k)
             {
-                for (int i = 0; i < ps[k]->Size(); ++i)
+                //for (int i = 0; i < ps[k]->Size(); ++i)
+                mfem::forall(ps[k]->Size(), [=] MFEM_HOST_DEVICE (int i)
                 {
-                    if ((*ps[k])(i) < 0.0) { (*ps[k])(i) = 0.0; }
-                    if ((*ps[k])(i) > 1.0) { (*ps[k])(i) = 1.0; }
-                    (*ps[k])(i) += 1.0e-6;
+                    //if ((*ps[k])(i) < 0.0) { (*ps[k])(i) = 0.0; }
+                    //if ((*ps[k])(i) > 1.0) { (*ps[k])(i) = 1.0; }
+                    (*ps[k])(i) = max( (*ps[k])(i),0.0 );
+                    (*ps[k])(i) = min( (*ps[k])(i),1.0 );
+                    //(*ps[k])(i) += 1.0e-6;
 			//std::cout << i << std::endl;
                 }
+                );
+                *ps[k] += 1.0e-6;
+	        std::cout << "ps[k] min and max " << ps[k]->Min() << ", " << ps[k]->Max() << std::endl;
     			//std::cout << "rank: " << rank << ", Min: " << ps[k]->Min() <<  ", Max: " << ps[k]->Max() << std::endl;
             }
         }
@@ -342,12 +372,14 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
                 out *= 4.0;
 
                 for (int vi = 0; vi < out.Size(); ++vi)
+                //mfem::forall(out.Size(), [=] MFEM_HOST_DEVICE (int vi)
                 {
                     if (out(vi) > 9000.0)
                     {
                         out(vi) = 1.4e4;
                     }
                 }
+                //);
             };
 
             auto BuildElectrolyteInterface = [&](mfem::ParGridFunction &out,

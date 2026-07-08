@@ -31,6 +31,7 @@ int main(int argc, char *argv[]) {
 
     SimulationConfig cfg = ParseSimulationArgs(argc, argv);
     ValidateConfig(cfg, argc, argv);
+    
 
     std::string outdir = Utils::BuildRunOutdir(cfg.mesh_file, cfg.num_timesteps);
     if (mfem::Mpi::WorldRank() == 0)

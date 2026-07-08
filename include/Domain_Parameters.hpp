@@ -55,6 +55,18 @@ public:
      *        - `"v"` voxel-derived mesh  
      */
     void SetupDomainParameters(const char* mesh_type);
+    
+    /**
+     * @brief Project/interpolate distance-function-based parameters.
+     *
+     * Converts dsF / dsF_A / dsF_C into phase indicators ψ, ψₑ and surface-area
+     * fields AvP, etc., depending on mesh type. Clamps values to ensure
+     * physical consistency.
+     *
+     * @param mesh_type Mesh type specifier ("ml", "v").
+     */
+    void InterpolateDomainParameters(const char* mesh_type);
+
 
     // -------------------------------------------------------------------------
     // Phase fields (grid functions)
@@ -130,18 +142,7 @@ private:
     /// Allocate grid functions (psi, pse, AvP, AvA, AvC, AvB).
     void InitializeGridFunctions();
 
-    /**
-     * @brief Project/interpolate distance-function-based parameters.
-     *
-     * Converts dsF / dsF_A / dsF_C into phase indicators ψ, ψₑ and surface-area
-     * fields AvP, etc., depending on mesh type. Clamps values to ensure
-     * physical consistency.
-     *
-     * @param mesh_type Mesh type specifier ("ml", "v").
-     */
-    void InterpolateDomainParameters(const char* mesh_type);
-
-    /**
+     /**
      * @brief Compute the local and global totals of a field.
      *
      * Performs:
