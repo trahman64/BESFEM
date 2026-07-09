@@ -99,13 +99,34 @@ int main(int argc, char *argv[]) {
             
             int t = 0;
 
-            // if (cfg.half_electrode == sim::Electrode::ANODE) {
-            //     VCell = anode_potential->BvA - electrolyte_potential->BvE;
-            // } else {
-            //     VCell = cathode_potential->BvC - electrolyte_potential->BvE;
-            // }
+            while (true) {
 
-            for (int t = 0; t < cfg.num_timesteps; ++t) {
+                double VCell = 0.0;
+
+                if (cfg.half_electrode == sim::Electrode::ANODE)
+                {
+                    VCell = state.anode_potential->GetBoundaryVoltage()
+                        - state.electrolyte_potential->GetBoundaryVoltage();
+                }
+                else
+                {
+                    VCell = state.cathode_potential->GetBoundaryVoltage()
+                        - state.electrolyte_potential->GetBoundaryVoltage();
+                }
+
+                if (cfg.stop_mode == sim::StopMode::STEPS &&
+                    t >= cfg.num_timesteps)
+                {
+                    break;
+                }
+
+                if (cfg.stop_mode == sim::StopMode::VOLTAGE &&
+                    VCell <= cfg.VCut)
+                {
+                    break;
+                }
+
+            // for (int t = 0; t < cfg.num_timesteps; ++t) {
 
                 if (cfg.half_electrode == sim::Electrode::ANODE)
                 {
@@ -326,7 +347,7 @@ int main(int argc, char *argv[]) {
                         int iter = 0;
                         const int max_iter = 50; // Maximum number of iterations to prevent infinite loops
 
-                        while (globalerror_P > 1e-5 || globalerror_E > 1e-5) {
+                        while (globalerror_P > 1e-5 || globalerror_E > 1e-5 && iter < max_iter) {
                             *state.Rxn_gf = 0.0;
 
                             for (int j = 0; j < np; ++j) {
@@ -347,11 +368,6 @@ int main(int argc, char *argv[]) {
                     for (int j = 0; j < np; ++j){
                         state.cathode_particles[j].reaction->TotalReactionCurrent(*state.cathode_particles[j].Rxn_gf, global_currents[j]);
                     }
-
-                    // // debugging
-                    // for (int j = 0; j < np; ++j){
-                    //     *state.cathode_particles[j].Rxn_gf = 0.0;
-                    // }
 
                     double total_current = 0.0;
                     double total_target = 0.0;
@@ -445,6 +461,8 @@ int main(int argc, char *argv[]) {
                     Utils::SaveSimulationSnapshotMulti(t, outdir, geometry, domain_parameters,
                         cathode_cn_fields, state.cathode_out, 5000);
                 }
+
+                t++;
             }
 
         

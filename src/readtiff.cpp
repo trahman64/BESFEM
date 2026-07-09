@@ -25,10 +25,10 @@ TIFFReader::TIFFReader(const char* filePath, const Constraints& constraints) {
     TIFFGetField(tiff, TIFFTAG_PHOTOMETRIC, &photo);
     TIFFGetField(tiff, TIFFTAG_PLANARCONFIG, &planar);
 
-    // std::cout << "spp=" << spp
-    //         << " bps=" << bps
-    //         << " photometric=" << photo
-    //         << " planar=" << planar << "\n";
+    std::cout << "spp=" << spp
+            << " bps=" << bps
+            << " photometric=" << photo
+            << " planar=" << planar << "\n";
 
 }
 
@@ -98,7 +98,30 @@ void TIFFReader::readinfo()
                     gray = static_cast<uint8>(0.299*r + 0.587*g + 0.114*b);
                 }
 
-                const int value = static_cast<int>(gray);
+                int value = 0;
+
+                if (spp >= 3)
+                {
+                    const int idx = static_cast<int>(spp) * col;
+
+                    const uint8 r = p[idx + 0];
+                    const uint8 g = p[idx + 1];
+                    const uint8 b = p[idx + 2];
+
+                    const bool is_white =
+                        r > 240 &&
+                        g > 240 &&
+                        b > 240;
+
+                    // White = electrolyte
+                    value = is_white ? 0 : 1;
+                }
+                else
+                {
+                    value = static_cast<int>(p[col]);
+                }
+
+                // int value = static_cast<int>(gray);
 
                 imageData[page - constraints.Depth_begin]
                          [row  - constraints.Row_begin]
@@ -122,12 +145,18 @@ void TIFFReader::readinfo()
     const bool is_binary_255 =
         observed_values.size() <= 2 &&
         min_value == 0 &&
-        max_value == 255;
+        max_value < 255;
+
+    const bool is_grayscale =
+        observed_values.size() > 20 &&
+        min_value == 0 &&
+        max_value <= 255;
 
     const bool is_label_tiff =
+        !is_binary_01 &&
         !is_binary_255 &&
-        max_value > 1 &&
-        max_value < 255;
+        !is_grayscale &&
+        max_value > 1;
 
     if (is_label_tiff) {
         if (mfem::Mpi::WorldRank() == 0) {
@@ -151,12 +180,7 @@ void TIFFReader::readinfo()
             for (auto &row : slice) {
                 for (int &v : row) {
 
-                    if (first_spp >= 3) {
-                        // RGB case from your old code:
-                        // white = particle
-                        v = (v > 127) ? 1 : 0;
-                    }
-                    else if (first_photo == PHOTOMETRIC_MINISBLACK) {
+                    if (first_photo == PHOTOMETRIC_MINISBLACK) {
                         // MINISBLACK: black is low value
                         // so black particle means v < 127
                         v = (v < 127) ? 1 : 0;
@@ -167,7 +191,6 @@ void TIFFReader::readinfo()
                         v = (v < 127) ? 1 : 0;
                     }
                     else {
-                        // fallback: assume black particle
                         v = (v < 127) ? 1 : 0;
                     }
                 }

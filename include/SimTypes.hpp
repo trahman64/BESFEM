@@ -56,4 +56,17 @@ enum class MaterialType {
     Electrolyte   ///< Electrolyte material
 };
 
+/**
+ * @enum StopMode
+ * @brief Defines the stopping condition for the simulation.
+ * 
+ * - **STEPS**   — Stop after a fixed number of timesteps
+ * - **VOLTAGE** — Stop when the cell voltage reaches a specified threshold
+ */
+enum class StopMode
+{
+    STEPS,
+    VOLTAGE
+};
+
 } // namespace sim

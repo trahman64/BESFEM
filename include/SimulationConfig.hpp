@@ -46,7 +46,7 @@ struct SimulationConfig
     // -------------------------------------------------------------------------
 
     int order = Constants::order; ///< Finite element polynomial order.
-    int num_timesteps = 1000; ///< Number of simulation timesteps.
+    int num_timesteps = -1; ///< Number of simulation timesteps.
 
     bool combine_particle_groups = false; ///< Solve all particle groups as a combined system.
 
@@ -81,7 +81,10 @@ struct SimulationConfig
     double dt = 0.001; ///< Simulation timestep.
     double Cr = 1.0; ///< Applied C-rate.
     double Vsr0 = 2.0; ///< Voltage-adjustment rate for constant-current control.
-    double VCut = 0.0; ///< Cell cutoff voltage.
+
+    sim::StopMode stop_mode = sim::StopMode::STEPS; ///< Simulation stopping condition (by steps or voltage).
+    double VCut = -1.0; ///< Voltage cutoff for stopping the simulation (V).
+
 };
 
 /**
