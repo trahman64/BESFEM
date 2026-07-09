@@ -56,6 +56,7 @@ void Domain_Parameters::SetupDomainParameters(const char* mesh_type){
     AvP->SaveAsOne("AvP");
     AvE->SaveAsOne("AvE");
     AvB->SaveAsOne("AvB");
+    pmesh->SaveAsOne("pmesh");
 
     for (int k = 0; k < (int)ps.size(); ++k)
     {
@@ -326,54 +327,10 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
 
                 if (refinement_list.Size() == 0) { break; }
 
-                // pmesh->GeneralRefinement(refinement_list);
-
-                // // Update finite element space after mesh refinement
-                // fespace->Update();
-
-                // // Update all existing grid functions attached to this fespace
-                // psi->Update();
-                // pse->Update();
-                // AvP->Update();
-                // AvB->Update();
-                // AvE->Update();
-
-                // for (int k = 0; k < (int)ps.size(); ++k)
-                // {
-                //     ps[k]->Update();
-                //     AvPs[k]->Update();
-                //     AvEs[k]->Update();
-                //     WeightEs[k]->Update();
-                // }
-
-                // for (int j = 0; j < (int)ps.size(); ++j)
-                // {
-                //     for (int k = 0; k < (int)ps.size(); ++k)
-                //     {
-                //         if (k != j)
-                //         {
-                //             AvP_Pairs[j][k]->Update();
-                //             psi_Pairs[j][k]->Update();
-                //             WeightPairs[j][k]->Update();
-                //         }
-                //     }
-                // }
-
-                // denom->Update();
-
-                // // Refresh mesh counts after AMR
-                // nV = pmesh->GetNV();
-                // nE = pmesh->GetNE();
-                // nC = pmesh->GetElement(0)->GetNVertices();
-
-                // // Optional debug output
-                // pmesh->SaveAsOne("test_pmesh_amr.mesh");
-                // psi->SaveAsOne("test_psi_amr.gf");
 
                 pmesh->GeneralRefinement(refinement_list);
-
-                geometry.parfespace->Update();
-                const mfem::Operator *T = geometry.parfespace->GetUpdateOperator();
+                fespace->Update();
+                const mfem::Operator *T = fespace->GetUpdateOperator();
 
                 auto UpdateGF = [&](std::unique_ptr<mfem::ParGridFunction> &gf)
                 {
@@ -699,15 +656,15 @@ void Domain_Parameters::CalculateTotals(const mfem::ParGridFunction& grid_functi
     mfem::Vector element_avg_values(nE);
 
     for (int ei = 0; ei < pmesh->GetNE(); ei++) {
-        mfem::Array<double> vertex_values(nC);
+
+        mfem::Array<double> vertex_values;
         grid_function.GetNodalValues(ei, vertex_values);
 
-        // Compute the average value over all corners of the element
         double avg_value = 0.0;
-        for (int vt = 0; vt < nC; vt++) {
+        for (int vt = 0; vt < vertex_values.Size(); vt++) {
             avg_value += vertex_values[vt];
         }
-        avg_value /= nC;
+        avg_value /= vertex_values.Size();
 
         element_avg_values(ei) = avg_value;
 
