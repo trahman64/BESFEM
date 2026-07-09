@@ -337,17 +337,24 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
                     mfem::ParGridFunction phase_tmp(phase_in);
                     phase_tmp.GetDerivative(1, d, dphase);
 
-                    for (int vi = 0; vi < nV; ++vi)
-                    {
-                        const double v = dphase(vi);
-                        AvP_out(vi) += v * v;
-                    }
+                    //for (int vi = 0; vi < nV; ++vi)
+                    //{
+                    //    const double v = dphase(vi);
+                    //    AvP_out(vi) += v * v;
+                    //}
+                    
+                    dphase *= dphase; //square dphase
+                    AvP_out += dphase;
                 }
 
-                for (int vi = 0; vi < nV; ++vi)
+                auto y = AvP_out.ReadWrite(AvP_out.UseDevice());
+                //for (int vi = 0; vi < nV; ++vi)
+                mfem::forall(nV, [=] MFEM_HOST_DEVICE (int vi)
                 {
-                    AvP_out(vi) = std::sqrt(AvP_out(vi));
+                    y[vi] = std::sqrt(y[vi]);
                 }
+                );
+                
             };
 
             auto BuildPairInterface = [&](mfem::ParGridFunction &out,
@@ -371,15 +378,17 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
                 out *= overlap;
                 out *= 4.0;
 
-                for (int vi = 0; vi < out.Size(); ++vi)
-                //mfem::forall(out.Size(), [=] MFEM_HOST_DEVICE (int vi)
+                auto y = out.ReadWrite(out.UseDevice());
+                //for (int vi = 0; vi < out.Size(); ++vi)
+                mfem::forall(out.Size(), [=] MFEM_HOST_DEVICE (int vi)
                 {
-                    if (out(vi) > 9000.0)
-                    {
-                        out(vi) = 1.4e4;
-                    }
+                    //if (out(vi) > 9000.0)
+                    //{
+                    //    out(vi) = 1.4e4;
+                    //}
+                    y[vi] = min( y[vi], 9000.0 );
                 }
-                //);
+                );
             };
 
             auto BuildElectrolyteInterface = [&](mfem::ParGridFunction &out,
@@ -399,7 +408,7 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
 
                 const double beta = 0.8;
                 const double eps  = 1e-30;
-
+                /*
                 for (int vi = 0; vi < nV; ++vi)
                 {
                     const double num = num_in(vi);
@@ -414,7 +423,26 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
 
                     weight_out(vi) = std::pow(ratio, beta);
                 }
+                */
+                mfem::forall(nV, [=] MFEM_HOST_DEVICE (int vi)
+                {
+                    (*denom)(vi) = max( (*denom)(vi), eps );
+                }
+                );
+                mfem::ParGridFunction ratio(fespace.get());
+                ratio = num_in;
+                ratio /= *denom;
+                auto y = ratio.ReadWrite(ratio.UseDevice());
+                mfem::forall(nV, [=] MFEM_HOST_DEVICE (int vi)
+                {
+                    y[vi] = std::max( y[vi],0.0 );
+                    y[vi] = std::pow( y[vi],beta );
+                }
+                );
 
+                weight_out = ratio;
+                
+                
                 if (mask_in) { weight_out *= *mask_in; }
             };
 
@@ -425,10 +453,14 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
                 out = psa;
                 out += psb;
 
-                for (int vi = 0; vi < nV; ++vi)
+                auto y = out.ReadWrite(out.UseDevice());
+                //for (int vi = 0; vi < nV; ++vi)
+                mfem::forall(nV, [=] MFEM_HOST_DEVICE (int vi)
                 {
-                    if (out(vi) > 1.0) { out(vi) = 1.0; }
+                    //if (out(vi) > 1.0) { out(vi) = 1.0; }
+                    y[vi] = min( y[vi],1.0 );
                 }
+                );
             };
 
 
