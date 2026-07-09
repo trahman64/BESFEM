@@ -1,6 +1,6 @@
 #!/bin/bash --login
 # Job name: 
-#SBATCH --job-name=slurm_besfem-config-tiff-4hr-8e-07-1.0e-12-mob-small-geo-dt
+#SBATCH --job-name=slurm_besfem-config-tiff-24hr-8e-07-3.0e-12-mob-small-geo-dt
 
 # Number of nodes
 #SBATCH --nodes=2
@@ -17,7 +17,7 @@
 # Wall time
 # Format: "minutes", "hours:minutes:seconds", 
 # "days-hours", or "days-hours:minutes"
-#SBATCH --time=04:00:00
+#SBATCH --time=24:00:00
 
 # Mail type
 # e.g., which events trigger email notifications
