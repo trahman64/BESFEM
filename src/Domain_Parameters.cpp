@@ -313,6 +313,9 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
                 out *= overlap;
                 out *= 4.0;
 
+                // out.SaveAsOne("debug_AvP_out.gf");
+                
+
                 for (int vi = 0; vi < out.Size(); ++vi)
                 {
                     if (out(vi) > 9000.0)
@@ -320,6 +323,11 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
                         out(vi) = 1.4e4;
                     }
                 }
+
+
+                // out.SaveAsOne("debug_AvP_after.gf");
+
+
             };
 
             auto BuildElectrolyteInterface = [&](mfem::ParGridFunction &out,
