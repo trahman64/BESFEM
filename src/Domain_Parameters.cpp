@@ -327,14 +327,23 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
             auto ComputeGradMagnitude = [&](const mfem::ParGridFunction &phase_in,
                                             mfem::ParGridFunction &AvP_out)
             {
+                // GetDerivative is not currently able to be done on GPU
+                // have to do it on CPU
                 const int dim = pmesh->Dimension();
                 mfem::ParGridFunction dphase(fespace.get());
+                mfem::ParGridFunction phase_tmp(fespace.get());
+                mfem::ParGridFunction out_tmp(fespace.get());
+                
+                dphase.UseDevice(false);
+                phase_tmp.UseDevice(false);
+                out_tmp.UseDevice(false);
+                
+                phase_tmp = phase_in;
+                out_tmp = 0.0;
 
-                AvP_out = 0.0;
                 for (int d = 0; d < dim; ++d)
                 {
-                    dphase = 0.0;
-                    mfem::ParGridFunction phase_tmp(phase_in);
+                    //dphase = 0.0;
                     phase_tmp.GetDerivative(1, d, dphase);
 
                     //for (int vi = 0; vi < nV; ++vi)
@@ -344,9 +353,20 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
                     //}
                     
                     dphase *= dphase; //square dphase
-                    AvP_out += dphase;
+                    out_tmp += dphase;
+		    
+                    std::cout << "outtmp  min and max: " << out_tmp.Min() << " " << out_tmp.Max() << endl;
+		    std::cout << "dphase   min and max: " << dphase.Min() << " " << dphase.Max() << endl;
+		    std::cout << "ph tmp   min and max: " << phase_tmp.Min() << " " << phase_tmp.Max() << endl;
                 }
-
+		std::cout << "phase_in min and max: " << phase_in.Min() << " " << phase_in.Max() << endl;
+                for (int vi = 0; vi < nV; ++vi)
+                {
+                    out_tmp(vi) = std::sqrt(out_tmp(vi));
+                }
+                
+                AvP_out = out_tmp;
+		/*
                 auto y = AvP_out.ReadWrite(AvP_out.UseDevice());
                 //for (int vi = 0; vi < nV; ++vi)
                 mfem::forall(nV, [=] MFEM_HOST_DEVICE (int vi)
@@ -354,7 +374,8 @@ void Domain_Parameters::InterpolateDomainParameters(const char* mesh_type) {
                     y[vi] = std::sqrt(y[vi]);
                 }
                 );
-                
+                */
+		std::cout << "AvP out min and max: " << AvP_out.Min() << " " << AvP_out.Max() << endl;
             };
 
             auto BuildPairInterface = [&](mfem::ParGridFunction &out,
