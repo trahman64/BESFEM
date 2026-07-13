@@ -124,6 +124,8 @@ mesh_file = ../inputs/colored_labels_labels.tif
 stop_mode = steps
 num_steps = 1000
 
+amr_levels = 0
+
 combine_particles = false
 
 cathode_materials = LFP,LFP,NMC
@@ -164,6 +166,10 @@ init_BvE = -0.10
 
   * `true` — treat all particles as a single particle.
   * `false` — solve each particle independently.
+
+* `amr_levels`
+
+  * AMR is supported for 1 level of refinement.
 
 ---
 

@@ -13,6 +13,8 @@ mesh_file = ../inputs/mesh/colored_labels_labels.tif
 
 combine_particles = true
 
+amr_levels = 1
+
 # ============================================================
 # NUMERICAL PARAMETERS
 # ============================================================
@@ -20,8 +22,6 @@ combine_particles = true
 dt = 0.0001
 dh = 3.0e-06
 gc = 3.38e-10
-
-amr_levels = 1
 
 # ============================================================
 # STOPPING CRITERIA
@@ -42,14 +42,14 @@ Vsr0 = 0.09466
 # MATERIALS
 # ============================================================
 
-cathode_materials = LFP,LFP,LFP
+cathode_materials = LFP
 anode_materials = graphite, graphite, graphite
 
 # ============================================================
 # INITIAL PARTICLE STOICHIOMETRIES
 # ============================================================
 
-init_cathode_particles = 0.043,0.043,0.043
+init_cathode_particles = 0.043
 init_anode_particles = 0.3, 0.3, 0.3
 
 # ============================================================

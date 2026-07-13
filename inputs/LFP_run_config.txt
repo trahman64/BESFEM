@@ -13,6 +13,8 @@ mesh_file = ../inputs/mesh/colored_labels_labels.tif
 
 combine_particles = true
 
+amr_levels = 0
+
 # ============================================================
 # NUMERICAL PARAMETERS
 # ============================================================
