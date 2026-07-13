@@ -4,6 +4,10 @@ bin/
 latex/
 html/
 inputs/distance
+inputs/mesh/Mesh_3x90_r.mesh
+inputs/mesh/Mesh_40x60_F00.mesh
+inputs/mesh/Mesh_40x60x3_3D_disk_full.mesh
+inputs/mesh/disk_Mesh_80x80x6.mesh
 
 # Prerequisites
 *.d
