@@ -162,9 +162,6 @@ void TIFFReader::readinfo()
         if (mfem::Mpi::WorldRank() == 0) {
             std::cout << "[TIFFReader] Detected label TIFF. Keeping labels directly.\n";
         }
-
-        // Nothing else to do.
-        // imageData already contains 0,1,2,3,...
     }
     else if (is_binary_01) {
         if (mfem::Mpi::WorldRank() == 0) {

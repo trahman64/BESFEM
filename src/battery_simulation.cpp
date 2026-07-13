@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
         std::filesystem::create_directories(outdir);
     }
     
-    const char* active_dsF = (cfg.half_electrode == sim::Electrode::CATHODE) ? cfg.dsF_file_C : cfg.dsF_file_A;
+    // const char* active_dsF = (cfg.half_electrode == sim::Electrode::CATHODE) ? cfg.dsF_file_C : cfg.dsF_file_A;
 
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
         if (mfem::Mpi::WorldRank() == 0)
         {
             std::cout << "\n===== Simulation Parameters =====\n"
+                    << "output_dir = " << outdir << "\n"
                     << "dt   = " << cfg.dt   << "\n"
                     << "dh   = " << cfg.dh   << "\n"
                     << "gc   = " << cfg.gc   << "\n"
@@ -64,21 +65,22 @@ int main(int argc, char *argv[]) {
         geometry.combine_particle_groups = cfg.combine_particle_groups;
 
         if (cfg.mode == sim::CellMode::HALF) {
-            geometry.InitializeMesh(cfg.mesh_file, active_dsF, cfg.mesh_type, MPI_COMM_WORLD, cfg.order);
+            geometry.InitializeMesh(cfg.mesh_file, MPI_COMM_WORLD, cfg.order);
         } else {
-            geometry.InitializeMesh(cfg.mesh_file, cfg.dsF_file_A, cfg.dsF_file_C, cfg.mesh_type, MPI_COMM_WORLD, cfg.order);
+            "Full cell mode is not yet implemented. Please use half-cell mode.";
         }
 
         // Initialize and Calculate Domain Parameters
         Domain_Parameters domain_parameters(geometry, cfg);
-        domain_parameters.SetupDomainParameters(cfg.mesh_type);
+        domain_parameters.SetupDomainParameters();
 
         // Initialize Boundary Conditions 
         BoundaryConditions bc(geometry, domain_parameters);
         if (cfg.mode == sim::CellMode::HALF) {
             bc.SetupBoundaryConditions(sim::CellMode::HALF, cfg.half_electrode);
         } else {
-            bc.SetupBoundaryConditions(sim::CellMode::FULL, sim::Electrode::BOTH);
+            // bc.SetupBoundaryConditions(sim::CellMode::FULL, sim::Electrode::BOTH);
+            "Full cell mode is not yet implemented. Please use half-cell mode.";
         }
 
         // Define Adjuster for Surface Voltage & Current

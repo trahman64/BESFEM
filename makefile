@@ -36,7 +36,6 @@ LIB_FLAGS     := $(MFEM_LIBS)
 SRC_FILES = \
     src/SimulationConfig.cpp \
     src/battery_simulation.cpp \
-    inputs/Constants.cpp \
     src/Initialize_Geometry.cpp \
     src/readtiff.cpp \
     src/Domain_Parameters.cpp \
@@ -54,7 +53,8 @@ SRC_FILES = \
     src/SimulationState.cpp \
     src/MaterialProperties.cpp \
     src/ElectrodePotential.cpp \
-    src/ElectrolytePotential.cpp
+    src/ElectrolytePotential.cpp \
+    src/Constants.cpp
 
 # SRC_FILES = example.cpp
             

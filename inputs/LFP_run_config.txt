@@ -17,19 +17,16 @@ combine_particles = true
 # NUMERICAL PARAMETERS
 # ============================================================
 
-dt = 0.0001
-dh = 3.0e-06
-gc = 3.38e-10
-
-amr_levels = 1
+dt = 1.2e-04
+dh = 8.0e-07
+gc = 6.38e-12
 
 # ============================================================
 # STOPPING CRITERIA
 # ============================================================
 
-stop_mode = steps        # options: steps, voltage
-VCut = 3.454
-num_steps = 501
+stop_mode = voltage       
+VCut = 3.435
 
 # ============================================================
 # CURRENT CONTROL
@@ -42,15 +39,13 @@ Vsr0 = 0.09466
 # MATERIALS
 # ============================================================
 
-cathode_materials = LFP,LFP,LFP
-anode_materials = graphite, graphite, graphite
+cathode_materials = LFP
 
 # ============================================================
 # INITIAL PARTICLE STOICHIOMETRIES
 # ============================================================
 
-init_cathode_particles = 0.043,0.043,0.043
-init_anode_particles = 0.3, 0.3, 0.3
+init_cathode_particles = 0.043
 
 # ============================================================
 # INITIAL ELECTROLYTE
@@ -62,6 +57,5 @@ init_CnE = 0.001
 # INITIAL POTENTIALS
 # ============================================================
 
-init_BvA = -0.1
 init_BvC = 3.359
 init_BvE = -0.1
