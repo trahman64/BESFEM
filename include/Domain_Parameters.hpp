@@ -2,35 +2,25 @@
 #define DOMAIN_PARAMETERS_HPP
 
 #include "mfem.hpp"
+#include "SimulationConfig.hpp"
 #include <memory>
 #include <string>
 #include <vector>
 
 /**
  * @file Domain_Parameters.hpp
- * @brief Defines the Domain_Parameters class for initializing and managing
- *        domain-specific fields and integrals in BESFEM battery simulations.
- *
- * This class constructs and stores phase fields (ψ, ψₑ, ψ_A, ψ_C),
- * surface-area fields (AvP, AvA, AvC, AvB), distance functions, and
- * element-volume data. It also computes global integrals such as gtPsi,
- * gtPse, gtPsA, gtPsC, and the global target current gTrgI.
+ * @brief Defines domain fields, geometry fields, and global integrals used by BESFEM.
  */
 
 class Initialize_Geometry;
 
 /**
  * @class Domain_Parameters
- * @brief Manages domain-specific phase fields, auxiliary fields, and global integrals.
+ * @brief Stores geometry-dependent fields and global quantities used throughout BESFEM.
  *
- * The Domain_Parameters class provides:
- * - Construction and interpolation of phase fields: ψ (solid), ψₑ (electrolyte), ψ_A, ψ_C  
- * - Computation of auxiliary “surface-area density” fields AvP, AvA, AvC, AvB  
- * - Element volumes (EVol) for FEM integrations  
- * - Computation of global totals (gtPsi, gtPse, gtPsA, gtPsC)  
- * - Calculation of the global target current (gTrgI) used for current-controlled simulations  
- *
- * The results are used by concentration solvers (CnA, CnC, CnE) and potential solvers.
+ * Domain_Parameters constructs and manages the phase-field masks, interface
+ * fields, element volumes, and global integrals required by the concentration,
+ * potential, and reaction solvers.
  */
 class Domain_Parameters {
 
@@ -39,13 +29,13 @@ public:
     /**
      * @brief Construct a Domain_Parameters object.
      *
-     * Stores a reference to geometry, allocates grid functions,
-     * initializes internal counters (nE, nV, nC), and prepares
-     * distance-function pointers.
+     * Stores references to the geometry and simulation configuration, initializes
+     * mesh/finite-element-space pointers, and prepares storage for domain fields.
      *
-     * @param geo Reference to the initialized geometry (mesh, FE space, ψ distance fields).
+     * @param geo Reference to the initialized geometry object.
+     * @param cfg Reference to the simulation configuration.
      */
-    Domain_Parameters(Initialize_Geometry &geo);
+    Domain_Parameters(Initialize_Geometry &geo, const SimulationConfig &cfg);
 
     /// Destructor.
     virtual ~Domain_Parameters();
@@ -59,12 +49,9 @@ public:
      * - Computes element volumes (EVol)  
      * - Integrates ψ and ψₑ to compute gtPsi, gtPse  
      * - Computes global target current gTrgI  
-     *
-     * @param mesh_type Character flag identifying the mesh geometry:
-     *        - `"ml"` MATLAB mesh  
-     *        - `"v"` voxel-derived mesh  
+     * 
      */
-    void SetupDomainParameters(const char* mesh_type);
+    void SetupDomainParameters();
 
     // -------------------------------------------------------------------------
     // Phase fields (grid functions)
@@ -78,8 +65,6 @@ public:
     // Surface-area / geometry-related auxiliary fields
     // -------------------------------------------------------------------------
     std::unique_ptr<mfem::ParGridFunction> AvP; ///< Particle surface-area density.
-    std::unique_ptr<mfem::ParGridFunction> AvP_0; ///< Particle surface-area density component 0.
-    std::unique_ptr<mfem::ParGridFunction> AvP_1; ///< Particle surface-area density component 1.
     std::unique_ptr<mfem::ParGridFunction> AvA; ///< Anode surface-area density.
     std::unique_ptr<mfem::ParGridFunction> AvC; ///< Cathode surface-area density.
     std::unique_ptr<mfem::ParGridFunction> AvB; ///< Boundary surface-area density.
@@ -92,13 +77,46 @@ public:
     double gtPse = 0.0; ///< Global integral of ψₑ (electrolyte).
     double gTrgI = 0.0; ///< Global target current (galvanostatic control).
 
+    double gTrg1 = 0.0; ///< Global target current for phase 1.
+    double gTrg2 = 0.0; ///< Global target current for phase 2.
+    double gTrg3 = 0.0; ///< Global target current for phase 3.
+
+    double gtPsi1 = 0.0; ///< Global integral of ψ for phase 1.
+    double gtPsi2 = 0.0; ///< Global integral of ψ for phase 2.
+    double gtPsi3 = 0.0; ///< Global integral of ψ for phase 3.
+
     double gtPsA = 0.0; ///< Global integral of ψ_A (anode region).
     double gtPsC = 0.0; ///< Global integral of ψ_C (cathode region).
 
     mfem::Vector EVol; ///< Element volumes for FEM integration.
 
+    std::unique_ptr<mfem::ParGridFunction> denom; ///< Denominator/workspace field used in phase-field normalization.
+
+    std::vector<int> particle_labels; ///< Material/particle labels read from the segmented geometry.
+
+    std::vector<std::unique_ptr<mfem::ParGridFunction>> ps; ///< Per-particle phase-field masks.
+    std::vector<std::unique_ptr<mfem::ParGridFunction>> AvPs; ///< Per-particle surface-area density fields.
+
+    std::vector<std::vector<std::unique_ptr<mfem::ParGridFunction>>> AvP_Pairs;
+    ///< Pairwise particle-particle interfacial area fields.
+
+    std::vector<std::unique_ptr<mfem::ParGridFunction>> AvEs; ///< Per-particle electrolyte interface area fields.
+    std::vector<std::unique_ptr<mfem::ParGridFunction>> WeightEs; ///< Per-particle electrolyte coupling weights.
+
+    std::vector<std::vector<std::unique_ptr<mfem::ParGridFunction>>> psi_Pairs;
+    ///< Pairwise particle-particle interface phase fields.
+
+    std::vector<std::vector<std::unique_ptr<mfem::ParGridFunction>>> WeightPairs;
+    ///< Pairwise particle-particle coupling weights.
+
+    std::vector<double> tPs; ///< Local per-particle phase-field totals.
+    std::vector<double> gtPs; ///< Global per-particle phase-field totals.
+    std::vector<double> gTrgPs; ///< Global per-particle target currents.
+
     /// Reference to geometry handler.
     Initialize_Geometry &geometry;
+    const SimulationConfig& cfg;
+
 
 private:
 
@@ -116,9 +134,8 @@ private:
      * fields AvP, etc., depending on mesh type. Clamps values to ensure
      * physical consistency.
      *
-     * @param mesh_type Mesh type specifier ("ml", "v").
      */
-    void InterpolateDomainParameters(const char* mesh_type);
+    void InterpolateDomainParameters();
 
     /**
      * @brief Compute the local and global totals of a field.
@@ -150,10 +167,11 @@ private:
                                   double &global_total);
 
     /**
-     * @brief Compute ψ, ψₑ integrals and derive the global target current.
+     * @brief Compute phase-field integrals and target currents.
      *
-     * Calls @ref CalculateTotalPhaseField for ψ and ψₑ, then calls
-     * @ref CalculateTargetCurrent to update gTrgI.
+     * Computes total phase-field weights for solid, electrolyte, anode, cathode,
+     * and per-particle fields, then updates the corresponding target-current
+     * values.
      */
     void CalculatePhasePotentialsAndTargetCurrent();
 
@@ -164,9 +182,9 @@ private:
      * the integrated particle-phase volume into a target current contribution.
      *
      * @param total_psi Local integral of ψ.
-     * @param rho Material density (e.g., ρ_C for cathode) to compute current from volume.
+     * @param global_total [out] Global target current contribution after MPI reduction.
      */
-    void CalculateTargetCurrent(double total_psi, double rho);
+    void CalculateTargetCurrent(double total_psi, double &global_total, sim::MaterialType material);
 
     /**
      * @brief Print diagnostic totals (rank 0 only).
@@ -195,6 +213,10 @@ private:
     double tPsi = 0.0; ///< Local ψ total before MPI reduction.
     double tPse = 0.0; ///< Local ψₑ total before MPI reduction.
     double trgI = 0.0; ///< Local target current before global reduction.
+
+    double tPsi1 = 0.0; ///< Local ψ for phase 1 total before MPI reduction.
+    double tPsi2 = 0.0; ///< Local ψ for phase 2 total before MPI reduction.
+    double tPsi3 = 0.0; ///< Local ψ for phase 3 total before MPI reduction.
 
     double tPsA = 0.0; ///< Local ψ_A total before MPI reduction.
     double tPsC = 0.0; ///< Local ψ_C total before MPI reduction.

@@ -1,8 +1,12 @@
 #include "../include/Utils.hpp"
+#include "../include/Constants.hpp"
+#include "../include/SimulationConfig.hpp"
+#include "../include/MaterialProperties.hpp"
+
 #include <numeric>
 
-Utils::Utils(Initialize_Geometry &geo, Domain_Parameters &para)
-    : geometry_(geo), domain_(para), pmesh_(geo.parallelMesh.get()), fes_(geo.parfespace),
+Utils::Utils(Initialize_Geometry &geo, Domain_Parameters &para, const SimulationConfig &cfg)
+    : geometry_(geo), domain_(para), cfg(cfg), pmesh_(geo.parallelMesh.get()), fes_(geo.parfespace),
       nE_(geo.nE), nC_(geo.nC), nV_(geo.nV), EVol_(para.EVol), EAvg_(geo.nE), VtxVal_(geo.nC), TmpF_(geo.parfespace.get())
 {
 }
@@ -28,17 +32,24 @@ void Utils::CalculateLithiation(mfem::ParGridFunction &Cn, mfem::ParGridFunction
 
     double local_sum = 0.0;
 
-    for (int ei = 0; ei < nE_; ei++)
+    for (int ei = 0; ei < pmesh_->GetNE(); ei++)
     {
-        TmpF_.GetNodalValues(ei, VtxVal_);
-        double sum = std::accumulate(VtxVal_.begin(), VtxVal_.end(), 0.0);
+        mfem::Array<double> vals;
+        TmpF_.GetNodalValues(ei, vals);
 
-        EAvg_(ei) = sum / nC_;
-        local_sum += EAvg_(ei) * EVol_(ei);
+        double avg = 0.0;
+        for (int j = 0; j < vals.Size(); j++)
+        {
+            avg += vals[j];
+        }
+        avg /= vals.Size();
+
+        local_sum += avg * pmesh_->GetElementVolume(ei);
     }
 
     MPI_Allreduce(&local_sum, &Xfr_, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     Xfr_ /= gtps;
+
 }
 
 void Utils::CalculateReactionInfx(mfem::ParGridFunction &Rx, double &xCrnt)
@@ -79,6 +90,22 @@ void Utils::CalculateGlobalError(mfem::ParGridFunction &px0, mfem::ParGridFuncti
     globalerror /= gtPsx;
 }
 
+void Utils::ComputePairFlux(mfem::ParGridFunction &sum_part, mfem::ParGridFunction &weight, mfem::ParGridFunction &grad_psi, mfem::ParGridFunction &mu_1, mfem::ParGridFunction &mu_2)
+{
+    for (int vi = 0; vi < nV_; vi++){
+
+        double grad_psi_val = grad_psi(vi);
+        double weight_val = weight(vi);
+        double mu1_val = mu_1(vi);
+        double mu2_val = mu_2(vi);
+
+        const double rho = MaterialProperties::SiteDensity(cfg.cathode_materials[0]);
+
+        sum_part(vi) = weight_val * grad_psi_val * rho * (1.0/Constants::RT) * Constants::Perm * (mu2_val - mu1_val);
+    }
+
+}
+
 // Full Cell
 void Utils::SaveSimulationSnapshot(int t, const std::string &outdir, Initialize_Geometry &geometry, Domain_Parameters &domain_parameters, mfem::ParGridFunction &phA,
     mfem::ParGridFunction &phC, mfem::ParGridFunction &phE, mfem::ParGridFunction &CnA, mfem::ParGridFunction &CnC, mfem::ParGridFunction &CnE, mfem::ParGridFunction &CnApsi,
@@ -90,10 +117,12 @@ void Utils::SaveSimulationSnapshot(int t, const std::string &outdir, Initialize_
     step << "_" << std::setw(5) << std::setfill('0') << t;
     std::string suff = step.str();
 
-    geometry.parallelMesh->SaveAsOne((outdir + "/pmesh" + suff).c_str());
-
-    domain_parameters.psi->SaveAsOne((outdir + "/psi" + suff).c_str());
-    domain_parameters.pse->SaveAsOne((outdir + "/pse" + suff).c_str());
+    if (t == 0)
+    {
+        geometry.parallelMesh->SaveAsOne((outdir + "/pmesh").c_str());
+        domain_parameters.psi->SaveAsOne((outdir + "/psi").c_str());
+        domain_parameters.pse->SaveAsOne((outdir + "/pse").c_str());
+    }
 
     phA.SaveAsOne((outdir + "/phA" + suff).c_str());
     phC.SaveAsOne((outdir + "/phC" + suff).c_str());
@@ -128,9 +157,12 @@ void Utils::SaveSimulationSnapshot(int t, const std::string &outdir,
     step << "_" << std::setw(5) << std::setfill('0') << t;
     std::string suff = step.str();
 
-    geometry.parallelMesh->SaveAsOne((outdir + "/pmesh" + suff).c_str());
-    domain_parameters.psi->SaveAsOne((outdir + "/psi" + suff).c_str());
-    domain_parameters.pse->SaveAsOne((outdir + "/pse" + suff).c_str());
+    if (t == 0)
+    {
+        geometry.parallelMesh->SaveAsOne((outdir + "/pmesh").c_str());
+        domain_parameters.psi->SaveAsOne((outdir + "/psi").c_str());
+        domain_parameters.pse->SaveAsOne((outdir + "/pse").c_str());
+    }
 
     phC.SaveAsOne((outdir + "/phC" + suff).c_str());
     phE.SaveAsOne((outdir + "/phE" + suff).c_str());
@@ -151,3 +183,81 @@ void Utils::SetInitialValue(mfem::ParGridFunction &Cn, double initial_value)
             Cn(i) = initial_value;
     }
 
+void Utils::SaveSimulationSnapshotMulti(int t, const std::string &outdir, Initialize_Geometry &geometry,
+    Domain_Parameters &domain_parameters, const std::vector<mfem::ParGridFunction*> &particle_cn,
+    std::vector<std::unique_ptr<mfem::ParGridFunction>> &particle_out, int save_interval)
+
+    {
+        if (t % save_interval != 0) return;
+
+        const int np = static_cast<int>(particle_cn.size());
+        
+        std::ostringstream step;
+        step << "_" << std::setw(5) << std::setfill('0') << t;
+        const std::string suff = step.str();
+
+        if (t == 0)
+        {
+            geometry.parallelMesh->SaveAsOne((outdir + "/pmesh").c_str());
+            domain_parameters.psi->SaveAsOne((outdir + "/psi").c_str());
+            domain_parameters.pse->SaveAsOne((outdir + "/pse").c_str());
+        }
+
+        // Save each particle concentration and masked version
+        for (int k = 0; k < np; ++k)
+        {
+            std::ostringstream raw_name, masked_name;
+            raw_name << outdir << "/CnC_" << (k + 1) << suff;
+            masked_name << outdir << "/C" << (k + 1) << "_out" << suff;
+
+            particle_cn[k]->SaveAsOne(raw_name.str().c_str());
+
+            *particle_out[k] = *particle_cn[k];
+            *particle_out[k] *= *domain_parameters.ps[k];
+            particle_out[k]->SaveAsOne(masked_name.str().c_str());
+        }
+
+        // Build union mask and denominator
+        mfem::ParGridFunction psi_union(geometry.parfespace.get());
+        mfem::ParGridFunction denom(geometry.parfespace.get());
+        mfem::ParGridFunction CnP_total(geometry.parfespace.get());
+
+        psi_union = 0.0;
+        denom = 0.0;
+        CnP_total = 0.0;
+
+        for (int k = 0; k < np; ++k)
+        {
+            psi_union += *domain_parameters.ps[k];
+            denom += *domain_parameters.ps[k];
+        }
+
+        for (int i = 0; i < psi_union.Size(); ++i)
+        {
+            psi_union(i) = std::min(1.0, psi_union(i));
+        }
+
+        const double eps = 1e-30;
+
+        for (int i = 0; i < denom.Size(); ++i)
+        {
+            const double d = denom(i);
+
+            if (d > eps)
+            {
+                double num = 0.0;
+                for (int k = 0; k < np; ++k)
+                {
+                    num += (*domain_parameters.ps[k])(i) * (*particle_cn[k])(i);
+                }
+                CnP_total(i) = num / (d + eps);
+            }
+            else
+            {
+                CnP_total(i) = 0.0;
+            }
+        }
+
+        CnP_total *= psi_union;
+        CnP_total.SaveAsOne((outdir + "/CnP_total" + suff).c_str());
+    }

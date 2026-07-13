@@ -36,24 +36,25 @@ LIB_FLAGS     := $(MFEM_LIBS)
 SRC_FILES = \
     src/SimulationConfig.cpp \
     src/battery_simulation.cpp \
-    inputs/Constants.cpp \
     src/Initialize_Geometry.cpp \
     src/readtiff.cpp \
     src/Domain_Parameters.cpp \
     src/BoundaryConditions.cpp \
     src/Concentrations_Base.cpp \
-    src/CnE.cpp \
-    src/CnA.cpp \
-    src/CnC.cpp \
+    src/ElectrolyteDiffusion.cpp \
+    src/ElectrodeCahnHilliard.cpp \
+    src/ElectrodeDiffusion.cpp \
     src/Reaction.cpp \
     src/FEMOperators.cpp \
     src/Potentials_Base.cpp \
-    src/PotC.cpp \
-    src/PotA.cpp \
-    src/PotE.cpp \
     src/Adjust.cpp \
     src/Utils.cpp \
-    src/dist_solver.cpp
+    src/dist_solver.cpp \
+    src/SimulationState.cpp \
+    src/MaterialProperties.cpp \
+    src/ElectrodePotential.cpp \
+    src/ElectrolytePotential.cpp \
+    src/Constants.cpp
 
 # SRC_FILES = example.cpp
             

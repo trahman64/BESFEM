@@ -1,9 +1,4 @@
-#include "../include/BoundaryConditions.hpp"
-#include "../include/Initialize_Geometry.hpp"
-#include "../include/Domain_Parameters.hpp"
-#include "../include/Constants.hpp"
-#include "../include/readtiff.h"
-#include "../include/SimTypes.hpp"
+#include "../include/BESFEM_All.hpp"
 #include "mfem.hpp"
 #include <tiffio.h>
 #include <fstream>
@@ -136,17 +131,17 @@ void BoundaryConditions::SetupBoundaryConditions(CellMode mode, Electrode electr
             // East Neumann Boundary Condition
             nbc_e_bdr.SetSize(parallelMesh.bdr_attributes.Max());
             nbc_e_bdr = 0;
-            nbc_e_bdr[2] = 1;
+            nbc_e_bdr[0] = 1;
 
             // East Dirichlet Boundary Condition
             dbc_e_bdr.SetSize(parallelMesh.bdr_attributes.Max());
             dbc_e_bdr = 0;
-            dbc_e_bdr[2] = 1;
+            dbc_e_bdr[0] = 1;
 
             // West Dirichlet Boundary Condition
             dbc_w_bdr.SetSize(parallelMesh.bdr_attributes.Max());
             dbc_w_bdr = 0;
-            dbc_w_bdr[0] = 1;
+            dbc_w_bdr[2] = 1;
 
             ess_tdof_list_w.SetSize(0);
             parfespace.GetEssentialTrueDofs(dbc_w_bdr, ess_tdof_list_w);

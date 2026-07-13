@@ -41,10 +41,12 @@ public:
      * @param geo  Geometry/mesh handler.
      * @param para Domain parameter container.
      */
-    Reaction(Initialize_Geometry &geo, Domain_Parameters &para);
+    Reaction(Initialize_Geometry &geo, Domain_Parameters &para, const SimulationConfig &cfg);
 
     Initialize_Geometry &geometry;          ///< Geometry and mesh infrastructure.
     Domain_Parameters   &domain_parameters; ///< Material and phase-field parameters.
+
+    const SimulationConfig& cfg;
 
     /**
      * @brief Assign an initial reaction rate.
@@ -61,15 +63,18 @@ public:
      * to populate reaction-related material fields.
      *
      * @param Cn Concentration field used in the lookup.
+     * @param AvP_in Surface-area weighting function for the interface.
      */
-    void TableExchangeCurrentDensity(mfem::ParGridFunction &Cn);
+    void TableExchangeCurrentDensity(mfem::ParGridFunction &Cn, mfem::ParGridFunction &AvP_in);
 
     /**
      * @brief Compute exchange-current density (single concentration field).
      *
      * @param Cn Concentration field.
+     * @param AvP_in Surface-area weighting function for the interface.
+     * @param material Material type for the interface.
      */
-    void ExchangeCurrentDensity(mfem::ParGridFunction &Cn);
+    void ExchangeCurrentDensity(mfem::ParGridFunction &Cn, mfem::ParGridFunction &AvP_in, sim::MaterialType material);
 
     /**
      * @brief Compute exchange-current density (two concentration fields).
@@ -78,8 +83,10 @@ public:
      *
      * @param Cn1 Concentration on one interface side.
      * @param Cn2 Concentration on the other interface side.
+     * @param AvA_in Surface-area weighting function for anode interface.
+     * @param AvC_in Surface-area weighting function for cathode interface.
      */
-    void ExchangeCurrentDensity(mfem::ParGridFunction &Cn1, mfem::ParGridFunction &Cn2);
+    void ExchangeCurrentDensity(mfem::ParGridFunction &Cn1, mfem::ParGridFunction &Cn2, mfem::ParGridFunction &AvA_in, mfem::ParGridFunction &AvC_in);
 
     /**
      * @brief Apply the Butler–Volmer equation for a single interface.
@@ -91,9 +98,10 @@ public:
      * @param Cn2  Concentration on interface side 2.
      * @param phx1 Potential on interface side 1.
      * @param phx2 Potential on interface side 2.
+     * @param AvP_in Surface-area weighting function for the interface.
      */
     void ButlerVolmer(mfem::ParGridFunction &Rx, mfem::ParGridFunction &Cn1,
-                      mfem::ParGridFunction &Cn2, mfem::ParGridFunction &phx1, mfem::ParGridFunction &phx2);
+                      mfem::ParGridFunction &Cn2, mfem::ParGridFunction &phx1, mfem::ParGridFunction &phx2, mfem::ParGridFunction &AvP_in);
 
     /**
      * @brief Butler–Volmer update for full-cell (3-phase) systems.
@@ -112,10 +120,12 @@ public:
      * @param phx1 Cathode potential.
      * @param phx2 Anode potential.
      * @param phx3 Electrolyte potential.
+     * @param AvA_in Surface-area weighting function for anode interface.
+     * @param AvC_in Surface-area weighting function for cathode interface.
      */
     void ButlerVolmer(mfem::ParGridFunction &Rx, mfem::ParGridFunction &Rx1, mfem::ParGridFunction &Rx2,
                       mfem::ParGridFunction &Cn1, mfem::ParGridFunction &Cn2, mfem::ParGridFunction &Cn3,
-                      mfem::ParGridFunction &phx1, mfem::ParGridFunction &phx2, mfem::ParGridFunction &phx3);
+                      mfem::ParGridFunction &phx1, mfem::ParGridFunction &phx2, mfem::ParGridFunction &phx3, mfem::ParGridFunction &AvA_in, mfem::ParGridFunction &AvC_in);
 
     /**
      * @brief Compute global reaction current.
@@ -152,6 +162,8 @@ public:
     const mfem::ParGridFunction *AvB = nullptr; ///< Boundary surface area.
     const mfem::ParGridFunction *AvA = nullptr; ///< Anode surface area.
     const mfem::ParGridFunction *AvC = nullptr; ///< Cathode surface area.
+
+    const mfem::ParGridFunction *AvP_T_1 = nullptr; ///< Weighting function for particle group 1.
 
 private:
 

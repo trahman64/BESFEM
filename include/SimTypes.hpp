@@ -38,4 +38,35 @@ enum class Electrode {
     BOTH      ///< Both electrodes (valid only for full-cell simulations)
 };
 
+
+/**
+ * @enum MaterialType
+ * @brief Enumerates the types of electrode materials supported in the simulation.
+ * 
+ * - **Graphite** — Common anode material
+ * - **NMC**       — Nickel Manganese Cobalt Oxide, a common cathode material
+ * - **LFP**       — Lithium Iron Phosphate, another common cathode material
+ * - **Electrolyte** — Represents the electrolyte domain (not a solid electrode)
+ */
+
+enum class MaterialType {
+    Graphite, ///< Anode material
+    NMC,       ///< Cathode material: Nickel Manganese Cobalt Oxide
+    LFP,        ///< Cathode material: Lithium Iron Phosphate
+    Electrolyte   ///< Electrolyte material
+};
+
+/**
+ * @enum StopMode
+ * @brief Defines the stopping condition for the simulation.
+ * 
+ * - **STEPS**   — Stop after a fixed number of timesteps
+ * - **VOLTAGE** — Stop when the cell voltage reaches a specified threshold
+ */
+enum class StopMode
+{
+    STEPS,
+    VOLTAGE
+};
+
 } // namespace sim
