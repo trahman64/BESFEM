@@ -1,6 +1,6 @@
 #!/bin/bash --login
 # Job name: 
-#SBATCH --job-name=slurm_besfem-6.38e-16-4hrs-mob1e-13-updated-solver
+#SBATCH --job-name=slurm_besfem-6.38e-16-4hrs-mob1e-13-TRUE-LARGE
 
 # Number of nodes
 #SBATCH --nodes=2

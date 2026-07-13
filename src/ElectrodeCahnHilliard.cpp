@@ -24,15 +24,15 @@ void ElectrodeCahnHilliard::SetupField(mfem::ParGridFunction &Cn, double initial
     fem.InitializeMassMatrix(coef, M_init); 
     fem.FormSystemMatrix(M_init, boundary_dofs, MmatCH); 
     
-    MCH_solver.iterative_mode = true; 
+    // MCH_solver.iterative_mode = true; 
     MCH_prec.SetType(mfem::HypreSmoother::Jacobi); 
     fem.SolverConditions(MmatCH, MCH_solver, MCH_prec); 
 
     MCH_solver.iterative_mode = true;
-    MCH_solver.SetRelTol(1.0e-12);
-    MCH_solver.SetAbsTol(1.0e-18);
-    MCH_solver.SetMaxIter(500);
-    MCH_solver.SetPrintLevel(0);
+    // MCH_solver.SetRelTol(1.0e-12);
+    // MCH_solver.SetAbsTol(1.0e-18);
+    // MCH_solver.SetMaxIter(102);
+    // MCH_solver.SetPrintLevel(0);
 
     fem.InitializeStiffnessMatrix(cDp, Grad_MForm); 
 
@@ -121,7 +121,7 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     // }
 
     Grad_MM.Mult(MuV, Lp2); 
-    const double mobility_rhs_norm = Lp2.Norml2();
+    // const double mobility_rhs_norm = Lp2.Norml2();
 
     // if (mfem::Mpi::WorldRank() == 0)
     // {
@@ -146,7 +146,7 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     //       << "Lp2 norm = " << Lp2.Norml2()
     //       << std::endl;
 
-    CpVn = CpV0;
+    // CpVn = CpV0;
     MCH_solver.Mult(RHCp, CpVn);
 
     // MCH_solver.Mult(RHCp, CpVn); 
