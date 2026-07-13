@@ -166,15 +166,6 @@ void Initialize_Geometry::InitializeMesh(const char* meshFile, MPI_Comm comm, in
     // Set up the parallel finite element space
     SetupParFiniteElementSpace(order);
 
-    if (half_electrode == Electrode::ANODE) {
-        std::cout << "Initializing HALF-CELL ANODE geometry...\n";
-        AssignGlobalValues(meshFile, distanceFile, gDsF_A); // use anode distance field for half-cell
-    } else if (half_electrode == Electrode::CATHODE) {
-        std::cout << "Initializing HALF-CELL CATHODE geometry...\n";
-        AssignGlobalValues(meshFile, distanceFile, gDsF_C); // use cathode distance field for half-cell
-    } else {
-        throw std::runtime_error("Invalid half electrode type specified. Use Electrode::ANODE or Electrode::CATHODE.");
-    }
     // Assign the global values
     AssignGlobalValues(meshFile);
 
