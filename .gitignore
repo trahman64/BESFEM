@@ -3,6 +3,7 @@ outputs/
 bin/
 latex/
 html/
+inputs/distance
 
 # Prerequisites
 *.d
