@@ -81,6 +81,7 @@ struct SimulationConfig
 
     sim::StopMode stop_mode = sim::StopMode::STEPS; ///< Simulation stopping condition (by steps or voltage).
     double VCut = -1.0; ///< Voltage cutoff for stopping the simulation (V).
+    double amr_levels = 0; ///< Number of AMR levels to apply near phase interfaces.
 
 };
 

@@ -32,17 +32,24 @@ void Utils::CalculateLithiation(mfem::ParGridFunction &Cn, mfem::ParGridFunction
 
     double local_sum = 0.0;
 
-    for (int ei = 0; ei < nE_; ei++)
+    for (int ei = 0; ei < pmesh_->GetNE(); ei++)
     {
-        TmpF_.GetNodalValues(ei, VtxVal_);
-        double sum = std::accumulate(VtxVal_.begin(), VtxVal_.end(), 0.0);
+        mfem::Array<double> vals;
+        TmpF_.GetNodalValues(ei, vals);
 
-        EAvg_(ei) = sum / nC_;
-        local_sum += EAvg_(ei) * EVol_(ei);
+        double avg = 0.0;
+        for (int j = 0; j < vals.Size(); j++)
+        {
+            avg += vals[j];
+        }
+        avg /= vals.Size();
+
+        local_sum += avg * pmesh_->GetElementVolume(ei);
     }
 
     MPI_Allreduce(&local_sum, &Xfr_, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     Xfr_ /= gtps;
+
 }
 
 void Utils::CalculateReactionInfx(mfem::ParGridFunction &Rx, double &xCrnt)
