@@ -49,12 +49,9 @@ public:
      * - Computes element volumes (EVol)  
      * - Integrates ψ and ψₑ to compute gtPsi, gtPse  
      * - Computes global target current gTrgI  
-     *
-     * @param mesh_type Character flag identifying the mesh geometry:
-     *        - `"ml"` MATLAB mesh  
-     *        - `"v"` voxel-derived mesh  
+     * 
      */
-    void SetupDomainParameters(const char* mesh_type);
+    void SetupDomainParameters();
 
     // -------------------------------------------------------------------------
     // Phase fields (grid functions)
@@ -137,9 +134,8 @@ private:
      * fields AvP, etc., depending on mesh type. Clamps values to ensure
      * physical consistency.
      *
-     * @param mesh_type Mesh type specifier ("ml", "v").
      */
-    void InterpolateDomainParameters(const char* mesh_type);
+    void InterpolateDomainParameters();
 
     /**
      * @brief Compute the local and global totals of a field.

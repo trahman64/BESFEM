@@ -196,24 +196,6 @@ static void ApplyConfigFile(SimulationConfig& cfg)
             strdup(GetValue(data, "mesh_file").c_str());
     }
 
-    if (HasKey(data, "mesh_type"))
-    {
-        cfg.mesh_type =
-            strdup(GetValue(data, "mesh_type").c_str());
-    }
-
-    if (HasKey(data, "anode_distance"))
-    {
-        cfg.dsF_file_A =
-            strdup(GetValue(data, "anode_distance").c_str());
-    }
-
-    if (HasKey(data, "cathode_distance"))
-    {
-        cfg.dsF_file_C =
-            strdup(GetValue(data, "cathode_distance").c_str());
-    }
-
     if (HasKey(data, "num_steps"))
         cfg.num_timesteps = std::stoi(GetValue(data, "num_steps"));
 
@@ -322,10 +304,7 @@ SimulationConfig ParseSimulationArgs(int argc, char *argv[])
                    "Print available BESFEM option choices.");
 
     args.AddOption(&cfg.mesh_file, "-m", "--mesh", "Mesh file to use.");
-    args.AddOption(&cfg.dsF_file_C, "-dC", "--cathode-distance", "Cathode distance file.");
-    args.AddOption(&cfg.dsF_file_A, "-dA", "--anode-distance", "Anode distance file.");
     args.AddOption(&cfg.order, "-o", "--order", "Finite element polynomial degree.");
-    args.AddOption(&cfg.mesh_type, "-t", "--type", "Mesh type: ml | v.");
     args.AddOption(&mode, "-mode", "--mode", "Cell mode: half | full.");
     args.AddOption(&half_elec, "-elec", "--electrode", "HALF mode only: anode | cathode.");
     args.AddOption(&cfg.combine_particle_groups, "-combine", "--combine-particles", "-separate", "--separate-particles", "Combine all particle groups into one.");
@@ -442,13 +421,6 @@ void ValidateConfig(const SimulationConfig &cfg, int argc, char *argv[])
         mfem::mfem_error(
             "Only HALF-CATHODE mode is currently implemented.");
     }
-    if (cfg.mode == sim::CellMode::FULL)
-    {
-        if (!cfg.dsF_file_A || !cfg.dsF_file_C)
-        {
-            mfem::mfem_error("FULL mode requires both anode_distance and cathode_distance.");
-        }
-    }
     
     const bool cathode = cfg.half_electrode == sim::Electrode::CATHODE;
 
@@ -457,14 +429,23 @@ void ValidateConfig(const SimulationConfig &cfg, int argc, char *argv[])
     if (!cfg.mesh_file)
         mfem::mfem_error("mesh_file cannot be empty.");
 
-    if (std::strcmp(cfg.mesh_type, "ml") != 0 &&
-        std::strcmp(cfg.mesh_type, "v")  != 0)
+    if (cfg.stop_mode == sim::StopMode::STEPS)
     {
-        mfem::mfem_error("mesh_type must be ml or v.");
+        if (cfg.num_timesteps <= 0)
+        {
+            mfem::mfem_error(
+                "stop_mode=steps requires num_steps > 0.");
+        }
+    }
+    else if (cfg.stop_mode == sim::StopMode::VOLTAGE)
+    {
+        if (cfg.VCut <= 0.0)
+        {
+            mfem::mfem_error(
+                "stop_mode=voltage requires VCut > 0.");
+        }
     }
 
-    if (cfg.num_timesteps <= 0)
-        mfem::mfem_error("num_steps must be positive.");
     if (cfg.init_BvE == -9999.0)
     {
         mfem::mfem_error(
@@ -521,10 +502,6 @@ void ValidateConfig(const SimulationConfig &cfg, int argc, char *argv[])
     {
         if (cathode)
         {
-            if (!cfg.dsF_file_C)
-            {
-                mfem::mfem_error("HALF-CATHODE requires cathode_distance.");
-            }
     
             if (cfg.cathode_materials.empty())
                 mfem::mfem_error("cathode_materials cannot be empty.");
@@ -579,8 +556,6 @@ void ValidateConfig(const SimulationConfig &cfg, int argc, char *argv[])
         }
         else
         {
-            if (!cfg.dsF_file_A)
-                mfem::mfem_error("HALF-ANODE requires anode_distance.");
             if (cfg.anode_materials.empty())
                 mfem::mfem_error("anode_materials cannot be empty.");
     

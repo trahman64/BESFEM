@@ -409,11 +409,11 @@ void Pairs(SimulationState& state, Initialize_Geometry& geometry, Domain_Paramet
 
         pair_terms.push_back(pair);
 
-        if (mfem::Mpi::WorldRank() == 0 && t == 1)
-        {
-            std::cout << "[DEBUG] Pair (j,k) = (" << j << "," << k << ")"; 
-            std::cout << std::endl;
-        }
+        // if (mfem::Mpi::WorldRank() == 0 && t == 1)
+        // {
+        //     std::cout << "[DEBUG] Pair (j,k) = (" << j << "," << k << ")"; 
+        //     std::cout << std::endl;
+        // }
 
     }
 }
