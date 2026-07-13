@@ -58,22 +58,6 @@ public:
 
     bool combine_particle_groups = false; ///< Whether to combine particle groups for performance.
 
-
-    // -------------------------------------------------------------------------
-    // Distance function preprocessing
-    // -------------------------------------------------------------------------
-
-    /**
-     * @brief Adjust distance function file to account for mesh spacing (dh).
-     *
-     * Applies smoothing, scaling, or clipping to ensure consistent SBM interface
-     * thickness across meshes of different resolutions.
-     *
-     * @param distanceFile Path to the distance function file.
-     * @param mesh_type Type of mesh ("ml" = MATLAB, "v" = voxel).
-     */
-    void AdjustDistanceFile(const char* distanceFile, const char* mesh_type);
-
     // -------------------------------------------------------------------------
     // Mesh initialization (serial + parallel)
     // -------------------------------------------------------------------------
@@ -85,26 +69,22 @@ public:
      * builds FE spaces, and initializes parallel mesh/FESpaces.
      *
      * @param meshFile Path to mesh file.
-     * @param distanceFile Distance function file.
-     * @param mesh_type Type of mesh ("ml" = MATLAB, "v" = voxel).
      * @param comm MPI communicator.
      * @param order Polynomial order for FE space.
+     * @param half_electrode Electrode type for half-cell simulation.
      */
-    void InitializeMesh(const char* meshFile, const char* distanceFile, const char* mesh_type, MPI_Comm comm, int order);
+    void InitializeMesh(const char* meshFile, MPI_Comm comm, int order);
 
-    /**
-     * @brief Initialize mesh and distance fields for a full-cell simulation.
-     *
-     * Loads separate anode and cathode distance functions.
-     *
-     * @param meshFile Path to mesh file.
-     * @param distanceFileA Anode distance function file (ψ_A).
-     * @param distanceFileC Cathode distance function file (ψ_C).
-     * @param mesh_type Type of mesh ("ml" = MATLAB, "v" = voxel).
-     * @param comm MPI communicator.
-     * @param order Polynomial order for FE space.
-     */
-    void InitializeMesh(const char* meshFile, const char* distanceFileA, const char* distanceFileC, const char* mesh_type, MPI_Comm comm, int order);
+    // /**
+    //  * @brief Initialize mesh and distance fields for a full-cell simulation.
+    //  *
+    //  * Loads separate anode and cathode distance functions.
+    //  *
+    //  * @param meshFile Path to mesh file.
+    //  * @param comm MPI communicator.
+    //  * @param order Polynomial order for FE space.
+    //  */
+    // void InitializeMesh(const char* meshFile, MPI_Comm comm, int order);
 
     /**
      * @brief Load and construct global serial MFEM mesh.
@@ -169,10 +149,8 @@ public:
      * Loads, projects, and assigns global fields onto the global mesh.
      *
      * @param mesh_file Mesh path.
-     * @param distanceFile Distance field file.
-     * @param gDsF_out Output global distance function ψ.
      */
-    void AssignGlobalValues(const char* mesh_file, const char* distanceFile, std::unique_ptr<mfem::GridFunction>& gDsF_out);
+    void AssignGlobalValues(const char* mesh_file);
 
     /**
      * @brief Transfer global mesh quantities to parallel fields.

@@ -37,10 +37,7 @@ struct SimulationConfig
 
     const char *config_file = "../inputs/run_config.txt"; ///< Simulation configuration file.
     const char *mesh_file   = "../inputs/colored_labels_labels.tif"; ///< Mesh or voxelized geometry file.
-    const char *dsF_file_A  = "../inputs/dummy.gf"; ///< Anode distance-function file.
-    const char *dsF_file_C  = "../inputs/dummy.gf"; ///< Cathode distance-function file.
-    const char *mesh_type   = "v"; ///< Mesh type ("v" = voxel, "ml" = MATLAB).
-
+    
     // -------------------------------------------------------------------------
     // Discretization
     // -------------------------------------------------------------------------
@@ -66,11 +63,11 @@ struct SimulationConfig
 
     double init_CnA = 0.95; ///< Initial anode lithium concentration.
     double init_CnC = 0.30; ///< Initial cathode lithium concentration.
-    double init_CnE = 0.001; ///< Initial electrolyte concentration.
+    double init_CnE = -9999; ///< Initial electrolyte concentration.
 
-    double init_BvA = -0.01; ///< Initial anode boundary potential (V).
-    double init_BvC = 3.30; ///< Initial cathode boundary potential (V).
-    double init_BvE = -0.10; ///< Initial electrolyte potential (V).
+    double init_BvA = -9999; ///< Initial anode boundary potential (V).
+    double init_BvC = -9999; ///< Initial cathode boundary potential (V).
+    double init_BvE = -9999; ///< Initial electrolyte potential (V).
 
     // -------------------------------------------------------------------------
     // Numerical and operating parameters
@@ -84,6 +81,7 @@ struct SimulationConfig
 
     sim::StopMode stop_mode = sim::StopMode::STEPS; ///< Simulation stopping condition (by steps or voltage).
     double VCut = -1.0; ///< Voltage cutoff for stopping the simulation (V).
+    double amr_levels = 0; ///< Number of AMR levels to apply near phase interfaces.
 
 };
 

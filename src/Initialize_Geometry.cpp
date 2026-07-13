@@ -150,13 +150,10 @@ static void KeepOnlyConnectedToBoundary_3D(std::vector<uint8_t> &solid,
 
 
 // Half Cell
-void Initialize_Geometry::InitializeMesh(const char* meshFile, const char* distanceFile, const char* mesh_type, MPI_Comm comm, int order) {
+void Initialize_Geometry::InitializeMesh(const char* meshFile, MPI_Comm comm, int order) {
 
     myid = mfem::Mpi::WorldRank();
 
-    // Adjust distance file
-    AdjustDistanceFile(distanceFile, mesh_type);
-    
     // Initialize the global mesh
     InitializeGlobalMesh(meshFile);
 
@@ -170,7 +167,7 @@ void Initialize_Geometry::InitializeMesh(const char* meshFile, const char* dista
     SetupParFiniteElementSpace(order);
 
     // Assign the global values
-    AssignGlobalValues(meshFile, distanceFile, gDsF);
+    AssignGlobalValues(meshFile);
 
     // Map the global values to the local
     MapGlobalToLocal(meshFile);
@@ -248,39 +245,6 @@ void Initialize_Geometry::InitializeMesh(const char* meshFile, const char* dista
 
 }
 
-// Full Cell
-void Initialize_Geometry::InitializeMesh(const char* meshFile, const char* distanceFileA, const char* distanceFileC, const char* mesh_type, MPI_Comm comm, int order) {
-
-    myid = mfem::Mpi::WorldRank();
-
-    // Adjust distance file
-    AdjustDistanceFile(distanceFileA, mesh_type); // for anode
-    AdjustDistanceFile(distanceFileC, mesh_type); // for cathode
-
-    // Initialize the global mesh
-    InitializeGlobalMesh(meshFile);
-
-    // Initialize the parallel mesh
-    InitializeParallelMesh(MPI_COMM_WORLD);
-
-    // Set up the finite element space
-    SetupFiniteElementSpace(order);
-
-    // Set up the parallel finite element space
-    SetupParFiniteElementSpace(order);
-
-    // Assign the global values
-    AssignGlobalValues(meshFile, distanceFileA, gDsF_A); // for anode
-    AssignGlobalValues(meshFile, distanceFileC, gDsF_C); // for cathode
-
-    // Map the global values to the local
-    MapGlobalToLocal(meshFile);
-
-    // Print out information relative to the mesh
-    PrintMeshInfo();
-
-}
-
 std::vector<int> Initialize_Geometry::GetParticleLabelsFromTiff() const
 {
     std::set<int> labels;
@@ -295,73 +259,6 @@ std::vector<int> Initialize_Geometry::GetParticleLabelsFromTiff() const
     return std::vector<int>(labels.begin(), labels.end());
 }
 
-void Initialize_Geometry::AdjustDistanceFile(const char* distanceFile, const char* mesh_type)
-{
-    int rank = 0;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    if (rank == 0)
-    {
-        std::ifstream in(distanceFile);
-        if (!in) {
-            throw std::runtime_error("Could not open distance file: " + std::string(distanceFile));
-        }
-
-        std::vector<double> values;
-        values.reserve(1<<20); // pre-alloc for big files (optional)
-
-        double v;
-        while (in >> v) values.push_back(v);
-        in.close();
-
-        if (values.empty()) {
-            std::cerr << "[AdjustDistanceFile] No values read from " << distanceFile << " — leaving unchanged.\n";
-        } else {
-            auto [min_it, max_it] = std::minmax_element(values.begin(), values.end());
-            double max_abs = std::max(std::abs(*min_it), std::abs(*max_it));
-
-            if (strcmp(mesh_type, "ml") == 0 && max_abs > 1.0) {
-                // write backup with original data
-                std::string backup = std::string(distanceFile) + ".orig";
-                {
-                    std::ofstream bout(backup, std::ios::trunc);
-                    if (!bout) {
-                        throw std::runtime_error("Failed to create backup file: " + backup);
-                    }
-                    bout << std::setprecision(10);
-                    for (double x : values) bout << x << '\n';
-                }
-
-                if (mfem::Mpi::WorldRank() == 0) { std::cout << "[AdjustDistanceFile] Wrote original data to backup: " << backup << "\n"; }
-
-                // scale and overwrite original file
-                if (mfem::Mpi::WorldRank() == 0) { std::cout << "[AdjustDistanceFile] Scaling values by dh=" << std::setprecision(10) << cfg.dh << " and overwriting "
-                          << distanceFile << " ...\n"; }
-                for (double &x : values) x *= cfg.dh;
-
-                std::ofstream out(distanceFile, std::ios::trunc);
-                if (!out) {
-                    throw std::runtime_error("Failed to open distance file for overwrite: " + std::string(distanceFile));
-                }
-                out << std::setprecision(10);
-                for (double x : values) out << x << '\n';
-                out.close();
-
-                // quick preview after
-                auto [min2, max2] = std::minmax_element(values.begin(), values.end());
-                double max_abs2 = std::max(std::abs(*min2), std::abs(*max2));
-                // std::cout << "[AdjustDistanceFile] After: min=" << *min2
-                //           << " max=" << *max2 << " max|v|=" << max_abs2 << "\n";
-            } else {
-                if (mfem::Mpi::WorldRank() == 0) { std::cout << "[AdjustDistanceFile] No scaling needed (all |v| <= 1 or voxel). File unchanged.\n"; }
-            }
-        }
-    }
-
-    MPI_Barrier(MPI_COMM_WORLD);
-}
-
-
 // Function to initialize the global mesh using a .tif or .mesh file
 void Initialize_Geometry::InitializeGlobalMesh(const char* meshFile) {
     std::string meshFileStr(meshFile);  // Convert to std::string
@@ -372,14 +269,8 @@ void Initialize_Geometry::InitializeGlobalMesh(const char* meshFile) {
         tiffData = ReadTiffFile(meshFile); // read voxel data from tiff file
         globalMesh = CreateGlobalMeshFromTiffData(tiffData); // generate mesh from voxel data
     } 
-    else if (fileExtension == "mesh") {
-        if (mfem::Mpi::WorldRank() == 0) // only print on rank 0
-        {std::cout << "Creating global mesh using .mesh file" << std::endl;}
-        
-        globalMesh = std::make_unique<mfem::Mesh>(meshFile);
-    } 
     else {
-        throw std::invalid_argument("Unsupported file format. Only .tif and .mesh are allowed.");
+        throw std::invalid_argument("Unsupported file format. Only .tif is allowed.");
     }
 
     // ensure mesh supports non-conforming elements for adaptive refinement
@@ -436,7 +327,7 @@ void Initialize_Geometry::SetupParFiniteElementSpace(int order) {
 }
 
 
-void Initialize_Geometry::AssignGlobalValues(const char* meshFile, const char* distanceFile, std::unique_ptr<mfem::GridFunction>& gDsF_out) {
+void Initialize_Geometry::AssignGlobalValues(const char* meshFile) {
     std::string meshFileStr(meshFile);  // Convert to std::string
     
     if (meshFileStr.substr(meshFileStr.find_last_of(".") + 1) == "tif") {
@@ -450,18 +341,6 @@ void Initialize_Geometry::AssignGlobalValues(const char* meshFile, const char* d
     }
         
     gVox = std::make_unique<mfem::GridFunction>(globalfespace.get());
-
-        // int nz = tiffData.size();
-        // int ny = tiffData[0].size();
-        // int nx = tiffData[0][0].size();
-        // for (int k = 0; k < nz; k++) {
-        //     for (int j = 0; j < ny; j++) {
-        //         for (int i = 0; i < nx; i++) {
-        //             int idx = i + nx * j + nx * ny * k;
-        //             (*this->gVox)[idx] = tiffData[k][j][i];
-        //         }
-        //     }
-        // }
 
         int nz = tiffData.size();
         int ny = tiffData[0].size();
@@ -486,43 +365,8 @@ void Initialize_Geometry::AssignGlobalValues(const char* meshFile, const char* d
                 (*this->gVox)[idx] = tiffData[0][jj][ii];
             }
         }
-
-    if (mfem::Mpi::WorldRank() == 0) { // only print on rank 0
-    cout << "Reading .dsF file for global distance function for tif case" << endl;
-    }
-        gDsF_out = make_unique<mfem::GridFunction>(globalfespace.get());
-        std::ifstream myfile(distanceFile);
-        if (myfile.is_open()) {
-            // Skip the first four lines
-            string line;
-            for (int i = 0; i < 4; i++) {
-                if (!getline(myfile, line)) {
-                    if (mfem::Mpi::WorldRank() == 0) {cerr << "Warning: Distance file has fewer than four header lines" << endl;}
-                    myfile.close();
-                    return;
-                }
-            }
-            gDsF_out->Load(myfile, gDsF_out->Size());
-            myfile.close();
-        } else {
-            cerr << "Failed to open distance file" << endl;
-        }
         
-
-    } else if (meshFileStr.substr(meshFileStr.find_last_of(".") + 1) == "mesh") {
-    
-    if (mfem::Mpi::WorldRank() == 0) // only print on rank 0
-    { cout << "Reading .dsF file for global distance function for mesh case" << endl; }
-
-        gDsF_out = make_unique<mfem::GridFunction>(globalfespace.get());
-        ifstream myfile(distanceFile);
-        if (myfile.is_open()) {
-            gDsF_out->Load(myfile, gDsF_out->Size());
-            myfile.close();
-        } else {
-            cerr << "Failed to open distance file" << endl;
-        }
-    }
+    } 
 }   
 
 void Initialize_Geometry::MapGlobalToLocal(const char* meshFile) {
@@ -549,7 +393,6 @@ void Initialize_Geometry::MapGlobalToLocal(const char* meshFile) {
 
     gVTX.SetSize(nC);
     VTX.SetSize(nC);
-
 
     // Determine file type based on extension
     std::string meshFileStr(meshFile);  // Convert to std::string
@@ -590,39 +433,8 @@ void Initialize_Geometry::MapGlobalToLocal(const char* meshFile) {
             }
         }
 
-    } else if (meshFileStr.substr(meshFileStr.find_last_of(".") + 1) == "mesh") {
-        // Handle .mesh file
-        if (mfem::Mpi::WorldRank() == 0) // only print on rank 0
-        {cout << "Reading .mesh file for mapping global to local grid function" << endl;}
-
-        // Map local distance function from global one
-        for (ei = 0; ei < nE; ei++) {
-            gei = E_L2G[ei];
-
-            globalMesh->GetElementVertices(gei, gVTX);
-            parallelMesh->GetElementVertices(ei, VTX);
-
-            if (gDsF) {
-                if (!dsF) dsF = std::make_unique<mfem::ParGridFunction>(parfespace.get());
-                for (int vi = 0; vi < nC; ++vi) { (*dsF)(VTX[vi]) = (*gDsF)(gVTX[vi]); }
-            }
-
-            if (gDsF_A) {
-                if (!dsF_A) dsF_A = std::make_unique<mfem::ParGridFunction>(parfespace.get());
-                for (int vi=0; vi<nC; ++vi) (*dsF_A)(VTX[vi]) = (*gDsF_A)(gVTX[vi]);
-            }
-            if (gDsF_C) {
-                if (!dsF_C) dsF_C = std::make_unique<mfem::ParGridFunction>(parfespace.get());
-                for (int vi=0; vi<nC; ++vi) (*dsF_C)(VTX[vi]) = (*gDsF_C)(gVTX[vi]);
-            }
-
-            if (!gDsF_C && gDsF_A) {
-                if (!dsF) dsF = std::make_unique<mfem::ParGridFunction>(parfespace.get());
-                for (int vi=0; vi<nC; ++vi) (*dsF)(VTX[vi]) = (*gDsF_A)(gVTX[vi]);
-            }
-
-        }
-    } else {
+    } 
+    else {
         cerr << "Unsupported file type for MapGlobalToLocal" << endl;
     }
 
@@ -688,16 +500,6 @@ std::unique_ptr<mfem::Mesh> Initialize_Geometry::CreateGlobalMeshFromTiffData(co
         );
     }
 
-    // if (nz == 1) {
-    //     mesh = std::make_unique<mfem::Mesh>(
-    //         mfem::Mesh::MakeCartesian2D(nx - 1, ny - 1, mfem::Element::QUADRILATERAL, generate_edges, sx, sy, sfc_ordering)
-    //     );
-    // } else {
-    //     mesh = std::make_unique<mfem::Mesh>(
-    //         mfem::Mesh::MakeCartesian3D(nx - 1, ny - 1, nz - 1, mfem::Element::HEXAHEDRON, sx, sy, sz, sfc_ordering)
-    //     );
-    // }
-
     return mesh;
 
 }
@@ -710,43 +512,6 @@ void Initialize_Geometry::PrintMeshInfo() {
     }
 
 }
-
-// void Initialize_Geometry::SaveTiffDataToPGM(const std::vector<std::vector<std::vector<int>>> &data,
-//                               const std::string &filename)
-// {
-//     if (data.empty() || data[0].empty() || data[0][0].empty()) {
-//         std::cerr << "SaveTiffDataToPGM: empty data\n";
-//         return;
-//     }
-
-//     const auto &img = data[0];              // first slice only
-//     const int height = (int)img.size();     // rows
-//     const int width  = (int)img[0].size();  // columns
-
-//     std::ofstream out(filename, std::ios::binary);
-//     if (!out.is_open()) {
-//         std::cerr << "Could not open file for writing: " << filename << "\n";
-//         return;
-//     }
-
-//     // PGM header
-//     out << "P5\n" << width << " " << height << "\n255\n";
-
-//     // Write binary 0 or 255 only
-//     for (int j = 0; j < height; ++j) {
-//         for (int i = 0; i < width; ++i) {
-//             unsigned char val;
-
-//             if (img[j][i] <= 0)       val = 0;     // black
-//             else                      val = 255;   // white
-
-//             out.write(reinterpret_cast<char*>(&val), 1);
-//         }
-//     }
-
-//     out.close();
-//     if (mfem::Mpi::WorldRank() == 0) {std::cout << "Saved binary PGM (0/255) to " << filename << "\n";}
-// }
 
 void Initialize_Geometry::SaveTiffDataToPGM(
     const std::vector<std::vector<std::vector<int>>> &data,
