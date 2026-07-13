@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
         if (mfem::Mpi::WorldRank() == 0)
         {
             std::cout << "\n===== Simulation Parameters =====\n"
+                    << "output_dir = " << outdir << "\n"
                     << "dt   = " << cfg.dt   << "\n"
                     << "dh   = " << cfg.dh   << "\n"
                     << "gc   = " << cfg.gc   << "\n"
@@ -78,7 +79,8 @@ int main(int argc, char *argv[]) {
         if (cfg.mode == sim::CellMode::HALF) {
             bc.SetupBoundaryConditions(sim::CellMode::HALF, cfg.half_electrode);
         } else {
-            bc.SetupBoundaryConditions(sim::CellMode::FULL, sim::Electrode::BOTH);
+            // bc.SetupBoundaryConditions(sim::CellMode::FULL, sim::Electrode::BOTH);
+            "Full cell mode is not yet implemented. Please use half-cell mode.";
         }
 
         // Define Adjuster for Surface Voltage & Current

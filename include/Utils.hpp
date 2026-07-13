@@ -156,9 +156,9 @@ public:
         std::string mesh_name = fs::path(mesh_file).stem().string();
 
         std::ostringstream od;
-        od << "../outputs/Results/" << ts.str()
-           << "__nsteps=" << num_steps
-           << "__mesh=" << mesh_name;
+        od << "../outputs/Results/" << ts.str();
+        //    << "__nsteps=" << num_steps
+        //    << "__mesh=" << mesh_name;
 
         return od.str();
     }
