@@ -508,26 +508,7 @@ void ValidateConfig(const SimulationConfig &cfg, int argc, char *argv[])
     
             if (cfg.init_cathode_particles.empty())
                 mfem::mfem_error("init_cathode_particles cannot be empty.");
-            if (cfg.cathode_materials.size() != 3)
-            {
-                std::stringstream ss;
-                ss << "Invalid cathode material group count. "
-                   << "BESFEM currently expects exactly 3 cathode psi/material groups, but you provided "
-                   << cfg.cathode_materials.size()
-                   << ". Example: cathode_materials = NMC,NMC,NMC ";
-            
-                mfem::mfem_error(ss.str().c_str());
-            }
-            if (cfg.init_cathode_particles.size() != 3)
-            {
-                std::stringstream ss;
-                ss << "Invalid cathode particle group count. "
-                   << "BESFEM currently expects exactly 3 cathode particles , but you provided "
-                   << cfg.init_cathode_particles.size()
-                   << ". Example: init_cathode_particles = 0.30,0.30,0.30.";
-            
-                mfem::mfem_error(ss.str().c_str());
-            }
+
             if (cfg.cathode_materials.size() != cfg.init_cathode_particles.size())
             {
                 mfem::mfem_error(
@@ -566,25 +547,25 @@ void ValidateConfig(const SimulationConfig &cfg, int argc, char *argv[])
                 mfem::mfem_error(
                     "anode_materials and init_anode_particles must have the same length.");
             }
-            if (cfg.anode_materials.size() != 3)
-            {
-                std::stringstream ss;
-                ss << "Invalid anode particle group count. "
-                   << "BESFEM currently expects exactly 3 anode psi/material groups, but you provided "
-                   << cfg.anode_materials.size()
-                   << ". Example: anode_materials = Graphite,Graphite,Graphite ";     
-                mfem::mfem_error(ss.str().c_str());
-            }
-            if (cfg.init_anode_particles.size() != 3)
-            {
-                std::stringstream ss;
-                ss << "Invalid anode particle group count. "
-                   << "BESFEM currently expects exactly 3 anode particles groups, but you provided "
-                   << cfg.init_anode_particles.size()
-                   << ". Example: init_anode_particles = 0.02,0.02,0.02.";
+            // if (cfg.anode_materials.size() != 3)
+            // {
+            //     std::stringstream ss;
+            //     ss << "Invalid anode particle group count. "
+            //        << "BESFEM currently expects exactly 3 anode psi/material groups, but you provided "
+            //        << cfg.anode_materials.size()
+            //        << ". Example: anode_materials = Graphite,Graphite,Graphite ";     
+            //     mfem::mfem_error(ss.str().c_str());
+            // }
+            // if (cfg.init_anode_particles.size() != 3)
+            // {
+            //     std::stringstream ss;
+            //     ss << "Invalid anode particle group count. "
+            //        << "BESFEM currently expects exactly 3 anode particles groups, but you provided "
+            //        << cfg.init_anode_particles.size()
+            //        << ". Example: init_anode_particles = 0.02,0.02,0.02.";
             
-                mfem::mfem_error(ss.str().c_str());
-            }
+            //     mfem::mfem_error(ss.str().c_str());
+            // }
              if (cfg.init_BvA == -9999.0)
             {
                 mfem::mfem_error(

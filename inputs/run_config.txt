@@ -9,9 +9,9 @@ electrode = cathode
 # GEOMETRY
 # ============================================================
 
-mesh_file = ../inputs/colored_labels_labels.tif
+mesh_file = ../inputs/mesh/colored_labels_labels.tif
 
-combine_particles = false
+combine_particles = true
 
 # ============================================================
 # NUMERICAL PARAMETERS

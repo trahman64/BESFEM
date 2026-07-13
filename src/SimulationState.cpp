@@ -203,6 +203,44 @@ static void InitializeCathodeParticles(SimulationState& state, Initialize_Geomet
 {
     const int np = static_cast<int>(domain_parameters.ps.size());
     state.cathode_particles.clear();
+
+    if (np == 0)
+    {
+        if (mfem::Mpi::WorldRank() == 0)
+        {
+            std::cout
+                << "[DEBUG] No cathode particle groups were created from the geometry."
+                << std::endl;
+        }
+        return;
+    }
+
+    if (cfg.cathode_materials.size() != static_cast<size_t>(np))
+    {
+        std::stringstream ss;
+        ss << "Invalid number of cathode material entries.\n"
+        << "The geometry contains " << np << " cathode particle group"
+        << (np == 1 ? "" : "s")
+        << ", but 'cathode_materials' contains "
+        << cfg.cathode_materials.size() << " entr"
+        << (cfg.cathode_materials.size() == 1 ? "y" : "ies") << ".\n\n"
+        << "Please provide one material for each particle group.";
+        mfem::mfem_error(ss.str().c_str());
+    }
+
+    if (cfg.init_cathode_particles.size() != static_cast<size_t>(np))
+    {
+        std::stringstream ss;
+        ss << "Invalid number of cathode initial concentrations.\n"
+        << "The geometry contains " << np << " cathode particle group"
+        << (np == 1 ? "" : "s")
+        << ", but 'init_cathode_particles' contains "
+        << cfg.init_cathode_particles.size() << " entr"
+        << (cfg.init_cathode_particles.size() == 1 ? "y" : "ies") << ".\n\n"
+        << "Please provide one initial concentration for each particle group.";
+        mfem::mfem_error(ss.str().c_str());
+    }
+
     state.cathode_particles.resize(np);
 
     const std::vector<double>& init_values = cfg.init_cathode_particles;
