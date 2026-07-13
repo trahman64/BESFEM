@@ -24,9 +24,15 @@ void ElectrodeCahnHilliard::SetupField(mfem::ParGridFunction &Cn, double initial
     fem.InitializeMassMatrix(coef, M_init); 
     fem.FormSystemMatrix(M_init, boundary_dofs, MmatCH); 
     
-    MCH_solver.iterative_mode = false; 
+    MCH_solver.iterative_mode = true; 
     MCH_prec.SetType(mfem::HypreSmoother::Jacobi); 
     fem.SolverConditions(MmatCH, MCH_solver, MCH_prec); 
+
+    MCH_solver.iterative_mode = true;
+    MCH_solver.SetRelTol(1.0e-12);
+    MCH_solver.SetAbsTol(1.0e-18);
+    MCH_solver.SetMaxIter(500);
+    MCH_solver.SetPrintLevel(0);
 
     fem.InitializeStiffnessMatrix(cDp, Grad_MForm); 
 
@@ -48,6 +54,13 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     
     const double rho = MaterialProperties::SiteDensity(material);
     utils.InitializeReaction(Rx, RxA, (1.0/rho)); 
+
+    // RxA = 0.0;
+
+    // RxA *= weight_elec;
+    // weight_elec.SaveAsOne("weight_elec_debug.gf");
+
+
 
     if (!combine_particle_groups){
         
@@ -98,7 +111,26 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     fem.Update(Grad_MForm);
     fem.FormLinearSystem(Grad_MForm, boundary_dofs, Mub, Fct, Grad_MM, X1v, Fcb); 
 
+    // if (mfem::Mpi::WorldRank() == 0)
+    // {
+    //     std::cout << std::setprecision(15)
+    //             << "RxA norm = " << RxA.Norml2()
+    //             << ", Fct norm = " << Fct.Norml2()
+    //             << ", Fcb norm = " << Fcb.Norml2()
+    //             << std::endl;
+    // }
+
     Grad_MM.Mult(MuV, Lp2); 
+    const double mobility_rhs_norm = Lp2.Norml2();
+
+    // if (mfem::Mpi::WorldRank() == 0)
+    // {
+    //     std::cout << std::setprecision(15)
+    //             << "Mobility RHS norm = "
+    //             << mobility_rhs_norm
+    //             << std::endl;
+    // }
+
     Lp2.Neg(); 
     Lp2 *= cfg.dt; 
 
@@ -110,7 +142,16 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     MmatCH.Mult(CpV0, RHCp); 
     RHCp += Lp2; 
 
-    MCH_solver.Mult(RHCp, CpVn); 
+    // std::cout << std::setprecision(15)
+    //       << "Lp2 norm = " << Lp2.Norml2()
+    //       << std::endl;
+
+    CpVn = CpV0;
+    MCH_solver.Mult(RHCp, CpVn);
+
+    // MCH_solver.Mult(RHCp, CpVn); 
+
+    // CpVn = CpV0;
 
     // Ensure that the concentration values are within the valid range
     for (int i = 0; i < CpV0.Size(); i++) {
@@ -131,7 +172,7 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     utils.CalculateLithiation(Cn, psx, gtPsx); 
     Xfr = utils.GetLithiation();
 
-    Rx = RxA; 
+    // Rx = RxA; 
 }
 
 

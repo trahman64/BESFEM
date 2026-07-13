@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
         if (mfem::Mpi::WorldRank() == 0)
         {
             std::cout << "\n===== Simulation Parameters =====\n"
+                    << "output_dir = " << outdir << "\n"
                     << "dt   = " << cfg.dt   << "\n"
                     << "dh   = " << cfg.dh   << "\n"
                     << "gc   = " << cfg.gc   << "\n"
@@ -277,7 +278,7 @@ int main(int argc, char *argv[]) {
                     for (int j = 0; j < np; ++j)
                     {     
                         *state.cathode_particles[j].Rx_src = *state.cathode_particles[j].Rxn_gf;
-                        *state.Rxn_gf += *state.cathode_particles[j].Rxn_gf;
+                        *state.Rxn_gf += *state.cathode_particles[j].Rx_src;
                         
                         std::vector<ConcentrationBase::PairCoupling> pair_terms;
                         Pairs(state, geometry, domain_parameters, j, pair_terms, np, t);
@@ -344,7 +345,7 @@ int main(int argc, char *argv[]) {
 
                         }
 
-                        // state.Rxn_gf->SaveAsOne("rxn_degbug");
+                        // state.Rxn_gf->SaveAsOne("rxn_debug");
                     }
 
 
@@ -374,6 +375,28 @@ int main(int argc, char *argv[]) {
 
                     double sgn = std::copysign(1.0, total_target - total_current);
                     double dV  = cfg.dt * cfg.Vsr0 * sgn;
+
+                    // const double current_error = total_target - total_current;
+                    // const double scale = std::max(std::abs(total_target), 1.0e-30);
+                    // const double relative_error = current_error / scale;
+
+                    // const double relative_tolerance = 1.0e-3;
+                    // const double max_relative_step = 1.0;
+
+                    // double dV = 0.0;
+
+                    // if (std::abs(relative_error) > relative_tolerance)
+                    // {
+                    //     const double limited_error =
+                    //         std::clamp(relative_error,
+                    //                 -max_relative_step,
+                    //                     max_relative_step);
+
+                    //     dV = cfg.dt * cfg.Vsr0 * limited_error;
+                    // }
+
+                    // state.electrolyte_potential->AddBoundaryVoltage(dV);
+                    // *state.phE_gf += dV;
 
                     state.electrolyte_potential->AddBoundaryVoltage(dV);
                     *state.phE_gf += dV;
