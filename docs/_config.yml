@@ -3,8 +3,8 @@ description: Battery Electrode Simulation Finite Electrode
 remote_theme: just-the-docs/just-the-docs
 plugins:
   - jekyll-remote-theme
-#url : https://github.com/HCY-Group/BESFEM.git
-url: https://github.com/trahman64/BESFEM.git
+url : https://github.com/HCY-Group/BESFEM.git
+# url: https://github.com/trahman64/BESFEM.git
 baseurl: "/BESFEM"
 aux_links:
   GitHub Repository: https://github.com/HCY-Group/BESFEM
