@@ -183,19 +183,19 @@ void Domain_Parameters::InterpolateDomainParameters() {
         {
             const int dim = pmesh->Dimension();
 
-            mfem::ParGridFunction dphase(fespace.get());
-            mfem::ParGridFunction grad_mag(fespace.get());
+            // mfem::ParGridFunction dphase(fespace.get());
+            // mfem::ParGridFunction grad_mag(fespace.get());
 
-            grad_mag = 0.0;
+            // grad_mag = 0.0;
 
-            for (int d = 0; d < dim; ++d)
-            {
-                dphase = 0.0;
-                psi->GetDerivative(1, d, dphase);
-                dphase *= dphase;
-                grad_mag += dphase;
+            // for (int d = 0; d < dim; ++d)
+            // {
+            //     dphase = 0.0;
+            //     psi->GetDerivative(1, d, dphase);
+            //     dphase *= dphase;
+            //     grad_mag += dphase;
 
-            }
+            // }
 
             mfem::Array<int> refinement_list;
 
