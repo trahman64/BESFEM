@@ -24,10 +24,11 @@ void ElectrodeCahnHilliard::SetupField(mfem::ParGridFunction &Cn, double initial
     fem.InitializeMassMatrix(coef, M_init); 
     fem.FormSystemMatrix(M_init, boundary_dofs, MmatCH); 
     
-    MCH_solver.iterative_mode = false; 
+    // MCH_solver.iterative_mode = false; 
     MCH_prec.SetType(mfem::HypreSmoother::Jacobi); 
     fem.SolverConditions(MmatCH, MCH_solver, MCH_prec); 
 
+    MCH_solver.iterative_mode = true;
     fem.InitializeStiffnessMatrix(cDp, Grad_MForm); 
 
     mfem::ConstantCoefficient varE(cfg.gc/pow(cfg.dh, pmesh->Dimension())); 
@@ -77,7 +78,7 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
             mu = ((mu / (-1*Constants::Frd)) - 3.4) * -1;
         }
 
-        Mub(i) = mu;
+        // Mub(i) = mu;
 
 
         Mub(i) = mu;
@@ -129,7 +130,7 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     utils.CalculateLithiation(Cn, psx, gtPsx); 
     Xfr = utils.GetLithiation();
 
-    Rx = RxA; 
+    // Rx = RxA; 
 }
 
 

@@ -340,26 +340,32 @@ void Initialize_Geometry::AssignGlobalValues(const char* meshFile) {
         
     gVox = std::make_unique<mfem::GridFunction>(globalfespace.get());
 
-        int nz = tiffData.size();
-        int ny = tiffData[0].size();
-        int nx = tiffData[0][0].size();
+    int nz = tiffData.size();
+    int ny = tiffData[0].size();
+    int nx = tiffData[0][0].size();
 
-        int ex = (nx - 1) / 2;
-        int ey = (ny - 1) / 2;
+        // int ex = (nx - 1) / 2;
+        // int ey = (ny - 1) / 2;
 
-        int vx = ex + 1;   // number of x nodes = 51
-        int vy = ey + 1;   // number of y nodes = 51
+        // int vx = ex + 1;   // number of x nodes = 51
+        // int vy = ey + 1;   // number of y nodes = 51
 
-        *this->gVox = 0.0;
+    const int coarsen = 1.0;
+
+    int ex = (nx - 1) / coarsen;
+    int ey = (ny - 1) / coarsen;
+
+    int vx = ex + 1;
+    int vy = ey + 1;
+
+    *this->gVox = 0.0;
 
         for (int j = 0; j < vy; j++) {
             for (int i = 0; i < vx; i++) {
-
-                int ii = std::min(2 * i, nx - 1);
-                int jj = std::min(2 * j, ny - 1);
+                int ii = std::min(coarsen * i, nx - 1);
+                int jj = std::min(coarsen * j, ny - 1);
 
                 int idx = i + vx * j;
-
                 (*this->gVox)[idx] = tiffData[0][jj][ii];
             }
         }
@@ -447,10 +453,10 @@ std::vector<std::vector<std::vector<int>>> Initialize_Geometry::ReadTiffFile(con
 	args.Depth_begin = 0;	//only read in one slice for 2D data
 	args.Depth_end = 1;	//only read in one slice for 2D data
 	// get a smaller subset so it runs faster
-	args.Row_begin    = 0;
-	args.Row_end      = 100;
-	args.Column_begin = 0;
-	args.Column_end   = 100;
+	args.Row_begin    = 15;
+	args.Row_end      = 80;
+	args.Column_begin = 10;
+	args.Column_end   = 60;
 	TIFFReader reader(meshFile,args);
 	reader.readinfo();
 	std::vector<std::vector<std::vector<int>>> tiffData;
@@ -477,9 +483,10 @@ std::unique_ptr<mfem::Mesh> Initialize_Geometry::CreateGlobalMeshFromTiffData(co
 
     // std::cout << "sz: " << sz << " sx: " << sx << " sy: " << sy << std::endl;
 
-    int ex = (nx - 1) / 2;
-    int ey = (ny - 1) / 2;
-    int ez = (nz == 1) ? 1 : (nz - 1) / 2;
+    const int coarsen = 1;
+    int ex = (nx - 1) / coarsen;
+    int ey = (ny - 1) / coarsen;
+    int ez = (nz == 1) ? 1 : (nz - 1) / coarsen;
 
     // std::cout << "ez: " << ez << " ex: " << ex << " ey: " << ey << std::endl;
 
