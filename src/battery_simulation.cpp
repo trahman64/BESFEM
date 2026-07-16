@@ -319,6 +319,9 @@ int main(int argc, char *argv[]) {
                     // Assemble one combined cathode potential
                     // ============================================================
 
+                    if (t % 5 == 0)
+                    {
+
                     std::vector<mfem::ParGridFunction*> cathode_cn_fields; // vector of pointers to cathode concentration fields
                     std::vector<mfem::ParGridFunction*> cathode_psi_fields; // vector of pointers to cathode potential fields
                     std::vector<sim::MaterialType> cathode_materials; // vector of cathode material types
@@ -362,10 +365,11 @@ int main(int argc, char *argv[]) {
                             iter++;
 
                         }
+                    }
 
-                        if (iter == max_iter && mfem::Mpi::WorldRank() == 0) {
-                            std::cout << "Warning: Maximum iterations reached at timestep " << t << " with Global Error P = " << globalerror_P << ", Global Error E = " << globalerror_E << std::endl;
-                        }
+                        // if (iter == max_iter && mfem::Mpi::WorldRank() == 0) {
+                        //     std::cout << "Warning: Maximum iterations reached at timestep " << t << " with Global Error P = " << globalerror_P << ", Global Error E = " << globalerror_E << std::endl;
+                        // }
                     
                     for (int j = 0; j < np; ++j){
                         state.cathode_particles[j].reaction->TotalReactionCurrent(*state.cathode_particles[j].Rxn_gf, global_currents[j]);

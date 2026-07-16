@@ -96,7 +96,7 @@ void FEMOperators::Update(std::unique_ptr<mfem::ParBilinearForm> &B) {
 
 void FEMOperators::SolverConditions(mfem::HypreParMatrix &Mmat, mfem::CGSolver &solver, mfem::Solver &preconditioner){
     // Set up the solver for the mass matrix.
-    solver.iterative_mode = true; // Use direct solving for the system matrix
+    solver.iterative_mode = false; // Use direct solving for the system matrix
     solver.SetRelTol(1e-6); // Set relative tolerance for the solver
     solver.SetAbsTol(0.0); // Set absolute tolerance for the solver
     solver.SetMaxIter(102); // Limit the maximum number of iterations
@@ -107,7 +107,7 @@ void FEMOperators::SolverConditions(mfem::HypreParMatrix &Mmat, mfem::CGSolver &
 
 void FEMOperators::SolverConditions(mfem::CGSolver &solver, mfem::Solver &preconditioner){
     // Set up the solver for the mass matrix.
-    solver.iterative_mode = true; // Use direct solving for the system matrix
+    solver.iterative_mode = false; // Use direct solving for the system matrix
     solver.SetRelTol(1e-6); // Set relative tolerance for the solver
     solver.SetAbsTol(0.0); // Set absolute tolerance for the solver
     solver.SetMaxIter(102); // Limit the maximum number of iterations
