@@ -197,36 +197,20 @@ void Domain_Parameters::InterpolateDomainParameters() {
 
             // }
 
-            mfem::Array<int> refinement_list;
+           mfem::Array<int> refinement_list;
 
-            // for (int ei = 0; ei < pmesh->GetNE(); ++ei)
-            // {
-            //     mfem::Array<double> nvals;
-            //     grad_mag.GetNodalValues(ei, nvals);
-
-            //     double ave_val = 0.0;
-            //     for (int j = 0; j < nvals.Size(); ++j)
-            //     {
-            //         ave_val += nvals[j];
-            //     }
-            //     ave_val /= 4;
-
-            //     if (ave_val > 10.0)
-            //     {
-            //         refinement_list.Append(ei);
-            //     }
-            // }
-
-            for (int ei = 0; ei < pmesh->GetNE(); ei++)
+            for (int ei = 0; ei < pmesh->GetNE(); ++ei)
             {
                 mfem::Array<double> psi_vals;
                 psi->GetNodalValues(ei, psi_vals);
 
                 double psi_avg = 0.0;
-                for (int j = 0; j < psi_vals.Size(); j++)
+
+                for (int j = 0; j < psi_vals.Size(); ++j)
                 {
                     psi_avg += psi_vals[j];
                 }
+
                 psi_avg /= psi_vals.Size();
 
                 if (psi_avg > 0.05 && psi_avg < 0.95)
@@ -235,18 +219,32 @@ void Domain_Parameters::InterpolateDomainParameters() {
                 }
             }
 
+            // Local values
+            const int local_marked = refinement_list.Size();
+            const int local_elements = pmesh->GetNE();
+
+            // Global values
+            int global_marked = 0;
+            int global_elements = 0;
+
+            MPI_Allreduce(&local_marked, &global_marked, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+            MPI_Allreduce(&local_elements, &global_elements, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
             if (mfem::Mpi::WorldRank() == 0)
             {
-                std::cout << "[AMR] level " << lev + 1
-                        << ": marked " << refinement_list.Size()
-                        << " / " << pmesh->GetNE()
-                        << " elements" << std::endl;
+                std::cout << "[AMR] level " << lev + 1 << ": marked " << global_marked
+                        << " / " << global_elements << " elements globally" << std::endl;
             }
 
-            if (refinement_list.Size() == 0) { break; }
+            // All ranks make the same decision.
+            if (global_marked == 0)
+            {
+                break;
+            }
 
-
+            // All ranks participate, including ranks with zero local elements marked.
             pmesh->GeneralRefinement(refinement_list);
+
             fespace->Update();
             const mfem::Operator *T = fespace->GetUpdateOperator();
 
