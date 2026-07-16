@@ -32,24 +32,17 @@ void Utils::CalculateLithiation(mfem::ParGridFunction &Cn, mfem::ParGridFunction
 
     double local_sum = 0.0;
 
-    for (int ei = 0; ei < pmesh_->GetNE(); ei++)
+    for (int ei = 0; ei < nE_; ei++)
     {
-        mfem::Array<double> vals;
-        TmpF_.GetNodalValues(ei, vals);
+        TmpF_.GetNodalValues(ei, VtxVal_);
+        double sum = std::accumulate(VtxVal_.begin(), VtxVal_.end(), 0.0);
 
-        double avg = 0.0;
-        for (int j = 0; j < vals.Size(); j++)
-        {
-            avg += vals[j];
-        }
-        avg /= vals.Size();
-
-        local_sum += avg * pmesh_->GetElementVolume(ei);
+        EAvg_(ei) = sum / nC_;
+        local_sum += EAvg_(ei) * EVol_(ei);
     }
 
     MPI_Allreduce(&local_sum, &Xfr_, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     Xfr_ /= gtps;
-
 }
 
 void Utils::CalculateReactionInfx(mfem::ParGridFunction &Rx, double &xCrnt)
@@ -210,11 +203,11 @@ void Utils::SaveSimulationSnapshotMulti(int t, const std::string &outdir, Initia
             raw_name << outdir << "/CnC_" << (k + 1) << suff;
             masked_name << outdir << "/C" << (k + 1) << "_out" << suff;
 
-            particle_cn[k]->SaveAsOne(raw_name.str().c_str());
+            // particle_cn[k]->SaveAsOne(raw_name.str().c_str());
 
             *particle_out[k] = *particle_cn[k];
             *particle_out[k] *= *domain_parameters.ps[k];
-            particle_out[k]->SaveAsOne(masked_name.str().c_str());
+            // particle_out[k]->SaveAsOne(masked_name.str().c_str());
         }
 
         // Build union mask and denominator
