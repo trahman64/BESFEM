@@ -129,7 +129,7 @@ void ElectrodeCahnHilliard::UpdateConcentration(mfem::ParGridFunction &Rx, mfem:
     utils.CalculateLithiation(Cn, psx, gtPsx); 
     Xfr = utils.GetLithiation();
 
-    Rx = RxA; 
+    // Rx = RxA; 
 }
 
 

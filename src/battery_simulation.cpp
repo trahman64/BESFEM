@@ -297,7 +297,7 @@ int main(int argc, char *argv[]) {
                     for (int j = 0; j < np; ++j)
                     {
                         *state.cathode_particles[j].Rx_src = *state.cathode_particles[j].Rxn_gf;
-                        *state.Rxn_gf += *state.cathode_particles[j].Rxn_gf;
+                        *state.Rxn_gf += *state.cathode_particles[j].Rx_src;
                         
                         std::vector<ConcentrationBase::PairCoupling> pair_terms;
                         Pairs(state, geometry, domain_parameters, j, pair_terms, np, t);
@@ -306,7 +306,7 @@ int main(int argc, char *argv[]) {
                             *domain_parameters.ps[j], domain_parameters.gtPs[j], *domain_parameters.WeightEs[j], pair_terms);
                     }
 
-                    state.Rxn_gf->SaveAsOne("Rxn_after_concentration.gf");
+                    // state.Rxn_gf->SaveAsOne("Rxn_after_concentration.gf");
 
                     state.electrolyte_concentration->UpdateConcentration(*state.Rxn_gf, *state.CnE_gf,
                         *domain_parameters.pse, domain_parameters.gtPse, *domain_parameters.pse, {});
