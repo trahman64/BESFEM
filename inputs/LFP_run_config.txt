@@ -13,13 +13,23 @@ mesh_file = ../inputs/mesh/colored_labels_labels.tif
 
 combine_particles = true
 
-amr_levels = 0
+# TIFF crop bounds
+row_begin = 0
+row_end = 100
+column_begin = 0
+column_end = 100
+
+amr_levels = 2
+
+# Initial mesh coarsening before AMR
+# Must be 1 when amr_levels = 0
+coarsen_factor = 2
 
 # ============================================================
 # NUMERICAL PARAMETERS
 # ============================================================
 
-dt = 1.2e-04
+dt = 1.2e-05
 dh = 8.0e-07
 gc = 6.38e-12
 
@@ -27,15 +37,16 @@ gc = 6.38e-12
 # STOPPING CRITERIA
 # ============================================================
 
-stop_mode = voltage       
-VCut = 3.39
+stop_mode = steps       
+VCut = 3.41
+num_steps = 1501
 
 # ============================================================
 # CURRENT CONTROL
 # ============================================================
 
 Cr = 1.0
-Vsr0 = 0.09466
+Vsr0 = 0.9466
 
 # ============================================================
 # MATERIALS

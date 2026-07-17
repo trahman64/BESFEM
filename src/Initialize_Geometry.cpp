@@ -190,7 +190,7 @@ void Initialize_Geometry::InitializeMesh(const char* meshFile, MPI_Comm comm, in
         // discover particle labels automatically from TIFF
         particle_labels = GetParticleLabelsFromTiff();
 
-        if (combine_particle_groups)
+        if (cfg.combine_particle_groups)
         {
             particle_labels.clear();
             particle_labels.push_back(1);
@@ -324,54 +324,86 @@ void Initialize_Geometry::SetupParFiniteElementSpace(int order) {
     this->pardimfespace_dg = std::make_shared<mfem::ParFiniteElementSpace>(this->parallelMesh.get(), this->pfec_dg.get(), this->parallelMesh->Dimension(), mfem::Ordering::byNODES);
 }
 
+void Initialize_Geometry::AssignGlobalValues(const char* meshFile)
+{
+    const std::string meshFileStr(meshFile);
 
-void Initialize_Geometry::AssignGlobalValues(const char* meshFile) {
-    std::string meshFileStr(meshFile);  // Convert to std::string
-    
-    if (meshFileStr.substr(meshFileStr.find_last_of(".") + 1) == "tif") {
-        // Process the .tif file
-        if (mfem::Mpi::WorldRank() == 0){ // only print on rank 0 
-        cout << "Reading .tif file for voxel data" << endl;
-        }
-
-    if (!globalfespace) {
-        throw std::runtime_error("Global finite element space (globalfespace) must be initialized before assigning global values.");
+    if (meshFileStr.substr(meshFileStr.find_last_of(".") + 1) != "tif")
+    {
+        mfem::mfem_error(
+            "AssignGlobalValues only supports TIFF files.");
     }
-        
-    gVox = std::make_unique<mfem::GridFunction>(globalfespace.get());
 
-    int nz = tiffData.size();
-    int ny = tiffData[0].size();
-    int nx = tiffData[0][0].size();
+    if (mfem::Mpi::WorldRank() == 0)
+    {
+        std::cout << "Reading TIFF file for voxel data\n";
+    }
 
-        // int ex = (nx - 1) / 2;
-        // int ey = (ny - 1) / 2;
+    if (!globalfespace)
+    {
+        throw std::runtime_error(
+            "Global finite element space must be initialized "
+            "before assigning global values.");
+    }
 
-        // int vx = ex + 1;   // number of x nodes = 51
-        // int vy = ey + 1;   // number of y nodes = 51
+    gVox = std::make_unique<mfem::GridFunction>(
+        globalfespace.get());
 
-    const int coarsen = 1.0;
+    const int nz = static_cast<int>(tiffData.size());
+    const int ny = static_cast<int>(tiffData[0].size());
+    const int nx = static_cast<int>(tiffData[0][0].size());
 
-    int ex = (nx - 1) / coarsen;
-    int ey = (ny - 1) / coarsen;
+    const int coarsen = cfg.coarsen_factor;
 
-    int vx = ex + 1;
-    int vy = ey + 1;
+    const int ex = (nx - 1) / coarsen;
+    const int ey = (ny - 1) / coarsen;
 
-    *this->gVox = 0.0;
+    const int vx = ex + 1;
+    const int vy = ey + 1;
 
-        for (int j = 0; j < vy; j++) {
-            for (int i = 0; i < vx; i++) {
-                int ii = std::min(coarsen * i, nx - 1);
-                int jj = std::min(coarsen * j, ny - 1);
+    *gVox = 0.0;
 
-                int idx = i + vx * j;
-                (*this->gVox)[idx] = tiffData[0][jj][ii];
+    if (nz == 1)
+    {
+        for (int j = 0; j < vy; ++j)
+        {
+            for (int i = 0; i < vx; ++i)
+            {
+                const int ii = coarsen * i;
+                const int jj = coarsen * j;
+
+                const int idx = i + vx * j;
+
+                (*gVox)[idx] =
+                    tiffData[0][jj][ii];
             }
         }
-        
-    } 
-}   
+    }
+    else
+    {
+        const int ez = (nz - 1) / coarsen;
+        const int vz = ez + 1;
+
+        for (int k = 0; k < vz; ++k)
+        {
+            for (int j = 0; j < vy; ++j)
+            {
+                for (int i = 0; i < vx; ++i)
+                {
+                    const int ii = coarsen * i;
+                    const int jj = coarsen * j;
+                    const int kk = coarsen * k;
+
+                    const int idx =
+                        i + vx * (j + vy * k);
+
+                    (*gVox)[idx] =
+                        tiffData[kk][jj][ii];
+                }
+            }
+        }
+    }
+}
 
 void Initialize_Geometry::MapGlobalToLocal(const char* meshFile) {
     
@@ -449,14 +481,25 @@ std::vector<std::vector<std::vector<int>>> Initialize_Geometry::ReadTiffFile(con
 
 	if (mfem::Mpi::WorldRank() == 0) { std::cout << "reading tiff file" << std::endl; }
 	Constraints args;
-	//TODO: The code works with serial 2d, parallel 2d, and serial 3d, but not parallel 3d
-	args.Depth_begin = 0;	//only read in one slice for 2D data
-	args.Depth_end = 1;	//only read in one slice for 2D data
-	// get a smaller subset so it runs faster
-	args.Row_begin    = 15;
-	args.Row_end      = 80;
-	args.Column_begin = 10;
-	args.Column_end   = 60;
+    
+    args.Depth_begin = cfg.depth_begin;
+    args.Depth_end   = cfg.depth_end;
+
+    args.Row_begin = cfg.row_begin;
+    args.Row_end   = cfg.row_end;
+
+    args.Column_begin = cfg.column_begin;
+    args.Column_end   = cfg.column_end;
+
+	// //TODO: The code works with serial 2d, parallel 2d, and serial 3d, but not parallel 3d
+	// args.Depth_begin = 0;	//only read in one slice for 2D data
+	// args.Depth_end = 1;	//only read in one slice for 2D data
+	// // get a smaller subset so it runs faster
+	// args.Row_begin    = 15;
+	// args.Row_end      = 80;
+	// args.Column_begin = 10;
+	// args.Column_end   = 60;
+
 	TIFFReader reader(meshFile,args);
 	reader.readinfo();
 	std::vector<std::vector<std::vector<int>>> tiffData;
@@ -467,46 +510,53 @@ std::vector<std::vector<std::vector<int>>> Initialize_Geometry::ReadTiffFile(con
     return tiffData;
 }
 
-// Create a global MFEM mesh from voxel data extracted from .tif file
-std::unique_ptr<mfem::Mesh> Initialize_Geometry::CreateGlobalMeshFromTiffData(const std::vector<std::vector<std::vector<int>>>& tiffData) {
-    int nz = tiffData.size(); // depth dimension
-    int ny = tiffData[0].size(); // row dimension
-    int nx = tiffData[0][0].size(); // column dimension
+std::unique_ptr<mfem::Mesh> Initialize_Geometry::CreateGlobalMeshFromTiffData(const std::vector<std::vector<std::vector<int>>>& tiffData)
+{
+    const int nz = static_cast<int>(tiffData.size());
+    const int ny = static_cast<int>(tiffData[0].size());
+    const int nx = static_cast<int>(tiffData[0][0].size());
 
-    // std::cout << "nz: " << nz << " nx: " << nx << " ny: " << ny << std::endl;
+    const int coarsen = cfg.coarsen_factor;
 
-    double scale = cfg.dh;
+    const int ex = (nx - 1) / coarsen;
+    const int ey = (ny - 1) / coarsen;
+    const int ez = (nz == 1) ? 1 : (nz - 1) / coarsen;
 
-    double sx = nx * scale;  // make dx = 1 // size in x direction
-    double sy = ny * scale;  // make dy = 1 // size in y direction
-    double sz = nz * scale;  // make dz = 1 // size in z direction
+    // Preserve the physical size of the selected TIFF region.
+    const double sx = (nx - 1) * cfg.dh;
+    const double sy = (ny - 1) * cfg.dh;
+    const double sz = (nz == 1) ? cfg.dh : (nz - 1) * cfg.dh;
 
-    // std::cout << "sz: " << sz << " sx: " << sx << " sy: " << sy << std::endl;
-
-    const int coarsen = 1;
-    int ex = (nx - 1) / coarsen;
-    int ey = (ny - 1) / coarsen;
-    int ez = (nz == 1) ? 1 : (nz - 1) / coarsen;
-
-    // std::cout << "ez: " << ez << " ex: " << ex << " ey: " << ey << std::endl;
-
-    bool generate_edges = false; 
-    bool sfc_ordering = false; 
+    const bool generate_edges = false;
+    const bool sfc_ordering = false;
 
     std::unique_ptr<mfem::Mesh> mesh;
 
-    if (nz == 1) {
-        mesh = std::make_unique<mfem::Mesh>(
-            mfem::Mesh::MakeCartesian2D(ex, ey, mfem::Element::QUADRILATERAL, generate_edges, sx, sy, sfc_ordering)
-        );
-    } else {
-        mesh = std::make_unique<mfem::Mesh>(
-            mfem::Mesh::MakeCartesian3D(ex, ey, ez, mfem::Element::HEXAHEDRON, sx, sy, sz, sfc_ordering)
-        );
+    if (nz == 1)
+    {
+        mesh = std::make_unique<mfem::Mesh>(mfem::Mesh::MakeCartesian2D(ex, ey, mfem::Element::QUADRILATERAL, generate_edges, sx, sy, sfc_ordering));
+    }
+    else
+    {
+        mesh = std::make_unique<mfem::Mesh>(mfem::Mesh::MakeCartesian3D(ex, ey, ez, mfem::Element::HEXAHEDRON, sx, sy, sz, sfc_ordering));
+    }
+
+    if (mfem::Mpi::WorldRank() == 0)
+    {
+        std::cout << "Initial mesh dimensions:\n";
+        std::cout << "  elements x = " << ex << "\n";
+        std::cout << "  elements y = " << ey << "\n";
+
+        if (nz > 1)
+        {
+            std::cout << "  elements z = " << ez << "\n";
+        }
+
+        std::cout << "  initial element size = "
+                  << cfg.dh * coarsen << "\n";
     }
 
     return mesh;
-
 }
 
 void Initialize_Geometry::PrintMeshInfo() {
@@ -764,7 +814,7 @@ void Initialize_Geometry::ComputePDEFilterLabel(mfem::ParGridFunction &dist,
         {
             const int idx = i + nx*j + nx*ny*k;
             // fg[idx] = (tiffData[k][j][i] == target_label) ? 1 : 0;
-            if (combine_particle_groups)
+            if (cfg.combine_particle_groups)
             {
                 fg[idx] = (tiffData[k][j][i] > 0) ? 1 : 0;
             }
