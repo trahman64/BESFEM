@@ -178,7 +178,7 @@ void Domain_Parameters::InterpolateDomainParameters() {
     // -------------------------------------------------
     if (cfg.amr_levels > 0)
     {
-        const double outer_half_width = 0.45;
+        const double outer_half_width = 0.45; // half width of band
 
         for (int lev = 0; lev < cfg.amr_levels; ++lev)
         {
@@ -187,6 +187,7 @@ void Domain_Parameters::InterpolateDomainParameters() {
             const double band_fraction = static_cast<double>(cfg.amr_levels - lev) / static_cast<double>(cfg.amr_levels);
             const double half_width = outer_half_width * band_fraction;
 
+            // widest possible band is 0.05 to 0.95
             const double psi_lower = 0.5 - half_width;
             const double psi_upper = 0.5 + half_width;
 
