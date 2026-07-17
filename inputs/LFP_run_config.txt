@@ -19,7 +19,7 @@ row_end = 100
 column_begin = 0
 column_end = 100
 
-amr_levels = 1
+amr_levels = 2
 
 # Initial mesh coarsening before AMR
 # Must be 1 when amr_levels = 0
