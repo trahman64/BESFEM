@@ -118,27 +118,36 @@ A typical configuration is shown below.
 ```ini
 mode = half
 electrode = cathode
+mesh_file = ../inputs/mesh/colored_labels_labels.tif
 
-mesh_file = ../inputs/colored_labels_labels.tif
+combine_particles = true
 
-stop_mode = steps
-num_steps = 1000
+row_begin = 0
+row_end = 100
+column_begin = 0
+column_end = 100
 
-amr_levels = 0
+amr_levels = 1
+coarsen_factor = 2
 
-combine_particles = false
+dt = 1.2e-05
+dh = 8.0e-07
+gc = 6.38e-12
 
-cathode_materials = LFP,LFP,NMC
-anode_materials = Graphite,Graphite,Graphite
+stop_mode = steps       
+VCut = 3.41
+num_steps = 1501
 
-init_cathode_particles = 0.30,0.30,0.30
-init_anode_particles = 0.20,0.20,0.20
+Cr = 1.0
+Vsr0 = 0.9466
+
+cathode_materials = LFP
+init_cathode_particles = 0.043
 
 init_CnE = 0.001
 
-init_BvA = -0.10
-init_BvC = 3.40
-init_BvE = -0.10
+init_BvC = 3.359
+init_BvE = -0.1
 ```
 
 ---
