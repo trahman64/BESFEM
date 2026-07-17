@@ -29,7 +29,5 @@ var searchData=
   ['dsf_26',['dsF',['../classDomain__Parameters.html#ae0f0bbfb799c3c3180958dba45acaf4a',1,'Domain_Parameters::dsF'],['../classInitialize__Geometry.html#a68d5a38f2a80c50cf008b6ceae142d86',1,'Initialize_Geometry::dsF']]],
   ['dsf_5fa_27',['dsF_A',['../classDomain__Parameters.html#a30d9917f81a1537bc3c9b7a8e481e116',1,'Domain_Parameters::dsF_A'],['../classInitialize__Geometry.html#a24938d70776f3b575f15e3fb0dedfcc8',1,'Initialize_Geometry::dsF_A']]],
   ['dsf_5fc_28',['dsF_C',['../classDomain__Parameters.html#a1260f51782da2a4799c0c96ee7bba108',1,'Domain_Parameters::dsF_C'],['../classInitialize__Geometry.html#a42371c7040fa62f5646d328d8ae2a4bd',1,'Initialize_Geometry::dsF_C']]],
-  ['dsf_5ffile_5fa_29',['dsF_file_A',['../structSimulationConfig.html#ade9c1cebb21a86ecf6411e3ebea0e417',1,'SimulationConfig']]],
-  ['dsf_5ffile_5fc_30',['dsF_file_C',['../structSimulationConfig.html#abce3e85b6ccb34fa0fdf8a7fa0ea540a',1,'SimulationConfig']]],
-  ['dt_31',['dt',['../structSimulationConfig.html#aa4a8c5f6decf2370b9b1c0369a32ae8a',1,'SimulationConfig']]]
+  ['dt_29',['dt',['../structSimulationConfig.html#aa4a8c5f6decf2370b9b1c0369a32ae8a',1,'SimulationConfig']]]
 ];

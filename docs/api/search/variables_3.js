@@ -15,7 +15,7 @@ var searchData=
   ['distmasksigned_12',['distMaskSigned',['../classInitialize__Geometry.html#af2fabf2a9c839f123f78f78e508af2d1',1,'Initialize_Geometry']]],
   ['dmp_13',['Dmp',['../classElectrolytePotential.html#acf033556cac0edd6110a25adef9769d3',1,'ElectrolytePotential']]],
   ['domain_5f_14',['domain_',['../classUtils.html#a613dc9dc43e796a25050a2933e312725',1,'Utils']]],
-  ['domain_5fparameters_15',['domain_parameters',['../classAdjust.html#ae1a8023f5392f02ebc31ba3af0db13ba',1,'Adjust::domain_parameters'],['../classReaction.html#a35cde8383a917e1aa2fbc0c459767bcd',1,'Reaction::domain_parameters'],['../classPotentialBase.html#a4012de7469225bc2008cb3454840c8df',1,'PotentialBase::domain_parameters'],['../classElectrodePotential.html#ab1f9a31c3cd0c07e5df8b7e62a885d8a',1,'ElectrodePotential::domain_parameters'],['../classBoundaryConditions.html#ac60b7f2050432b6ef33dea4040cc007a',1,'BoundaryConditions::domain_parameters'],['../classConcentrationBase.html#a3553a2ce77d03880463e57e587d6444b',1,'ConcentrationBase::domain_parameters'],['../classElectrolytePotential.html#a694523c8aa3ddfd9803e7ed4daa0183f',1,'ElectrolytePotential::domain_parameters']]],
+  ['domain_5fparameters_15',['domain_parameters',['../classAdjust.html#ae1a8023f5392f02ebc31ba3af0db13ba',1,'Adjust::domain_parameters'],['../classReaction.html#a35cde8383a917e1aa2fbc0c459767bcd',1,'Reaction::domain_parameters'],['../classPotentialBase.html#a4012de7469225bc2008cb3454840c8df',1,'PotentialBase::domain_parameters'],['../classElectrolytePotential.html#a694523c8aa3ddfd9803e7ed4daa0183f',1,'ElectrolytePotential::domain_parameters'],['../classElectrodePotential.html#ab1f9a31c3cd0c07e5df8b7e62a885d8a',1,'ElectrodePotential::domain_parameters'],['../classConcentrationBase.html#a3553a2ce77d03880463e57e587d6444b',1,'ConcentrationBase::domain_parameters'],['../classBoundaryConditions.html#ac60b7f2050432b6ef33dea4040cc007a',1,'BoundaryConditions::domain_parameters']]],
   ['dp_16',['Dp',['../classElectrodeDiffusion.html#ae17a20499a9d510a88ead836b313f648',1,'ElectrodeDiffusion']]],
   ['dpha_17',['dPHA',['../classReaction.html#a63cba5ef63703198c8719bcd180a6c1c',1,'Reaction']]],
   ['dphc_18',['dPHC',['../classReaction.html#a007cf487e5ba0886aeffbebb71115410',1,'Reaction']]],
@@ -23,7 +23,5 @@ var searchData=
   ['dsf_20',['dsF',['../classDomain__Parameters.html#ae0f0bbfb799c3c3180958dba45acaf4a',1,'Domain_Parameters::dsF'],['../classInitialize__Geometry.html#a68d5a38f2a80c50cf008b6ceae142d86',1,'Initialize_Geometry::dsF']]],
   ['dsf_5fa_21',['dsF_A',['../classDomain__Parameters.html#a30d9917f81a1537bc3c9b7a8e481e116',1,'Domain_Parameters::dsF_A'],['../classInitialize__Geometry.html#a24938d70776f3b575f15e3fb0dedfcc8',1,'Initialize_Geometry::dsF_A']]],
   ['dsf_5fc_22',['dsF_C',['../classDomain__Parameters.html#a1260f51782da2a4799c0c96ee7bba108',1,'Domain_Parameters::dsF_C'],['../classInitialize__Geometry.html#a42371c7040fa62f5646d328d8ae2a4bd',1,'Initialize_Geometry::dsF_C']]],
-  ['dsf_5ffile_5fa_23',['dsF_file_A',['../structSimulationConfig.html#ade9c1cebb21a86ecf6411e3ebea0e417',1,'SimulationConfig']]],
-  ['dsf_5ffile_5fc_24',['dsF_file_C',['../structSimulationConfig.html#abce3e85b6ccb34fa0fdf8a7fa0ea540a',1,'SimulationConfig']]],
-  ['dt_25',['dt',['../structSimulationConfig.html#aa4a8c5f6decf2370b9b1c0369a32ae8a',1,'SimulationConfig']]]
+  ['dt_23',['dt',['../structSimulationConfig.html#aa4a8c5f6decf2370b9b1c0369a32ae8a',1,'SimulationConfig']]]
 ];
