@@ -167,9 +167,20 @@ init_BvE = -0.10
   * `true` — treat all particles as a single particle.
   * `false` — solve each particle independently.
 
+* TIFF Crop Bounds
+
+  * `row_begin`
+  * `row_end` 
+  * `column_begin` 
+  * `column_end`
+
 * `amr_levels`
 
   * AMR is supported for 1 level of refinement.
+
+* `coarsen_factor`
+  * Select a factor at which the grid will coarsen before AMR usage. Typically 2 or 4. 
+
 
 ---
 
