@@ -247,6 +247,32 @@ void Domain_Parameters::InterpolateDomainParameters() {
             pmesh->GeneralRefinement(refinement_list, 1);
             fespace->Update();
 
+            // Find the element-size range after refining this band.
+            double local_hmin = std::numeric_limits<double>::max();
+            double local_hmax = 0.0;
+
+            for (int ei = 0; ei < pmesh->GetNE(); ++ei)
+            {
+                const double h = pmesh->GetElementSize(ei);
+
+                local_hmin = std::min(local_hmin, h);
+                local_hmax = std::max(local_hmax, h);
+            }
+
+            double global_hmin = 0.0;
+            double global_hmax = 0.0;
+
+            MPI_Allreduce(&local_hmin, &global_hmin, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+            MPI_Allreduce(&local_hmax, &global_hmax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+            if (mfem::Mpi::WorldRank() == 0)
+            {
+                std::cout
+                    << "[AMR] band " << lev + 1
+                    << " element size after refinement: "
+                    << global_hmin << std::endl;
+            }
+
             auto UpdateGF = [](std::unique_ptr<mfem::ParGridFunction> &gf)
             {
                 if (gf)
