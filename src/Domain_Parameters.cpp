@@ -286,6 +286,10 @@ void Domain_Parameters::InterpolateDomainParameters() {
             nV = pmesh->GetNV();
             nE = pmesh->GetNE();
             nC = pmesh->GetElement(0)->GetNVertices();
+
+            geometry.nV = nV;
+            geometry.nE = nE;
+            geometry.nC = nC;
         }
     }
 

@@ -23,7 +23,7 @@ amr_levels = 1
 
 # Initial mesh coarsening before AMR
 # Must be 1 when amr_levels = 0
-coarsen_factor = 1
+coarsen_factor = 2
 
 # ============================================================
 # NUMERICAL PARAMETERS
@@ -46,7 +46,7 @@ num_steps = 1501
 # ============================================================
 
 Cr = 1.0
-Vsr0 = 0.09466
+Vsr0 = 0.9466
 
 # ============================================================
 # MATERIALS
