@@ -14,32 +14,32 @@ mesh_file = ../inputs/mesh/colored_labels_labels.tif
 combine_particles = true
 
 # TIFF crop bounds
-row_begin = 0
-row_end = 100
-column_begin = 0
-column_end = 100
+row_begin = 15
+row_end = 80
+column_begin = 10
+column_end = 60
 
-amr_levels = 2
+amr_levels = 0
 
 # Initial mesh coarsening before AMR
 # Must be 1 when amr_levels = 0
-coarsen_factor = 2
+coarsen_factor = 1
 
 # ============================================================
 # NUMERICAL PARAMETERS
 # ============================================================
 
-dt = 1.2e-05
-dh = 8.0e-07
-gc = 6.38e-12
+dt = 1.2e-06
+dh = 5.0e-08
+gc = 1.4e-16
 
 # ============================================================
 # STOPPING CRITERIA
 # ============================================================
 
-stop_mode = steps       
-VCut = 3.41
-num_steps = 1501
+stop_mode = voltage       
+VCut = 3.2
+num_steps = 20001
 
 # ============================================================
 # CURRENT CONTROL
@@ -58,7 +58,7 @@ cathode_materials = LFP
 # INITIAL PARTICLE STOICHIOMETRIES
 # ============================================================
 
-init_cathode_particles = 0.043
+init_cathode_particles = 0.052
 
 # ============================================================
 # INITIAL ELECTROLYTE
@@ -70,5 +70,5 @@ init_CnE = 0.001
 # INITIAL POTENTIALS
 # ============================================================
 
-init_BvC = 3.359
+init_BvC = 3.30
 init_BvE = -0.1
