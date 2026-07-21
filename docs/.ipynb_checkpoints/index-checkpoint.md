@@ -4,11 +4,9 @@ layout: home
 nav_order: 1
 ---
 
----
-
 ## Battery Electrode Simulation using MFEM
 
-Battery Electrode Simulation Finite Element Method(BESFEM) is a high-performance finite element framework for simulating electrochemical processes in lithium-ion battery electrodes.
+Battery Electrode Simulation Finite Element Method (BESFEM) is a high-performance finite element framework for simulating electrochemical processes in lithium-ion battery electrodes.
 
 It is built on MFEM, MPI, and HYPRE so that it supports parallel simulations of battery microstructures.
 
