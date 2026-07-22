@@ -1,0 +1,133 @@
+#!/bin/bash --login
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=5G
+#SBATCH --time=04:00:00
+#SBATCH --array=1
+
+# ------------------------------------------------------------
+# Simple BESFEM Parameter-Sweep Runner
+#
+# Usage:
+#   sbatch Run_fixed.sb <benchmark-directory>
+#
+# Example:
+#   sbatch Run_fixed.sb benchmark_runs/20260722_190000_123456_test
+#
+# Each submitted job:
+#   1. Finds one unclaimed .cfg file
+#   2. Claims and runs it
+#   3. Resubmits itself if it did work
+#   4. Stops when no unclaimed configs remain
+# ------------------------------------------------------------
+
+set -euo pipefail
+
+did_work=false
+
+# Use the original script in the directory where sbatch was run.
+# Change Run_fixed.sb below if you rename this file.
+SCRIPT_PATH="$SLURM_SUBMIT_DIR/Run_fixed.sb"
+
+# The folder created by parameter_sweep.py must be passed to sbatch.
+BENCHMARK_DIR="$(realpath "${1:?Usage: sbatch $0 <benchmark-directory>}")"
+
+INPUT_DIR="$BENCHMARK_DIR/input"
+
+# Keep the first Slurm job ID for the entire self-resubmitting sweep.
+SWEEP_JOB_ID="${SWEEP_JOB_ID:-${SLURM_ARRAY_JOB_ID:-$SLURM_JOB_ID}}"
+
+OUTPUT_DIR="$BENCHMARK_DIR/results/job_${SWEEP_JOB_ID}"
+LOG_DIR="$BENCHMARK_DIR/logs/job_${SWEEP_JOB_ID}"
+
+# The job is submitted from BESFEM/tools/, so BESFEM is one folder above.
+REPO_ROOT="$(realpath "$SLURM_SUBMIT_DIR/..")"
+BESFEM_BIN="$REPO_ROOT/bin/battery_simulation"
+
+echo "Starting job scan..."
+echo "Benchmark: $BENCHMARK_DIR"
+echo "Input:     $INPUT_DIR"
+echo "Output:    $OUTPUT_DIR"
+echo "Logs:      $LOG_DIR"
+echo "Sweep ID:  $SWEEP_JOB_ID"
+echo "Current Slurm job ID: $SLURM_JOB_ID"
+echo
+
+if [[ ! -d "$INPUT_DIR" ]]; then
+    echo "Error: input directory not found: $INPUT_DIR"
+    exit 1
+fi
+
+if [[ ! -x "$BESFEM_BIN" ]]; then
+    echo "Error: BESFEM executable not found or not executable:"
+    echo "$BESFEM_BIN"
+    exit 1
+fi
+
+mkdir -p "$OUTPUT_DIR"
+mkdir -p "$LOG_DIR"
+
+# noclobber makes creation of each claim file atomic.
+set -o noclobber
+shopt -s nullglob
+
+for input_file in "$INPUT_DIR"/*.cfg; do
+    base_name="$(basename "$input_file" .cfg)"
+
+    claim_file="$OUTPUT_DIR/${base_name}.claim"
+    run_output_dir="$OUTPUT_DIR/$base_name"
+    status_file="$run_output_dir/status.txt"
+    log_file="$LOG_DIR/${base_name}.log"
+
+    echo "----------------------------------------"
+    echo "Job: $base_name"
+
+    # Create the claim file only if it does not already exist.
+    if > "$claim_file" 2>/dev/null; then
+        echo "Status: claimed"
+        echo "Config: $input_file"
+
+        mkdir -p "$run_output_dir"
+        echo "running" > "$status_file"
+
+        set +e
+        srun "$BESFEM_BIN" \
+            --config "$input_file" \
+            > "$log_file" 2>&1
+        exit_code=$?
+        set -e
+
+        if [[ $exit_code -eq 0 ]]; then
+            echo "completed" > "$status_file"
+            echo "Status: complete"
+            did_work=true
+        else
+            echo "failed" > "$status_file"
+            echo "Status: failed with exit code $exit_code"
+
+            # Remove the claim so this config can be tried again later.
+            rm -f "$claim_file"
+            exit "$exit_code"
+        fi
+
+        # Process only one config during this Slurm job.
+        break
+    else
+        echo "Status: skipped (already completed or claimed)"
+    fi
+done
+
+if $did_work; then
+    echo "Work was done. Resubmitting job..."
+
+    sbatch \
+        --array=1 \
+        --export=ALL,SWEEP_JOB_ID="$SWEEP_JOB_ID" \
+        "$SCRIPT_PATH" \
+        "$BENCHMARK_DIR"
+else
+    echo "No unclaimed work found. Sweep is finished."
+    echo "Results: $OUTPUT_DIR"
+    echo "Logs:    $LOG_DIR"
+fi
