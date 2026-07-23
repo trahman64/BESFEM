@@ -150,66 +150,60 @@ def main():
     input_directory = benchmark_directory / "input"
     results_directory = benchmark_directory / "results"
     logs_directory = benchmark_directory / "logs"
-
+    
     benchmark_directory.mkdir(parents=True, exist_ok=False)
-    input_directory.mkdir(parents=True)
+    input_directory.mkdir()
     results_directory.mkdir()
     logs_directory.mkdir()
-
+    
     manifest_rows = []
-
+    
     # Create one config for each parameter value.
     for run_number, parameter_value in enumerate(
         parameter_values,
         start=1,
     ):
         run_id = f"run_{run_number:04d}"
-
+    
         config_filename = f"{run_id}.cfg"
         config_path = input_directory / config_filename
-
+    
         new_config_lines = create_new_config(
             config_lines,
             parameter_name,
             parameter_value,
         )
-
+    
         with open(config_path, "w") as file:
             file.writelines(new_config_lines)
-
-        result_directory = results_directory / run_id
-        result_directory.mkdir()
-
+    
         manifest_rows.append(
             {
                 "run_id": run_id,
                 "parameter": parameter_name,
                 "value": parameter_value,
                 "config_file": f"input/{config_filename}",
-                "result_directory": f"results/{run_id}",
                 "log_file": f"logs/{run_id}.log",
                 "status": "generated",
             }
         )
-
+    
         print(
             f"Created {config_filename}: "
             f"{parameter_name} = {parameter_value}"
         )
-
+    
     # Create manifest.csv.
     manifest_path = benchmark_directory / "manifest.csv"
-
+    
     field_names = [
         "run_id",
         "parameter",
         "value",
         "config_file",
-        "result_directory",
         "log_file",
         "status",
     ]
-
     with open(manifest_path, "w", newline="") as file:
         writer = csv.DictWriter(
             file,

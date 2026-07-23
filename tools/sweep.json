@@ -2,6 +2,8 @@
     "sweep_name": "test",
     "parameter": "Cr",
     "values": [
-        1.0
+        1.0,
+        3.0
     ]
 }
+
