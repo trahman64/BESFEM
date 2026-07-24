@@ -1,7 +1,5 @@
-#!/usr/bin/env python3
-
 """
-Create BESFEM config files for a parameter sweep.
+Create BESFEM config files for a multi-parameter sweep.
 
 Example:
 
@@ -48,14 +46,33 @@ def read_sweep_file(sweep_path):
     with open(sweep_path, "r") as file:
         sweep = json.load(file)
 
-    if "parameter" not in sweep:
-        raise ValueError("sweep.json must contain 'parameter'.")
+    if "parameters" not in sweep:
+        raise ValueError(
+            "sweep.json must contain a 'parameters' object."
+        )
 
-    if "values" not in sweep:
-        raise ValueError("sweep.json must contain 'values'.")
+    parameters = sweep["parameters"]
 
-    if not sweep["values"]:
-        raise ValueError("The values list cannot be empty.")
+    if not isinstance(parameters, dict):
+        raise ValueError(
+            "'parameters' must contain parameter names and value lists."
+        )
+
+    if not parameters:
+        raise ValueError(
+            "The parameters object cannot be empty."
+        )
+
+    for parameter_name, parameter_values in parameters.items():
+        if not isinstance(parameter_values, list):
+            raise ValueError(
+                f"Values for '{parameter_name}' must be a list."
+            )
+
+        if not parameter_values:
+            raise ValueError(
+                f"The values list for '{parameter_name}' cannot be empty."
+            )
 
     return sweep
 
@@ -81,7 +98,7 @@ def parameter_exists(config_lines, parameter_name):
     return False
 
 
-def create_new_config(config_lines, parameter_name, new_value):
+def create_new_config(config_lines, selected_values):
     new_lines = []
 
     for line in config_lines:
@@ -98,13 +115,51 @@ def create_new_config(config_lines, parameter_name, new_value):
             continue
 
         key, old_value = line.split("=", 1)
+        parameter_name = key.strip()
 
-        if key.strip() == parameter_name:
-            new_lines.append(f"{key.strip()} = {new_value}\n")
+        if parameter_name in selected_values:
+            new_value = selected_values[parameter_name]
+            new_lines.append(
+                f"{parameter_name} = {new_value}\n"
+            )
         else:
             new_lines.append(line)
 
     return new_lines
+
+
+def generate_combinations(
+    parameter_names,
+    parameters,
+    index=0,
+    current_combination=None,
+):
+    
+
+    if current_combination is None:
+        current_combination = {}
+
+    if index == len(parameter_names):
+        return [current_combination.copy()]
+
+    parameter_name = parameter_names[index]
+    parameter_values = parameters[parameter_name]
+
+    combinations = []
+
+    for parameter_value in parameter_values:
+        current_combination[parameter_name] = parameter_value
+
+        remaining_combinations = generate_combinations(
+            parameter_names,
+            parameters,
+            index + 1,
+            current_combination,
+        )
+
+        combinations.extend(remaining_combinations)
+
+    return combinations
 
 
 def main():
@@ -128,21 +183,28 @@ def main():
     with open(base_config_path, "r") as file:
         config_lines = file.readlines()
 
-    # Read the parameter and values to sweep.
+    # Read the parameters and values to sweep.
     sweep = read_sweep_file(sweep_path)
 
-    parameter_name = sweep["parameter"]
-    parameter_values = sweep["values"]
+    parameters = sweep["parameters"]
+    parameter_names = list(parameters.keys())
     sweep_name = sweep.get("sweep_name", "besfem_sweep")
 
-    if not parameter_exists(config_lines, parameter_name):
-        raise ValueError(
-            f"Parameter '{parameter_name}' was not found "
-            f"in {base_config_path}."
-        )
+    for parameter_name in parameter_names:
+        if not parameter_exists(config_lines, parameter_name):
+            raise ValueError(
+                f"Parameter '{parameter_name}' was not found "
+                f"in {base_config_path}."
+            )
+
+    combinations = generate_combinations(
+        parameter_names,
+        parameters,
+    )
 
     # Create a unique benchmark folder.
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+
     benchmark_directory = (
         benchmark_root / f"{timestamp}_{sweep_name}"
     )
@@ -150,60 +212,74 @@ def main():
     input_directory = benchmark_directory / "input"
     results_directory = benchmark_directory / "results"
     logs_directory = benchmark_directory / "logs"
-    
-    benchmark_directory.mkdir(parents=True, exist_ok=False)
+
+    benchmark_directory.mkdir(
+        parents=True,
+        exist_ok=False,
+    )
+
     input_directory.mkdir()
     results_directory.mkdir()
     logs_directory.mkdir()
-    
+
     manifest_rows = []
-    
-    # Create one config for each parameter value.
-    for run_number, parameter_value in enumerate(
-        parameter_values,
+
+    # Create one config for each parameter combination.
+    for run_number, selected_values in enumerate(
+        combinations,
         start=1,
     ):
         run_id = f"run_{run_number:04d}"
-    
+
         config_filename = f"{run_id}.cfg"
         config_path = input_directory / config_filename
-    
+
         new_config_lines = create_new_config(
             config_lines,
-            parameter_name,
-            parameter_value,
+            selected_values,
         )
-    
+
         with open(config_path, "w") as file:
             file.writelines(new_config_lines)
-    
-        manifest_rows.append(
-            {
-                "run_id": run_id,
-                "parameter": parameter_name,
-                "value": parameter_value,
-                "config_file": f"input/{config_filename}",
-                "log_file": f"logs/{run_id}.log",
-                "status": "generated",
-            }
+
+        manifest_row = {
+            "run_id": run_id,
+            "config_file": f"input/{config_filename}",
+            "log_file": f"logs/{run_id}.log",
+            "status": "generated",
+        }
+
+        # Add each parameter as a separate manifest column.
+        for parameter_name in parameter_names:
+            manifest_row[parameter_name] = selected_values[
+                parameter_name
+            ]
+
+        manifest_rows.append(manifest_row)
+
+        parameter_description = ", ".join(
+            f"{name} = {value}"
+            for name, value in selected_values.items()
         )
-    
+
         print(
             f"Created {config_filename}: "
-            f"{parameter_name} = {parameter_value}"
+            f"{parameter_description}"
         )
-    
+
     # Create manifest.csv.
     manifest_path = benchmark_directory / "manifest.csv"
-    
-    field_names = [
-        "run_id",
-        "parameter",
-        "value",
-        "config_file",
-        "log_file",
-        "status",
-    ]
+
+    field_names = (
+        ["run_id"]
+        + parameter_names
+        + [
+            "config_file",
+            "log_file",
+            "status",
+        ]
+    )
+
     with open(manifest_path, "w", newline="") as file:
         writer = csv.DictWriter(
             file,
@@ -214,11 +290,10 @@ def main():
         writer.writerows(manifest_rows)
 
     print()
-    print(f"Created {len(parameter_values)} configurations.")
+    print(f"Created {len(combinations)} configurations.")
     print(f"Benchmark folder: {benchmark_directory}")
     print(f"Manifest: {manifest_path}")
 
 
 if __name__ == "__main__":
     main()
-    
